@@ -1,0 +1,18 @@
+# One command brings up the whole stack: `docker compose up`.
+# The demo data is mounted read-only so the container never mutates source files.
+services:
+  backend:
+    build: ./backend
+    image: cohortfit-backend
+    ports:
+      - "8000:8000"
+    environment:
+      MIMIC_DATA_DIR: /data
+      # OPENAI_API_KEY is optional — without it, cohort building uses the disclosed
+      # keyword fallback. Provide it via a root .env to enable the OpenAI path.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL_PRIMARY: ${OPENAI_MODEL_PRIMARY:-gpt-5.6-terra}
+    volumes:
+      - ./mimic-iv-clinical-database-demo-2.2:/data:ro
+
+  # frontend service is added once the Next.js app lands (Lab Ledger design system).

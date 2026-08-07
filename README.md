@@ -1,8 +1,16 @@
-# patient-care-track-2
+# CohortFit
 
-## Commit policy
+A project built on the MIT-LCP **MIMIC-IV** demo dataset together with the official MIMIC code repository.
 
-**Never add co-author trailers to commits.** Do not append `Co-Authored-By: Claude ...` (or any Claude/AI co-author line) to commit messages. Commits must be authored solely by the user.
+## ⚠️ Required setup — do this before working on the project
+
+The official MIMIC code repository is **not** included in this repo (it is gitignored because it is large). You **must** download it and place it in the project root for this project to work:
+
+1. Download the repository from **https://github.com/MIT-LCP/mimic-code** (e.g. "Code → Download ZIP", which gives `mimic-code-main.zip`).
+2. **Extract the zip** into the project root — the code must be present in **folder format, not as a `.zip`**.
+3. Ensure the resulting directory is named exactly **`mimic-code-main/`** and sits at the project root.
+
+Without `mimic-code-main/` present on disk (extracted), the project cannot be worked on.
 
 ## Data & repo layout
 
@@ -15,7 +23,7 @@ The **extracted** contents of `mimic-iv-clinical-database-demo-2.2.zip` (the MIM
 The downloaded source of the official MIMIC code repository: **https://github.com/MIT-LCP/mimic-code**.
 
 - This folder is **gitignored** (see `.gitignore`) — it is a large upstream repo and is not tracked here.
-- It **must** be present on disk to work with this project. Download/clone it from the URL above and place it here **in folder format** (extracted, not as a `.zip`). The directory name must be `mimic-code-main/`.
+- It **must** be present on disk to work with this project. Download/clone it from the URL above and place it here **in folder format** (extracted, not as a `.zip`). The directory name must be `mimic-code-main/`. See [Required setup](#️-required-setup--do-this-before-working-on-the-project) above.
 
 ### `mimic-iv-docs/`
 The official MIMIC-IV **prose documentation**, copied into the project root so the docs are available without opening the source zip/site again.

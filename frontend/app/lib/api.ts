@@ -58,6 +58,18 @@ export type EvalResult = {
   note: string;
 };
 
+export type Fix = {
+  id: string;
+  table: string;
+  ref: string;
+  title: string;
+  detail: string;
+  rule: string;
+  reverse: string;
+  affected: number;
+  reversible: boolean;
+};
+
 export const api = {
   health: () => get<{ status: string; tables: number }>("/health"),
   schema: () => get<{ tables: TableInfo[] }>("/schema"),
@@ -65,5 +77,6 @@ export const api = {
     get<{ table: string; columns: string[]; rows: Record<string, unknown>[] }>(`/schema/${t}?limit=${limit}`),
   buildCohort: (text: string) => post<CohortResult>("/cohort/build", { text }),
   scorecard: () => get<Scorecard>("/quality/scorecard"),
+  fixes: () => get<{ fixes: Fix[]; note: string }>("/quality/fixes"),
   runEval: () => get<EvalResult>("/eval/run"),
 };

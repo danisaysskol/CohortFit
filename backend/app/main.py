@@ -96,6 +96,11 @@ def get_scorecard() -> dict[str, Any]:
     return {**_scorecard_cache, "safety": SAFETY}
 
 
+@app.get("/quality/fixes")
+def get_fixes() -> dict[str, Any]:
+    return {**quality.propose_fixes(get_db()), "safety": SAFETY}
+
+
 @app.get("/eval/run")
 def get_eval(n_inject: int = 20, seed: int = 42) -> dict[str, Any]:
     return {"results": [run_temporal_eval(get_db(), n_inject=n_inject, seed=seed)],

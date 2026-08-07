@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api, Scorecard } from "../lib/api";
+import { FixLedger } from "./FixLedger";
 
 const SEV_CLASS: Record<string, string> = { red: "dotr", amber: "dota", green: "dotg" };
 const SEV_LABEL: Record<string, string> = { red: "● Red", amber: "● Amber", green: "● Green" };
@@ -69,6 +70,8 @@ export default function QualityPage() {
           </section>
         </div>
       )}
+
+      {sc && <FixLedger />}
     </>
   );
 }

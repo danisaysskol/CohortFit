@@ -118,6 +118,57 @@ def all_findings(db: Database) -> list[Finding]:
             + check_completeness(db) + check_duplicates(db))
 
 
+def propose_fixes(db: Database) -> dict[str, Any]:
+    """Suggest reversible, rule-backed fixes. NOTHING here mutates source data — a fix is
+    a documented transform the UI can apply to a working copy and undo. The brief requires
+    corrections to be reversible and rule-backed; ambiguous cases stay review-only.
+    """
+    fixes: list[dict[str, Any]] = []
+
+    # Temperature recorded in °F but labelled °C (itemid 223762, valuenum > 50).
+    r = db.query(
+        "SELECT count(*) AS n, max(valuenum) AS mx FROM chartevents "
+        "WHERE itemid = 223762 AND valuenum > 50"
+    )[0]
+    if int(r["n"]) > 0:
+        fixes.append({
+            "id": "temp_f_as_c",
+            "table": "chartevents",
+            "ref": "itemid 223762",
+            "title": "Temperature recorded in °F but labelled °C",
+            "detail": f"{int(r['n'])} value(s) above 50 °C (up to {r['mx']}) are implausible as "
+                      f"Celsius and match Fahrenheit.",
+            "rule": "if valuenum > 50: celsius = (valuenum − 32) / 1.8",
+            "reverse": "fahrenheit = celsius × 1.8 + 32",
+            "affected": int(r["n"]),
+            "reversible": True,
+        })
+
+    # Mixed units under one MCHC itemid — ambiguous, so review-only (not auto-fixed).
+    r = db.query(
+        "SELECT count(*) AS n FROM labevents WHERE itemid = 51249 AND valueuom IS NOT NULL"
+    )[0]
+    if int(r["n"]) > 0:
+        fixes.append({
+            "id": "mchc_units_review",
+            "table": "labevents",
+            "ref": "itemid 51249",
+            "title": "MCHC recorded in two units (g/dL and %)",
+            "detail": "Same measurement, two units in one column. A safe conversion depends on "
+                      "context, so this is flagged for human review — not auto-corrected.",
+            "rule": "review-only — no automatic transform",
+            "reverse": "",
+            "affected": int(r["n"]),
+            "reversible": False,
+        })
+
+    return {
+        "fixes": fixes,
+        "note": "Fixes apply to a working copy only; source data is never modified. Every "
+                "applied fix is reversible and logged.",
+    }
+
+
 def scorecard(db: Database) -> dict[str, Any]:
     findings = all_findings(db)
     dim_sev = {d: "green" for d in DIMENSIONS}

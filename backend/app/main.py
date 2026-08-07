@@ -39,15 +39,21 @@ def get_db() -> Database:
     return Database()
 
 
-# The data is frozen, so the scorecard is deterministic — compute once and reuse
-# (keeps the Quality page instant during a live demo).
+# The data is frozen, so these are deterministic — compute once and reuse so every
+# page is instant during a live demo (schema row-counts and the scorecard are the
+# only slow queries; we warm them at startup).
 _scorecard_cache: dict[str, Any] | None = None
+_schema_cache: dict[str, Any] | None = None
+_fixes_cache: dict[str, Any] | None = None
 
 
 @app.on_event("startup")
 def _warm() -> None:
-    global _scorecard_cache
-    _scorecard_cache = quality.scorecard(get_db())
+    global _scorecard_cache, _schema_cache, _fixes_cache
+    db = get_db()
+    _schema_cache = {"tables": schema_mod.describe(db)}
+    _scorecard_cache = quality.scorecard(db)
+    _fixes_cache = quality.propose_fixes(db)
 
 
 class BuildRequest(BaseModel):
@@ -63,7 +69,10 @@ def health() -> dict[str, Any]:
 
 @app.get("/schema")
 def get_schema() -> dict[str, Any]:
-    return {"tables": schema_mod.describe(get_db())}
+    global _schema_cache
+    if _schema_cache is None:
+        _schema_cache = {"tables": schema_mod.describe(get_db())}
+    return _schema_cache
 
 
 @app.get("/schema/{table}")
@@ -98,7 +107,10 @@ def get_scorecard() -> dict[str, Any]:
 
 @app.get("/quality/fixes")
 def get_fixes() -> dict[str, Any]:
-    return {**quality.propose_fixes(get_db()), "safety": SAFETY}
+    global _fixes_cache
+    if _fixes_cache is None:
+        _fixes_cache = quality.propose_fixes(get_db())
+    return {**_fixes_cache, "safety": SAFETY}
 
 
 @app.get("/eval/run")

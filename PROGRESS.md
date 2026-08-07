@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-08._
+_Last updated: 2026-08-08 — MVP complete: full stack builds with one `docker compose up`, all 6 pages verified in-browser, 14 backend tests pass, all pages < 200ms._
 
 ---
 
@@ -34,10 +34,10 @@ The eight commitments (self-check on each feature): 1) honest quantified eval (p
 - **OpenAI pricing confirmed by user** (sol/terra/luna, incl. cached-input + cache-write lines). Cost-features deep-dive (caching mechanics, reasoning effort, Batch/flex) — research in progress.
 - **Decisions locked:** see decision log below.
 
-## 🔄 Current (in progress)
+## 🔄 Current
 
-- **Working full stack, verified in Docker + browser.** `docker compose up` → FastAPI backend (`:8000`) + Next.js frontend (`:3000`). All 5 pages verified live in claude-in-chrome (screenshots in `docs/ui-screenshots/app-*.jpg`).
-- Remaining: reversible **fix-ledger** UI, then the **evidence/submission** docs (evaluation report, safety statement, README polish, pitch).
+- **MVP complete and verified.** `docker compose up` → FastAPI (`:8000`) + Next.js (`:3000`); all 6 pages (Schema, Cohorts, Quality, Evaluation, About + fix-ledger) verified live in claude-in-chrome (`docs/ui-screenshots/app-*.jpg`); 14 backend tests pass; every page served < 200ms (warmed caches).
+- All buildable/verifiable agile tasks are done. What remains is **human-only** (record demo video, slides, portal submission, CVs) and **optional polish** (see below).
 
 ## ✅ Past — build (done + verified)
 

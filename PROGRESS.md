@@ -52,11 +52,17 @@ The eight commitments (self-check on each feature): 1) honest quantified eval (p
 - **Tests:** 14 pass in Docker (`docker compose run --rm backend pytest`) — data/quality/cohort/eval/api.
 - **Two demo-reliability bugs found + fixed:** scorecard 17s → 8ms (single-pass + cache); eval temp-table concurrency race → read-only CTE.
 
+## ✅ Past — evidence & submission (done)
+
+- **Reversible fix-ledger** built + verified (apply/undo, forward+reverse logged, source untouched).
+- **`docs/EVALUATION_REPORT.md`** — cohort correctness (gold = 9), injected-error metrics (P/R 1.0, honest caveat), real findings, reproducibility, limitations.
+- **`docs/SAFETY_STATEMENT.md`** — intended/prohibited use, data lineage, licence-aware minimization, failure modes, human-review boundary.
+- **README polished** — quick start (`docker compose up`), architecture, verified screenshots, ≤1000-char pitch, doc index.
+
 ## ⏳ Pending
 
-- [ ] **Reversible fix-ledger UI** (suggest → apply → undo, logged; never mutates source) — supports the brief's "reversible correction rate".
-- [ ] **Evidence & submission:** `docs/EVALUATION_REPORT.md`, `docs/SAFETY_STATEMENT.md`, README polish (run instructions + screenshots), ≤1000-char pitch.
-- [ ] Human deliverables: demo video + slides (script already in `TENTATIVE_AGILE_PLAN.md`).
+- [ ] Human deliverables only: **demo video + slides** (3-min script already in `TENTATIVE_AGILE_PLAN.md`), Sofstica portal submission, CVs.
+- [ ] Optional polish: extend the injected-error harness to more dimensions (near-duplicate, unit-normalization); OpenAI-path live test with a real key; ER-diagram view on the Schema page.
 
 ## 🖼️ UI screenshots
 Latest UI screenshots live in `docs/ui-screenshots/`. **Update them whenever the UI changes** (test in claude-in-chrome, overwrite the "latest" set).

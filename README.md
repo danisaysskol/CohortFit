@@ -27,6 +27,62 @@ We maintain and grade ourselves against this North Star in [`PROGRESS.md`](PROGR
 
 ---
 
+## 🚀 Quick start
+
+The whole stack runs in Docker — one command:
+
+```bash
+docker compose up --build
+# frontend → http://localhost:3000   ·   backend API → http://localhost:8000
+```
+
+`OPENAI_API_KEY` is **optional**: without it, the cohort builder uses a disclosed keyword fallback so everything works offline. To enable the OpenAI path, copy `.env.example` → `.env` and set your key.
+
+Run the backend tests (14, in Docker):
+
+```bash
+docker compose run --rm backend pytest
+```
+
+## 🧭 How it works
+
+```
+Plain English ──▶ OpenAI (or keyword fallback) ──▶ validated JSON IR ──▶ compiler ──▶ DuckDB SQL
+   (browser)        (schema + text only)            (never raw SQL)      (deterministic)   │
+                                                                                           ▼
+  Next.js UI ◀────────── FastAPI ◀───────────────── provenance funnel + subject_ids + data-hash
+  (Lab Ledger)          (:8000)                      quality scorecard · reversible fixes · eval
+```
+
+- **Frontend:** Next.js 14 (App Router), the *Lab Ledger* design system (`FRONTEND_DESIGN_SYSTEM.md`), self-hosted fonts.
+- **Backend:** FastAPI + DuckDB over the frozen demo CSVs (read-only). The LLM emits a validated **IR**, never executable SQL; a deterministic compiler runs it.
+- **Reproducible:** IR + compiled SQL + a data-hash are stored; the eval harness is seeded.
+
+## 🖥️ The app (verified screenshots)
+
+| Cohorts — builder + Provenance Ledger | Quality — scorecard + findings |
+|---|---|
+| ![Cohorts](docs/ui-screenshots/app-cohorts.jpg) | ![Quality](docs/ui-screenshots/app-quality.jpg) |
+| **Schema explorer** | **Evaluation — injected-error metrics** |
+| ![Schema](docs/ui-screenshots/app-schema.jpg) | ![Evaluation](docs/ui-screenshots/app-evaluation.jpg) |
+
+Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledger 100→44→44→9 + IR/SQL) · **Quality** (R/A/G scorecard, data-error-vs-finding, reversible fix-ledger) · **Evaluation** (precision/recall from self-injected errors) · **About/Safety**.
+
+## 📝 Project description (submission pitch)
+
+> **CohortFit** turns a plain-English cohort description into a transparent, showable query — who's in, who's out, and why — then scores whether the data are fit to trust, telling real clinical findings from data errors. **Built:** a Next.js + FastAPI/DuckDB app over MIMIC-IV Demo (100 patients) with a Schema Explorer; a Cohort Builder whose *Provenance Ledger* shows the inclusion→exclusion funnel (100→44→44→9) plus the IR and SQL; a red/amber/green Data-Fitness Scorecard that separates data errors from real findings; reversible, rule-backed fixes (never mutating source); and an Evaluation page with real precision/recall from self-injected errors. **Problem:** researchers waste weeks before discovering data can't support a study. **How:** the LLM emits a validated IR (not SQL); our compiler runs it on DuckDB; every flag traces to a real row; it abstains when unsupported. **More time:** broaden NL coverage, harder data-quality dimensions, patient-grouped cross-validation.
+
+## 📚 Documentation
+
+- [`TENTATIVE_AGILE_PLAN.md`](TENTATIVE_AGILE_PLAN.md) — product plan, use cases, demo script.
+- [`docs/TRACK2_REQUIREMENTS.md`](docs/TRACK2_REQUIREMENTS.md) — the hackathon brief, extracted.
+- [`docs/RESEARCH_AND_EXPLORATION.md`](docs/RESEARCH_AND_EXPLORATION.md) — data map, evidence, model/method R&D (from-scratch explainer + real samples).
+- [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) · [`docs/SAFETY_STATEMENT.md`](docs/SAFETY_STATEMENT.md) — required deliverables.
+- [`FRONTEND_DESIGN_SYSTEM.md`](FRONTEND_DESIGN_SYSTEM.md) · [`docs/design-direction.md`](docs/design-direction.md) — the design system.
+- [`PROGRESS.md`](PROGRESS.md) — living status + decision log.
+
+---
+
 ## ⚠️ Required setup — do this before working on the project
 
 The official MIMIC code repository is **not** included in this repo (it is gitignored because it is large). You **must** download it and place it in the project root for this project to work:
@@ -35,7 +91,7 @@ The official MIMIC code repository is **not** included in this repo (it is gitig
 2. **Extract the zip** into the project root — the code must be present in **folder format, not as a `.zip`**.
 3. Ensure the resulting directory is named exactly **`mimic-code-main/`** and sits at the project root.
 
-Without `mimic-code-main/` present on disk (extracted), the project cannot be worked on.
+`mimic-code-main/` is a **cited reference** (its `vitalsign.sql` plausibility bounds inform our rules) and a project convention — keep it present for provenance. Note: the runnable app itself needs only **Docker + the demo data** (the bounds are already encoded in `backend/app/quality/ranges.py`), so the [Quick start](#-quick-start) works without opening the repo.
 
 ## Data & repo layout
 

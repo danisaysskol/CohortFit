@@ -1,0 +1,8 @@
+# Downloaded upstream repo (https://github.com/MIT-LCP/mimic-code) — not tracked here.
+# Must be present locally in folder format (extracted, not .zip).
+mimic-code-main/
+
+# Source archives — already extracted (dataset -> mimic-iv-clinical-database-demo-2.2/,
+# docs -> mimic-iv-docs/). Kept locally but not tracked.
+mimic-iv-clinical-database-demo-2.2.zip
+mimic.mit.edu-main.zip

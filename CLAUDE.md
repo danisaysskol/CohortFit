@@ -1,0 +1,147 @@
+# patient-care-track-2
+
+## Data & repo layout
+
+This project uses the MIT-LCP MIMIC-IV demo dataset together with the official MIMIC code repository.
+
+### `mimic-iv-clinical-database-demo-2.2/`
+The **extracted** contents of `mimic-iv-clinical-database-demo-2.2.zip` (the MIMIC-IV Clinical Database Demo v2.2). The original zip shipped every table as a `.csv.gz`; those have all been decompressed to plain `.csv` in place, preserving the archive's folder structure. This folder **is** the dataset — it is committed to the repo.
+
+### `mimic-code-main/`
+The downloaded source of the official MIMIC code repository: **https://github.com/MIT-LCP/mimic-code**.
+
+- This folder is **gitignored** (see `.gitignore`) — it is a large upstream repo and is not tracked here.
+- It **must** be present on disk to work with this project. Download/clone it from the URL above and place it here **in folder format** (extracted, not as a `.zip`). The directory name must be `mimic-code-main/`.
+
+### `mimic-iv-docs/`
+The official MIMIC-IV **prose documentation**, copied into the project root so the docs are available without opening the source zip/site again.
+
+- Source: the `docs/iv/` folder inside `mimic.mit.edu-main.zip` — the downloaded repo of the MIMIC documentation website **https://github.com/MIT-LCP/mimic.mit.edu** (published at https://mimic.mit.edu/docs/iv/). This is the Jekyll source for the docs site.
+- Contents (66 markdown files): `about/` (changelog, concepts, schema-overview, whatsnew), `modules/` with per-table docs for `hosp/`, `icu/`, `ed/`, `cxr/`, `ecg/`, `note/`, and `tutorials/`. The `modules/hosp/*.md` and `modules/icu/*.md` files document every table present in `mimic-iv-clinical-database-demo-2.2/`.
+- This is a static copy of `docs/iv/`; re-copy it from a fresh `mimic.mit.edu-main.zip` if the docs are updated.
+
+## Full tree of `mimic-iv-clinical-database-demo-2.2/`
+
+```
+mimic-iv-clinical-database-demo-2.2/
+├── LICENSE.txt
+├── README.txt
+├── SHA256SUMS.txt
+├── demo_subject_id.csv
+├── hosp/
+│   ├── admissions.csv
+│   ├── d_hcpcs.csv
+│   ├── d_icd_diagnoses.csv
+│   ├── d_icd_procedures.csv
+│   ├── d_labitems.csv
+│   ├── diagnoses_icd.csv
+│   ├── drgcodes.csv
+│   ├── emar.csv
+│   ├── emar_detail.csv
+│   ├── hcpcsevents.csv
+│   ├── labevents.csv
+│   ├── microbiologyevents.csv
+│   ├── omr.csv
+│   ├── patients.csv
+│   ├── pharmacy.csv
+│   ├── poe.csv
+│   ├── poe_detail.csv
+│   ├── prescriptions.csv
+│   ├── procedures_icd.csv
+│   ├── provider.csv
+│   ├── services.csv
+│   └── transfers.csv
+└── icu/
+    ├── caregiver.csv
+    ├── chartevents.csv
+    ├── d_items.csv
+    ├── datetimeevents.csv
+    ├── icustays.csv
+    ├── ingredientevents.csv
+    ├── inputevents.csv
+    ├── outputevents.csv
+    └── procedureevents.csv
+```
+
+## Tree of `mimic-iv-docs/` (from `docs/iv/`)
+
+```
+mimic-iv-docs/
+├── index.md
+├── about/
+│   ├── changelog.md
+│   ├── concepts.md
+│   ├── index.md
+│   ├── schema-overview.md
+│   └── whatsnew.md
+├── modules/
+│   ├── index.md
+│   ├── cxr/
+│   │   ├── index.md
+│   │   └── record_list.md
+│   ├── ecg/
+│   │   ├── index.md
+│   │   ├── machine_measurements.md
+│   │   ├── record_list.md
+│   │   └── waveform_note_links.md
+│   ├── ed/
+│   │   ├── diagnosis.md
+│   │   ├── edstays.md
+│   │   ├── index.md
+│   │   ├── medrecon.md
+│   │   ├── pyxis.md
+│   │   ├── triage.md
+│   │   └── vitalsign.md
+│   ├── hosp/
+│   │   ├── admissions.md
+│   │   ├── d_hcpcs.md
+│   │   ├── d_icd_diagnoses.md
+│   │   ├── d_icd_procedures.md
+│   │   ├── d_labitems.md
+│   │   ├── diagnoses_icd.md
+│   │   ├── drgcodes.md
+│   │   ├── emar.md
+│   │   ├── emar_detail.md
+│   │   ├── hcpcsevents.md
+│   │   ├── index.md
+│   │   ├── labevents.md
+│   │   ├── microbiologyevents.md
+│   │   ├── omr.md
+│   │   ├── patients.md
+│   │   ├── pharmacy.md
+│   │   ├── poe.md
+│   │   ├── poe_detail.md
+│   │   ├── prescriptions.md
+│   │   ├── procedures_icd.md
+│   │   ├── provider.md
+│   │   ├── services.md
+│   │   └── transfers.md
+│   ├── icu/
+│   │   ├── caregiver.md
+│   │   ├── chartevents.md
+│   │   ├── d_items.md
+│   │   ├── datetimesevents.md
+│   │   ├── icustays.md
+│   │   ├── index.md
+│   │   ├── ingredientevents.md
+│   │   ├── inputevents.md
+│   │   ├── outputevents.md
+│   │   └── procedureevents.md
+│   └── note/
+│       ├── discharge.md
+│       ├── discharge_detail.md
+│       ├── index.md
+│       ├── radiology.md
+│       └── radiology_detail.md
+└── tutorials/
+    ├── bigquery.md
+    ├── first-query.md
+    ├── index.md
+    ├── video.md
+    ├── cxr/
+    │   ├── index.md
+    │   └── study.md
+    └── waveform/
+        ├── ieee_workshop.md
+        └── index.md
+```

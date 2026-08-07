@@ -1,4 +1,56 @@
-# patient-care-track-2
+# patient-care-track-2 — CohortFit
+
+## ⚙️ Claude Code model requirement (read first)
+
+**Use `claude-opus-4-8` for all work on this project.** The latest model is Opus 5, but this project is standardized on **Opus 4.8** for consistency across sessions and collaborators. At the start of every session run:
+
+```
+/model claude-opus-4-8
+```
+
+Do not build or modify this project on a different model unless the user explicitly says otherwise.
+
+## What this project is
+
+**CohortFit** — our entry for the **Sofstica AI Hackathon 2026**, challenge "AI for Smarter Patient Care", **Track 2 — Cohort & Data Quality Explorer**.
+
+> One-liner: **CohortFit turns a plain-English cohort description into a transparent, showable query (who's in / who's out and why), then scores whether the data are fit to trust — separating real clinical findings from data errors, and only ever suggesting reversible, explained fixes.** The pitch is *honesty as a feature*.
+
+**Product contract (must hold in all code + UI):**
+- **DOES:** visible cohort queries (inclusion + exclusion); red/amber/green data-fitness scorecard with drill-down to source rows; distinguishes a real clinical finding from a data error; reversible, rule-backed fixes only; provenance for every patient-level claim; **abstains** when unsupported.
+- **NEVER:** silently edits/deletes source data; gives medical/diagnostic/triage advice; claims clinical validity; hides AI-generated content; infers calendar dates (data are date-shifted); sends patient rows to any external service (LLM sees only schema + aggregates).
+- **On every screen:** *Research and educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.*
+
+**Locked decisions:** Stack = **FastAPI + Next.js** (deploy to Vercel) · LLM = **OpenAI only** (strict Structured Outputs, column enums; GPT-5.6 Terra primary / Luna fallback / Sol escalate) · **NL → validated JSON IR → DuckDB SQL** (the LLM never writes executable SQL) · Ace card = **demo-verifiable only** (every flag traces to a real 100-patient row).
+
+**Process:** we work **scrum-style** — build one small feature, test it, verify against requirements + rubric (`docs/TRACK2_REQUIREMENTS.md`), update, then move on. Frontend is built **from the start**, not bolted on at the end.
+
+**Frontend shape (multi-page, so judges can mark progressively):** each capability gets its own page so results are easy to see and grade — e.g. **Schema Explorer** (schema + ER diagram + relevant data with filters & search), **Cohort Builder** (NL → IR + SQL + who's in/out), **Data-Fitness Scorecard** (red/amber/green + clickable flag rows), **Evaluation** (error-injection metrics), and an **About/Safety** page. This layout is tentative and evolves.
+
+**Design:** Apple- and Claude-like, **user-centric, warm light mode only (no dark mode)**. The design system is chosen by the user from presented options, then documented in **`FRONTEND_DESIGN_SYSTEM.md`** (the single source of truth for tokens, type, motion, components). Build UI to match that file.
+
+**Demo-safety engineering (so we never get doomed live):** near-perfect **session management + local store** (a cohort/flag session persists and reloads exactly), and **deterministic, sandboxed execution** of every query/code path (compiled SQL over the fixed DuckDB store; store IR + SQL + data-hash; no surprise network calls in the hot path).
+
+**Deploy target:** everything runs in **Docker** (a collaborator will also run it) — one `docker compose up` brings up backend + frontend. Keep it reproducible.
+
+## Operational practices for this repo
+
+- **UI screenshots:** whenever the UI changes, test it in **claude-in-chrome** and save the latest screenshot(s) to `docs/ui-screenshots/` (overwrite the "latest" set) so the repo always shows the current UI.
+- **Dead code:** remove unused code, utilities, config keys, and copy as you go — keep the tree clean.
+- **Docs follow the 7 Cs** (clear, concise, concrete, correct, coherent, complete, courteous) and must be understandable by someone with zero prior context.
+
+## Key project docs (read these before building)
+
+- **`PROGRESS.md`** — living status tracker (Past / Current / Pending). **Update it as work happens; check it first each session.**
+- `TENTATIVE_AGILE_PLAN.md` — product plan: use cases, Does/Never, rubric mapping, eval harness, demo arc, build order + MVP cut line.
+- `docs/TRACK2_REQUIREMENTS.md` — faithful extract of both hackathon PDFs (rubric weights, metrics, safety text, submission rules).
+- `docs/RESEARCH_AND_EXPLORATION.md` — the measured data map, DQ opportunity catalogue (real values), documented-bug citations, and model/method decisions with sources.
+
+## Conventions
+
+- **Secrets:** real `.env` is gitignored; use `.env.example` as the template (`OPENAI_API_KEY`, model IDs). Never commit keys.
+- **Config over hardcoding:** model IDs, temperature, data paths, and plausibility-rule tables live in config, not inline.
+- **Data-quality correctness gate:** only ~782 of 4,014 ICU items are numeric — gate every plausibility/missingness rule on `d_items.param_type` (a null `valuenum` on a text/checkbox item is NOT a defect).
 
 ## Commit policy
 

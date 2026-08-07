@@ -1,0 +1,543 @@
+<style>
+  /* ============ CohortFit Design Studio — warm-light, single committed theme ============ */
+  :root{
+    --chrome-bg:#EFEBE3; --chrome-panel:#F7F4EE; --chrome-ink:#2A2620; --chrome-muted:#847C6E;
+    --chrome-line:#DDD5C7; --chrome-accent:#B5563A; --chrome-focus:#2857C4;
+    --chrome-font:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+    --chrome-mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--chrome-bg); color:var(--chrome-ink);
+    font-family:var(--chrome-font); font-size:15px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+  .wrap{max-width:1440px;margin:0 auto;padding:0 clamp(12px,2vw,24px)}
+
+  /* ---------- top chrome ---------- */
+  .top{padding:22px 0 14px;border-bottom:1px solid var(--chrome-line)}
+  .top h1{margin:0;font-size:20px;letter-spacing:-.01em;font-weight:650}
+  .top h1 .mono{font-family:var(--chrome-mono);color:var(--chrome-accent);font-weight:600}
+  .top p{margin:4px 0 0;color:var(--chrome-muted);font-size:13.5px;max-width:78ch}
+  .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .tab{
+    appearance:none;border:1px solid var(--chrome-line);background:var(--chrome-panel);
+    color:var(--chrome-ink);border-radius:11px;padding:9px 14px;cursor:pointer;
+    font:inherit;font-size:13px;display:flex;flex-direction:column;gap:1px;min-width:150px;text-align:left;
+    transition:border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .tab .nm{font-weight:640}
+  .tab .dsc{color:var(--chrome-muted);font-size:11.5px}
+  .tab .sw{display:flex;gap:3px;margin-top:6px}
+  .tab .sw i{width:14px;height:14px;border-radius:4px;display:block;border:1px solid rgba(0,0,0,.06)}
+  .tab:hover{transform:translateY(-1px)}
+  .tab[aria-selected="true"]{border-color:var(--chrome-ink);box-shadow:0 0 0 1px var(--chrome-ink)}
+  .tab:focus-visible,.field:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{
+    outline:2px solid var(--chrome-focus);outline-offset:2px}
+
+  /* ---------- workshop split ---------- */
+  .workshop{display:grid;grid-template-columns:288px 1fr;gap:20px;padding:20px 0 40px;align-items:start}
+  @media(max-width:940px){.workshop{grid-template-columns:1fr}}
+
+  /* ---------- controls ---------- */
+  .controls{position:sticky;top:14px;background:var(--chrome-panel);border:1px solid var(--chrome-line);
+    border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:14px}
+  @media(max-width:940px){.controls{position:static}}
+  .ctl-h{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--chrome-muted);font-weight:700;margin:2px 0}
+  .grp{display:flex;flex-direction:column;gap:9px;padding-bottom:12px;border-bottom:1px dashed var(--chrome-line)}
+  .grp:last-child{border-bottom:0;padding-bottom:0}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .row label{font-size:12.5px;color:var(--chrome-ink)}
+  .row .val{font-family:var(--chrome-mono);font-size:11.5px;color:var(--chrome-muted);font-variant-numeric:tabular-nums}
+  select,.seg{font:inherit;font-size:12.5px}
+  select{background:#fff;border:1px solid var(--chrome-line);border-radius:8px;padding:6px 8px;color:var(--chrome-ink);width:148px}
+  input[type=range]{width:148px;accent-color:var(--chrome-accent)}
+  .seg{display:inline-flex;border:1px solid var(--chrome-line);border-radius:8px;overflow:hidden;background:#fff}
+  .seg button{appearance:none;border:0;background:transparent;padding:6px 9px;cursor:pointer;font:inherit;font-size:12px;color:var(--chrome-muted)}
+  .seg button[aria-pressed="true"]{background:var(--chrome-ink);color:#fff}
+  .swatches{display:flex;gap:6px;flex-wrap:wrap}
+  .swatches button{width:22px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,.12);cursor:pointer;padding:0}
+  .swatches button[aria-pressed="true"]{outline:2px solid var(--chrome-ink);outline-offset:1px}
+  .btn{appearance:none;border:1px solid var(--chrome-line);background:#fff;border-radius:9px;padding:8px 10px;
+    cursor:pointer;font:inherit;font-size:12.5px;color:var(--chrome-ink);width:100%;font-weight:560}
+  .btn:hover{border-color:var(--chrome-ink)}
+  .btn-ghost{background:transparent}
+
+  /* ================= STAGE (the live product preview) ================= */
+  .stage-shell{min-width:0}
+  .stage-meta{display:flex;align-items:baseline;gap:10px;margin:0 2px 10px;flex-wrap:wrap}
+  .stage-meta .p-nm{font-weight:660;font-size:15px}
+  .stage-meta .p-tag{color:var(--chrome-muted);font-size:12.5px}
+  .stage{
+    /* dynamic tokens — set by JS. Defaults = Clinical Calm */
+    --s-bg:#FBF9F5;--s-card:#FFFFFF;--s-ink:#23201B;--s-muted:#7C7568;--s-line:#ECE6DB;
+    --s-accent:#2F8F83;--s-accent-ink:#FFFFFF;--s-ok:#3E8F6B;--s-warn:#C8892B;--s-danger:#C0553B;
+    --s-radius:16px;--s-shadow:0 1px 2px rgba(40,32,20,.04),0 10px 26px rgba(40,32,20,.06);
+    --s-fd:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+    --s-fb:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+    --s-fm:ui-monospace,"SF Mono","Cascadia Code",Consolas,"Courier New",monospace;
+    --s-size:16px;--s-scale:1.06;--s-motion:240ms;--s-card-bg:var(--s-card);--s-blur:0px;
+    position:relative;background:var(--s-bg);color:var(--s-ink);border:1px solid var(--s-line);
+    border-radius:calc(var(--s-radius) + 6px);padding:clamp(14px,2vw,26px);
+    font-family:var(--s-fb);font-size:var(--s-size);overflow:hidden;
+    transition:background var(--s-motion) ease,color var(--s-motion) ease;
+  }
+  .stage :focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
+
+  /* safety banner — required on every product screen */
+  .safety{display:flex;gap:9px;align-items:flex-start;background:color-mix(in srgb,var(--s-warn) 12%,var(--s-card));
+    border:1px solid color-mix(in srgb,var(--s-warn) 40%,var(--s-line));color:color-mix(in srgb,var(--s-ink) 88%,var(--s-warn));
+    border-radius:var(--s-radius);padding:10px 13px;font-size:.82em;line-height:1.45}
+  .safety b{color:color-mix(in srgb,var(--s-ink) 92%,var(--s-warn))}
+  .safety .ico{flex:0 0 auto;width:16px;height:16px;margin-top:1px;color:var(--s-warn)}
+
+  .s-h{font-family:var(--s-fd);letter-spacing:-.01em;text-wrap:balance}
+  .s-eyebrow{font-size:.7em;letter-spacing:.11em;text-transform:uppercase;color:var(--s-muted);font-weight:700}
+
+  .board{display:grid;grid-template-columns:1.15fr .85fr;gap:calc(16px * var(--s-scale));margin-top:calc(14px * var(--s-scale))}
+  @media(max-width:720px){.board{grid-template-columns:1fr}}
+  .card{background:var(--s-card-bg);border:1px solid var(--s-line);border-radius:var(--s-radius);
+    box-shadow:var(--s-shadow);backdrop-filter:blur(var(--s-blur));-webkit-backdrop-filter:blur(var(--s-blur));
+    padding:calc(15px * var(--s-scale));transition:box-shadow var(--s-motion) ease,transform var(--s-motion) ease,border-radius var(--s-motion) ease}
+  .card + .card{margin-top:calc(14px * var(--s-scale))}
+
+  /* cohort builder */
+  .ask{display:flex;flex-direction:column;gap:9px}
+  .ask .q{display:flex;gap:9px;align-items:center;background:var(--s-bg);border:1px solid var(--s-line);
+    border-radius:calc(var(--s-radius) - 3px);padding:11px 13px}
+  .ask .q .dot{width:8px;height:8px;border-radius:50%;background:var(--s-accent);flex:0 0 auto;box-shadow:0 0 0 4px color-mix(in srgb,var(--s-accent) 18%,transparent)}
+  .ask .q input{border:0;background:transparent;font:inherit;font-size:.98em;color:var(--s-ink);width:100%;font-family:var(--s-fb)}
+  .ask .q .go{border:0;background:var(--s-accent);color:var(--s-accent-ink);border-radius:calc(var(--s-radius) - 5px);
+    padding:7px 13px;font:inherit;font-weight:640;font-size:.85em;cursor:pointer;transition:transform var(--s-motion) ease,filter var(--s-motion) ease}
+  .ask .q .go:hover{filter:brightness(1.05)}
+
+  .funnel{display:flex;flex-direction:column;gap:8px;margin-top:calc(12px * var(--s-scale))}
+  .frow{display:flex;align-items:center;gap:10px}
+  .frow .bar{height:26px;border-radius:calc(var(--s-radius) - 6px);background:color-mix(in srgb,var(--s-accent) 16%,var(--s-card));
+    border:1px solid color-mix(in srgb,var(--s-accent) 26%,var(--s-line));display:flex;align-items:center;padding:0 10px;
+    font-size:.78em;color:color-mix(in srgb,var(--s-ink) 85%,var(--s-accent));white-space:nowrap;font-variant-numeric:tabular-nums;
+    transition:width var(--s-motion) cubic-bezier(.2,.8,.2,1)}
+  .frow .lab{font-size:.8em;color:var(--s-muted)}
+  .frow.excl .bar{background:color-mix(in srgb,var(--s-muted) 12%,var(--s-card));border-color:var(--s-line);color:var(--s-muted)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:calc(12px * var(--s-scale))}
+  .chip{font-size:.76em;padding:4px 9px;border-radius:999px;border:1px solid var(--s-line);background:var(--s-bg);color:var(--s-muted);font-variant-numeric:tabular-nums}
+  .chip b{color:var(--s-ink)}
+  .chip.in{border-color:color-mix(in srgb,var(--s-ok) 40%,var(--s-line));background:color-mix(in srgb,var(--s-ok) 12%,var(--s-card));color:color-mix(in srgb,var(--s-ink) 80%,var(--s-ok))}
+
+  /* IR + SQL */
+  .codetabs{display:flex;gap:4px;margin-bottom:8px}
+  .codetabs button{appearance:none;border:1px solid var(--s-line);background:var(--s-bg);color:var(--s-muted);
+    border-radius:calc(var(--s-radius) - 7px);padding:4px 10px;font:inherit;font-size:.74em;cursor:pointer;font-weight:600}
+  .codetabs button[aria-pressed="true"]{background:var(--s-ink);color:var(--s-card);border-color:var(--s-ink)}
+  pre{margin:0;overflow-x:auto;background:color-mix(in srgb,var(--s-ink) 4%,var(--s-card));
+    border:1px solid var(--s-line);border-radius:calc(var(--s-radius) - 5px);padding:12px 13px}
+  code{font-family:var(--s-fm);font-size:.78em;line-height:1.65;color:color-mix(in srgb,var(--s-ink) 92%,var(--s-accent))}
+  .k{color:var(--s-accent);font-weight:600}.n{color:var(--s-warn)}.c{color:var(--s-muted)}
+
+  /* scorecard */
+  .grades{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:calc(6px * var(--s-scale))}
+  @media(max-width:520px){.grades{grid-template-columns:repeat(2,1fr)}}
+  .grade{border:1px solid var(--s-line);border-radius:calc(var(--s-radius) - 4px);padding:10px;position:relative;overflow:hidden;background:var(--s-card-bg)}
+  .grade .stripe{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .grade .g{font-size:.68em;text-transform:uppercase;letter-spacing:.06em;color:var(--s-muted);font-weight:700}
+  .grade .v{font-size:1.15em;font-weight:700;margin-top:3px;font-family:var(--s-fd)}
+  .g-red .stripe{background:var(--s-danger)} .g-red .v{color:var(--s-danger)}
+  .g-amber .stripe{background:var(--s-warn)} .g-amber .v{color:var(--s-warn)}
+  .g-green .stripe{background:var(--s-ok)} .g-green .v{color:var(--s-ok)}
+
+  .flags{margin-top:calc(12px * var(--s-scale));border:1px solid var(--s-line);border-radius:calc(var(--s-radius) - 4px);overflow:hidden}
+  .flag{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-top:1px solid var(--s-line);cursor:pointer;transition:background var(--s-motion) ease}
+  .flag:first-child{border-top:0}
+  .flag:hover{background:color-mix(in srgb,var(--s-accent) 6%,var(--s-card))}
+  .flag .sev{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
+  .sev.red{background:var(--s-danger)}.sev.amber{background:var(--s-warn)}.sev.green{background:var(--s-ok)}
+  .flag .txt{min-width:0}
+  .flag .txt .t1{font-size:.86em;font-weight:560}
+  .flag .txt .t2{font-size:.74em;color:var(--s-muted);font-family:var(--s-fm)}
+  .tag{font-size:.68em;padding:3px 8px;border-radius:999px;white-space:nowrap;font-weight:640}
+  .tag.err{background:color-mix(in srgb,var(--s-danger) 14%,var(--s-card));color:var(--s-danger);border:1px solid color-mix(in srgb,var(--s-danger) 34%,var(--s-line))}
+  .tag.find{background:color-mix(in srgb,var(--s-ok) 14%,var(--s-card));color:var(--s-ok);border:1px solid color-mix(in srgb,var(--s-ok) 34%,var(--s-line))}
+  .ai-note{margin-top:calc(12px * var(--s-scale));display:flex;gap:8px;align-items:flex-start;font-size:.78em;color:var(--s-muted);
+    background:color-mix(in srgb,var(--s-accent) 7%,var(--s-card));border:1px dashed color-mix(in srgb,var(--s-accent) 30%,var(--s-line));
+    border-radius:calc(var(--s-radius) - 5px);padding:9px 11px;line-height:1.5}
+  .ai-note .badge{font-size:.9em;font-weight:700;color:var(--s-accent);flex:0 0 auto}
+
+  /* ---------- overlay + modal preview ---------- */
+  .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:5;padding:20px}
+  .overlay.on{display:flex}
+  .overlay.dim::before,.overlay.blur::before{content:"";position:absolute;inset:0}
+  .overlay.dim::before{background:rgba(30,24,16,.34)}
+  .overlay.blur::before{background:rgba(30,24,16,.14);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  .modal{position:relative;background:var(--s-card);border:1px solid var(--s-line);box-shadow:0 24px 60px rgba(30,24,16,.24);
+    border-radius:var(--s-radius);padding:18px;max-width:400px;width:100%;z-index:1;
+    animation:pop var(--s-motion) cubic-bezier(.2,.8,.2,1)}
+  .overlay.sheet{align-items:flex-end;justify-content:center;padding:0}
+  .overlay.sheet .modal{max-width:none;border-radius:var(--s-radius) var(--s-radius) 0 0;animation:sheet var(--s-motion) cubic-bezier(.2,.8,.2,1)}
+  .overlay.side{align-items:stretch;justify-content:flex-end;padding:0}
+  .overlay.side .modal{max-width:340px;height:100%;border-radius:var(--s-radius) 0 0 var(--s-radius);animation:side var(--s-motion) cubic-bezier(.2,.8,.2,1)}
+  .modal h4{margin:0 0 6px;font-family:var(--s-fd);font-size:1.05em}
+  .modal p{margin:0 0 8px;font-size:.85em;color:var(--s-muted);line-height:1.5}
+  .modal .ledger{font-size:.78em;font-family:var(--s-fm);background:var(--s-bg);border:1px solid var(--s-line);border-radius:8px;padding:9px;color:var(--s-ink)}
+  .modal .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+  .modal .acts button{border:1px solid var(--s-line);background:var(--s-bg);border-radius:calc(var(--s-radius) - 6px);padding:7px 12px;font:inherit;font-size:.82em;cursor:pointer;color:var(--s-ink)}
+  .modal .acts .primary{background:var(--s-accent);color:var(--s-accent-ink);border-color:transparent;font-weight:620}
+  @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+  @keyframes sheet{from{transform:translateY(100%)}to{transform:none}}
+  @keyframes side{from{transform:translateX(100%)}to{transform:none}}
+
+  .foot{color:var(--chrome-muted);font-size:12px;padding:0 0 34px;max-width:90ch;line-height:1.6}
+  .foot code{font-family:var(--chrome-mono);background:var(--chrome-panel);border:1px solid var(--chrome-line);border-radius:5px;padding:1px 5px;font-size:11.5px;color:var(--chrome-ink)}
+
+  @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1><span class="mono">CohortFit</span> · Design Studio</h1>
+    <p>Four warm-light directions for the product, shown on a real screen — the cohort builder and the data-fitness scorecard. Switch a direction, then tune any axis on the left. Pick what you like; the winner becomes <code style="font-family:var(--chrome-mono)">FRONTEND_DESIGN_SYSTEM.md</code>.</p>
+    <div class="tabs" role="tablist" aria-label="Design philosophies" id="tabs"></div>
+  </header>
+
+  <div class="workshop">
+    <aside class="controls" aria-label="Design controls">
+      <div class="grp">
+        <div class="ctl-h">Accent</div>
+        <div class="swatches" id="sw-accent" role="group" aria-label="Accent color"></div>
+      </div>
+      <div class="grp">
+        <div class="ctl-h">Type</div>
+        <div class="row"><label for="c-display">Display face</label>
+          <select id="c-display" class="field"></select></div>
+        <div class="row"><label for="c-body">Body face</label>
+          <select id="c-body" class="field"></select></div>
+        <div class="row"><label for="c-size">Base size</label>
+          <span class="val" id="v-size">16px</span></div>
+        <input id="c-size" class="field" type="range" min="14" max="19" step="0.5" value="16" aria-label="Base font size">
+        <div class="row"><label>Density</label>
+          <span class="seg" id="c-density" role="group" aria-label="Density">
+            <button data-v="0.96" type="button">Compact</button>
+            <button data-v="1.06" type="button" aria-pressed="true">Comfort</button>
+            <button data-v="1.18" type="button">Spacious</button>
+          </span></div>
+      </div>
+      <div class="grp">
+        <div class="ctl-h">Form &amp; material</div>
+        <div class="row"><label for="c-radius">Corner radius</label>
+          <span class="val" id="v-radius">16px</span></div>
+        <input id="c-radius" class="field" type="range" min="0" max="26" step="1" value="16" aria-label="Corner radius">
+        <div class="row"><label>Material</label>
+          <span class="seg" id="c-material" role="group" aria-label="Material">
+            <button data-v="flat" type="button">Flat</button>
+            <button data-v="soft" type="button" aria-pressed="true">Soft</button>
+            <button data-v="glass" type="button">Glass</button>
+          </span></div>
+        <div class="row"><label>Elevation</label>
+          <span class="seg" id="c-elev" role="group" aria-label="Elevation">
+            <button data-v="none" type="button">None</button>
+            <button data-v="low" type="button">Low</button>
+            <button data-v="mid" type="button" aria-pressed="true">Med</button>
+            <button data-v="high" type="button">High</button>
+          </span></div>
+      </div>
+      <div class="grp">
+        <div class="ctl-h">Motion</div>
+        <div class="row"><label>Feel</label>
+          <span class="seg" id="c-motion" role="group" aria-label="Motion">
+            <button data-v="0" type="button">None</button>
+            <button data-v="200" type="button" aria-pressed="true">Subtle</button>
+            <button data-v="360" type="button">Expressive</button>
+          </span></div>
+      </div>
+      <div class="grp">
+        <div class="ctl-h">Overlay &amp; modal</div>
+        <div class="row"><label for="c-overlay">Overlay</label>
+          <select id="c-overlay" class="field">
+            <option value="dim">Dim scrim</option>
+            <option value="blur">Blur scrim</option>
+          </select></div>
+        <div class="row"><label for="c-modal">Modal style</label>
+          <select id="c-modal" class="field">
+            <option value="center">Center card</option>
+            <option value="sheet">Bottom sheet</option>
+            <option value="side">Side panel</option>
+          </select></div>
+        <button class="btn" id="open-modal" type="button">Preview reversible-fix modal</button>
+      </div>
+      <div class="grp">
+        <button class="btn btn-ghost" id="reset" type="button">Reset axes to this direction</button>
+      </div>
+    </aside>
+
+    <section class="stage-shell">
+      <div class="stage-meta">
+        <span class="p-nm" id="p-name">Clinical Calm</span>
+        <span class="p-tag" id="p-tag">Apple-Health calm · reassuring, medical-grade</span>
+      </div>
+
+      <div class="stage" id="stage">
+        <div class="safety" role="note">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l8 4v5c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V7z"/></svg>
+          <span><b>Research &amp; educational prototype only.</b> Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.</span>
+        </div>
+
+        <div class="board">
+          <div>
+            <div class="card">
+              <div class="s-eyebrow">Cohort builder</div>
+              <div class="ask" style="margin-top:8px">
+                <div class="q">
+                  <span class="dot" aria-hidden="true"></span>
+                  <input value="ICU patients over 65 who died in hospital" aria-label="Describe your cohort in plain English">
+                  <button class="go" type="button">Build</button>
+                </div>
+                <div class="funnel" aria-label="Inclusion and exclusion funnel">
+                  <div class="frow"><div class="bar" style="width:100%">100 patients — all in demo</div></div>
+                  <div class="frow"><div class="bar" style="width:44%">44 — age ≥ 65 <span style="opacity:.7">&nbsp;incl.</span></div><span class="lab">anchor_age</span></div>
+                  <div class="frow excl"><div class="bar" style="width:56%">56 — under 65 <span style="opacity:.7">&nbsp;excl.</span></div><span class="lab">excluded</span></div>
+                  <div class="frow"><div class="bar" style="width:15%">15 — died in hospital</div><span class="lab">expire_flag=1</span></div>
+                </div>
+                <div class="chips">
+                  <span class="chip in"><b>Cohort</b> · intersection of both criteria</span>
+                  <span class="chip">source: <b>patients</b> ⋈ <b>admissions</b> ⋈ <b>icustays</b></span>
+                  <span class="chip">provenance shown</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="codetabs" role="group" aria-label="Query view">
+                <button type="button" aria-pressed="true" data-code="ir">Recipe (IR)</button>
+                <button type="button" aria-pressed="false" data-code="sql">Compiled SQL</button>
+              </div>
+              <pre id="code-ir"><code><span class="c">// what the AI proposed — reviewable, not executable</span>
+{
+  <span class="k">"entity"</span>: <span class="n">"patient"</span>,
+  <span class="k">"include"</span>: [
+    { <span class="k">"field"</span>:<span class="n">"patients.anchor_age"</span>, <span class="k">"op"</span>:<span class="n">"&gt;="</span>, <span class="k">"value"</span>:<span class="n">65</span> },
+    { <span class="k">"field"</span>:<span class="n">"icustays.stay_id"</span>, <span class="k">"op"</span>:<span class="n">"exists"</span> },
+    { <span class="k">"field"</span>:<span class="n">"admissions.hospital_expire_flag"</span>, <span class="k">"op"</span>:<span class="n">"="</span>, <span class="k">"value"</span>:<span class="n">1</span> }
+  ],
+  <span class="k">"answerable"</span>: <span class="n">true</span>, <span class="k">"confidence"</span>: <span class="n">0.94</span>
+}</code></pre>
+              <pre id="code-sql" hidden><code><span class="k">SELECT</span> <span class="k">DISTINCT</span> p.subject_id
+<span class="k">FROM</span> patients p
+<span class="k">JOIN</span> admissions a <span class="k">USING</span> (subject_id)
+<span class="k">JOIN</span> icustays  i <span class="k">USING</span> (hadm_id)
+<span class="k">WHERE</span> p.anchor_age <span class="k">&gt;=</span> <span class="n">65</span>
+  <span class="k">AND</span> a.hospital_expire_flag <span class="k">=</span> <span class="n">1</span>;</code></pre>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="s-eyebrow">Data-fitness scorecard</div>
+              <div class="grades">
+                <div class="grade g-red"><span class="stripe"></span><div class="g">Plausibility</div><div class="v">Red</div></div>
+                <div class="grade g-amber"><span class="stripe"></span><div class="g">Units</div><div class="v">Amber</div></div>
+                <div class="grade g-amber"><span class="stripe"></span><div class="g">Temporal</div><div class="v">Amber</div></div>
+                <div class="grade g-green"><span class="stripe"></span><div class="g">Duplicates</div><div class="v">Green</div></div>
+              </div>
+              <div class="flags">
+                <div class="flag" tabindex="0" role="button">
+                  <span class="sev red" aria-hidden="true"></span>
+                  <span class="txt"><div class="t1">Arterial BP mean spans −23 to 801 mmHg</div><div class="t2">chartevents · itemid 220052</div></span>
+                  <span class="tag err">data error</span>
+                </div>
+                <div class="flag" tabindex="0" role="button">
+                  <span class="sev amber" aria-hidden="true"></span>
+                  <span class="txt"><div class="t1">MCHC recorded in g/dL and % in one column</div><div class="t2">labevents · itemid 51249</div></span>
+                  <span class="tag err">data error</span>
+                </div>
+                <div class="flag" tabindex="0" role="button">
+                  <span class="sev amber" aria-hidden="true"></span>
+                  <span class="txt"><div class="t1">2,168 labs charted outside the admission window</div><div class="t2">labevents · charttime vs admittime/dischtime</div></span>
+                  <span class="tag err">data error</span>
+                </div>
+                <div class="flag" tabindex="0" role="button">
+                  <span class="sev green" aria-hidden="true"></span>
+                  <span class="txt"><div class="t1">Potassium 7.8 mEq/L — extreme but flagged abnormal</div><div class="t2">labevents · has reference range</div></span>
+                  <span class="tag find">real finding</span>
+                </div>
+              </div>
+              <div class="ai-note">
+                <span class="badge">AI</span>
+                <span>Explanations are AI-generated from the check results and the schema — never from patient rows. The model <b>abstains</b> when the data can't support an answer.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- overlay + modal preview -->
+        <div class="overlay dim" id="overlay" aria-hidden="true">
+          <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-t">
+            <h4 id="modal-t">Suggested fix — reversible</h4>
+            <p>Temperature 99 recorded as °C reads as °F mislabeled. CohortFit can convert it and log the change so you can undo it. Source data is never altered.</p>
+            <div class="ledger">223762 · 99 °C → 37.2 °C&nbsp;&nbsp;<span style="opacity:.6">rule: temp_F_as_C</span></div>
+            <div class="acts">
+              <button type="button" id="modal-cancel">Keep original</button>
+              <button type="button" class="primary" id="modal-apply">Apply &amp; log</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="foot" style="margin-top:14px">
+        Faces use system stacks (no web fonts — the sandbox blocks font CDNs), so “Rounded” approximates on Windows. Every flag shown is a <b>real value measured in the 100-patient demo</b>. Tell me which direction (and any tweaks) you want, and I'll lock it into the design system doc and build the UI to match.
+      </p>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  var FACES={
+    humanist:'-apple-system,system-ui,"Segoe UI",Roboto,sans-serif',
+    serif:'"Iowan Old Style",Georgia,"Palatino Linotype","Book Antiqua",serif',
+    grotesk:'"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif',
+    rounded:'ui-rounded,"SF Pro Rounded",system-ui,"Segoe UI",sans-serif',
+    mono:'ui-monospace,"SF Mono","Cascadia Code",Consolas,"Courier New",monospace'
+  };
+  var FACE_LABELS={humanist:'Humanist sans',serif:'Warm serif',grotesk:'Grotesk sans',rounded:'Rounded sans',mono:'Monospace'};
+
+  var P={
+    calm:{name:'Clinical Calm',tag:'Apple-Health calm · reassuring, medical-grade',
+      accent:'#2F8F83',accents:['#2F8F83','#3E7CA8','#7A6CC4','#B5563A'],
+      bg:'#FBF9F5',card:'#FFFFFF',ink:'#23201B',muted:'#7C7568',line:'#ECE6DB',
+      ok:'#3E8F6B',warn:'#C8892B',danger:'#C0553B',accentInk:'#FFFFFF',
+      display:'humanist',body:'humanist',size:16,density:1.08,radius:16,material:'soft',elev:'mid',motion:200},
+    editorial:{name:'Warm Editorial',tag:'Claude-paper · a well-set research document',
+      accent:'#B5563A',accents:['#B5563A','#9A6A2E','#6E7A4E','#3E7CA8'],
+      bg:'#F4F0E6',card:'#FBF8F1',ink:'#2B2620',muted:'#857C6B',line:'#E2D9C7',
+      ok:'#5F7A4E',warn:'#B07A28',danger:'#A6432B',accentInk:'#FFF8F0',
+      display:'serif',body:'humanist',size:16.5,density:1.12,radius:8,material:'flat',elev:'low',motion:160},
+    tactile:{name:'Tactile Soft',tag:'Warm, friendly, layered depth · approachable',
+      accent:'#5B61D6',accents:['#5B61D6','#2F8F83','#C8892B','#C0553B'],
+      bg:'#F3EEE7',card:'#FCFAF6',ink:'#33302A',muted:'#8A8375',line:'#E9E1D5',
+      ok:'#3E9B76',warn:'#CE8A2E',danger:'#CB5A46',accentInk:'#FFFFFF',
+      display:'rounded',body:'rounded',size:16,density:1.16,radius:20,material:'soft',elev:'high',motion:360},
+    precision:{name:'Precision Instrument',tag:'Crisp warm data tool · scientific instrument',
+      accent:'#2857C4',accents:['#2857C4','#2F8F83','#8A5AA8','#B5563A'],
+      bg:'#F7F5F1',card:'#FFFFFF',ink:'#211F1B',muted:'#77716A',line:'#E6E1D8',
+      ok:'#2E8B67',warn:'#B67A1E',danger:'#B24630',accentInk:'#FFFFFF',
+      display:'grotesk',body:'grotesk',size:15.5,density:1.0,radius:6,material:'flat',elev:'low',motion:140}
+  };
+  var ORDER=['calm','editorial','tactile','precision'];
+  var ELEV={
+    none:'none',
+    low:'0 1px 2px rgba(40,32,20,.05)',
+    mid:'0 1px 2px rgba(40,32,20,.04),0 10px 26px rgba(40,32,20,.07)',
+    high:'0 2px 4px rgba(40,32,20,.05),0 18px 40px rgba(40,32,20,.12)'
+  };
+  var stage=document.getElementById('stage');
+  var cur='calm', state={};
+
+  function setVar(k,v){stage.style.setProperty(k,v)}
+  function applyMaterial(){
+    var m=state.material, elev=state.elev;
+    if(m==='glass'){
+      setVar('--s-card-bg','color-mix(in srgb,'+state.card+' 72%,transparent)');
+      setVar('--s-blur','10px');
+      setVar('--s-shadow', elev==='none'?'0 1px 2px rgba(40,32,20,.05)':ELEV[elev]);
+    }else{
+      setVar('--s-card-bg',state.card);
+      setVar('--s-blur','0px');
+      setVar('--s-shadow', m==='flat'?'none':ELEV[elev]);
+    }
+  }
+  function paint(){
+    setVar('--s-bg',state.bg);setVar('--s-card',state.card);setVar('--s-ink',state.ink);
+    setVar('--s-muted',state.muted);setVar('--s-line',state.line);setVar('--s-accent',state.accent);
+    setVar('--s-accent-ink',state.accentInk);setVar('--s-ok',state.ok);setVar('--s-warn',state.warn);
+    setVar('--s-danger',state.danger);setVar('--s-radius',state.radius+'px');
+    setVar('--s-fd',FACES[state.display]);setVar('--s-fb',FACES[state.body]);
+    setVar('--s-size',state.size+'px');setVar('--s-scale',state.density);
+    setVar('--s-motion',state.motion+'ms');
+    applyMaterial();
+  }
+  function syncControls(){
+    document.getElementById('v-size').textContent=state.size+'px';
+    document.getElementById('c-size').value=state.size;
+    document.getElementById('v-radius').textContent=state.radius+'px';
+    document.getElementById('c-radius').value=state.radius;
+    document.getElementById('c-display').value=state.display;
+    document.getElementById('c-body').value=state.body;
+    pressSeg('c-density',String(state.density));
+    pressSeg('c-material',state.material);
+    pressSeg('c-elev',state.elev);
+    pressSeg('c-motion',String(state.motion));
+    // accent swatches
+    var box=document.getElementById('sw-accent');box.innerHTML='';
+    P[cur].accents.forEach(function(hex){
+      var b=document.createElement('button');b.type='button';b.style.background=hex;
+      b.setAttribute('aria-label','Accent '+hex);
+      b.setAttribute('aria-pressed',hex.toLowerCase()===state.accent.toLowerCase());
+      b.onclick=function(){state.accent=hex;paint();syncControls()};box.appendChild(b);
+    });
+    document.getElementById('p-name').textContent=P[cur].name;
+    document.getElementById('p-tag').textContent=P[cur].tag;
+  }
+  function pressSeg(id,v){
+    var seg=document.getElementById(id);
+    [].forEach.call(seg.querySelectorAll('button'),function(b){b.setAttribute('aria-pressed',b.dataset.v===v)});
+  }
+  function load(name){cur=name;state=Object.assign({},P[name]);paint();syncControls();
+    [].forEach.call(document.querySelectorAll('#tabs .tab'),function(t){t.setAttribute('aria-selected',t.dataset.k===name)});
+  }
+
+  // build tabs
+  var tabs=document.getElementById('tabs');
+  ORDER.forEach(function(k){
+    var p=P[k],b=document.createElement('button');b.className='tab';b.dataset.k=k;b.setAttribute('role','tab');
+    b.innerHTML='<span class="nm">'+p.name+'</span><span class="dsc">'+p.tag.split(' · ')[0]+'</span>'+
+      '<span class="sw"><i style="background:'+p.accent+'"></i><i style="background:'+p.bg+'"></i><i style="background:'+p.ink+'"></i><i style="background:'+p.warn+'"></i><i style="background:'+p.ok+'"></i></span>';
+    b.onclick=function(){load(k)};tabs.appendChild(b);
+  });
+
+  // populate face selects
+  ['c-display','c-body'].forEach(function(id){
+    var s=document.getElementById(id);
+    Object.keys(FACE_LABELS).forEach(function(f){
+      var o=document.createElement('option');o.value=f;o.textContent=FACE_LABELS[f];s.appendChild(o);
+    });
+    s.onchange=function(){state[id==='c-display'?'display':'body']=s.value;paint()};
+  });
+
+  document.getElementById('c-size').oninput=function(){state.size=parseFloat(this.value);document.getElementById('v-size').textContent=state.size+'px';paint()};
+  document.getElementById('c-radius').oninput=function(){state.radius=parseInt(this.value,10);document.getElementById('v-radius').textContent=state.radius+'px';paint()};
+  function segHandler(id,key,cast){document.getElementById(id).addEventListener('click',function(e){
+    var b=e.target.closest('button');if(!b)return;state[key]=cast?cast(b.dataset.v):b.dataset.v;pressSeg(id,b.dataset.v);paint();});}
+  segHandler('c-density','density',parseFloat);
+  segHandler('c-material','material');
+  segHandler('c-elev','elev');
+  segHandler('c-motion','motion',function(v){return parseInt(v,10)});
+
+  document.getElementById('reset').onclick=function(){load(cur)};
+
+  // code tabs
+  document.querySelectorAll('.codetabs button').forEach(function(b){
+    b.onclick=function(){
+      document.querySelectorAll('.codetabs button').forEach(function(x){x.setAttribute('aria-pressed','false')});
+      b.setAttribute('aria-pressed','true');
+      var ir=b.dataset.code==='ir';
+      document.getElementById('code-ir').hidden=!ir;document.getElementById('code-sql').hidden=ir;
+    };
+  });
+
+  // overlay + modal
+  var overlay=document.getElementById('overlay');
+  function openModal(){
+    overlay.className='overlay on '+document.getElementById('c-overlay').value+' '+document.getElementById('c-modal').value;
+    overlay.setAttribute('aria-hidden','false');
+  }
+  function closeModal(){overlay.className='overlay '+document.getElementById('c-overlay').value;overlay.setAttribute('aria-hidden','true')}
+  document.getElementById('open-modal').onclick=openModal;
+  document.getElementById('modal-cancel').onclick=closeModal;
+  document.getElementById('modal-apply').onclick=closeModal;
+  overlay.addEventListener('click',function(e){if(e.target===overlay)closeModal()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()});
+
+  load('calm');
+})();
+</script>

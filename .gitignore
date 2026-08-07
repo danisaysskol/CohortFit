@@ -6,3 +6,10 @@ mimic-code-main/
 # docs -> mimic-iv-docs/). Kept locally but not tracked.
 mimic-iv-clinical-database-demo-2.2.zip
 mimic.mit.edu-main.zip
+
+# Secrets — real env file (use .env.example as the template). Never commit keys.
+.env
+.env.local
+.env.*.local
+
+.env

@@ -1,6 +1,31 @@
 # CohortFit
 
-A project built on the MIT-LCP **MIMIC-IV** demo dataset together with the official MIMIC code repository.
+> **Research & educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.**
+
+**CohortFit turns a plain-English cohort description into a transparent, showable query — who's in, who's out, and why — then scores whether the data are actually fit to trust, telling real clinical findings apart from data errors, and only ever suggesting fixes that are reversible and explained.** Built for the **Sofstica AI Hackathon 2026**, "AI for Smarter Patient Care", **Track 2 — Cohort & Data Quality Explorer**, on the MIT-LCP **MIMIC-IV Demo v2.2** dataset.
+
+The pitch in one line: **honesty as a feature** — CohortFit's most valuable job is telling a researcher *when their analysis isn't possible*, before they waste weeks on unfit data.
+
+---
+
+## 🌟 North Star — what 99.9% of teams won't do
+
+Most participants will demo a happy-path feature. We are going for something judges rarely see: **a system whose every minute detail is deliberate, and whose behavior — not just its features — is engineered and evidenced.** This is what the human ↔ Claude-Code process (multi-agent research, systematic exploration, live browser testing, a bespoke design system) makes possible, and it's the bar we hold on every commit.
+
+Concretely, we commit to doing these — most teams will do none:
+
+1. **Honest, quantified evaluation.** We inject our own labeled errors into a *copy* of the data and report real **precision / recall / false-positive rate** per table and dimension — with uncertainty, not a single headline number. (Most teams show no metrics at all.)
+2. **Real-finding-vs-data-error discipline.** Every numeric rule is gated on `d_items.param_type` and reference ranges, so an extreme-but-real lab is *not* flagged as a typo. This is the exact strict rule Track 2 demands — and the hard part almost everyone gets wrong.
+3. **Abstention as a first-class feature.** We demo the **failure path**: when the data can't support a request, the tool says so and explains why, instead of inventing an answer.
+4. **Provenance to the exact row.** Every flag and every cohort member links back to its source table, column, id, and time — nothing is a black box.
+5. **Reproducibility by construction.** We store the IR + compiled SQL + a data-hash; re-running the stored query reproduces results exactly, even if the model drifts.
+6. **Privacy by architecture.** Zero patient rows ever leave the machine — the LLM sees only schema and aggregate summaries. Documented and enforced, not just claimed.
+7. **System behavior over feature count.** We deliberately test and show how CohortFit handles **missing, ambiguous, duplicate, mis-timed, and out-of-scope** inputs — because a research tool is judged by how it behaves at the edges.
+8. **Craft in every detail.** Every number in our docs is *measured* and traceable; a from-scratch explainer for zero-context readers; a bespoke, consistent **design system** (not a template, not AI-slop); tracked UI screenshots; dead-code hygiene; disciplined commits. Nothing is left to "good enough."
+
+We maintain and grade ourselves against this North Star in [`PROGRESS.md`](PROGRESS.md). If a change doesn't move us toward it, we reconsider the change.
+
+---
 
 ## ⚠️ Required setup — do this before working on the project
 

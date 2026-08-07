@@ -36,22 +36,27 @@ The eight commitments (self-check on each feature): 1) honest quantified eval (p
 
 ## 🔄 Current (in progress)
 
-- **Design direction = Lab Ledger, realized.** Distinctive warm-light system (Hanken Grotesk + IBM Plex Mono, greige paper, prussian accent, hairline structure, 6px radius, Provenance Ledger signature) — see `docs/design-direction.md` and the live `docs/design-explorer.html` (fonts embedded; verified in-browser, screenshot in `docs/ui-screenshots/`). Chosen to kill AI-slop tells. Will be codified in `FRONTEND_DESIGN_SYSTEM.md` when built in Next.js.
-- **Backend scaffold started** (`backend/`: config, DuckDB loader) — **held uncommitted until Docker-verified** (local Python is 3.14, no duckdb wheel; run path is `python:3.12-slim` in Docker). Next: finish schema/rules/API + `docker compose up` verification.
-- **Docs audited** against the brief: relaxed the over-strict "zero patient rows" to the brief's actual "minimize + disclose"; softened one over-claim; added a cohort-correctness ground-truth plan.
+- **Working full stack, verified in Docker + browser.** `docker compose up` → FastAPI backend (`:8000`) + Next.js frontend (`:3000`). All 5 pages verified live in claude-in-chrome (screenshots in `docs/ui-screenshots/app-*.jpg`).
+- Remaining: reversible **fix-ledger** UI, then the **evidence/submission** docs (evaluation report, safety statement, README polish, pitch).
 
-## ⏳ Pending (next — scrum: build → test → verify → update → next)
+## ✅ Past — build (done + verified)
 
-- [ ] **Pick design** from the presented options → write `FRONTEND_DESIGN_SYSTEM.md`.
-- [ ] **Repo scaffold + Docker:** `backend/` (FastAPI) + `frontend/` (Next.js) + `docker-compose.yml` (one `docker compose up`); `config/` + `.env` from `.env.example`.
-- [ ] **M0 — Data spine:** CSV → DuckDB/Parquet loader; schema/DDL introspection.
-- [ ] **Frontend from the start:** **Schema Explorer** page first (schema + ER diagram + data with filters & search), then a page per capability so judges can grade progressively.
-- [ ] **M1 — Error-injection + scoring harness:** inject/label errors on a *copy*; precision/recall/FPR by table & dimension; patient-grouped folds; leakage note.
-- [ ] **M2 — Rule library:** plausibility (reuse MIT `vitalsign.sql`/`chemistry.sql` ranges), missingness, unit, temporal, duplicate — gated on `d_items.param_type`; real-vs-error classifier.
-- [ ] **M3 — Cohort IR layer:** OpenAI strict JSON schema (enum columns + `answerable`/`abstain` fields) → validator → DuckDB compiler; surface IR + SQL.
-- [ ] **Session mgmt + local store + sandboxed execution:** persist/reload cohort+flag sessions exactly; deterministic query execution (no demo-day surprises).
-- [ ] **Scorecard + fix-ledger UI**, safety banner on every page.
-- [ ] **Evidence & submission:** evaluation report, safety & data statement, README polish, demo video, slides, ≤1000-char pitch.
+- **Design system `FRONTEND_DESIGN_SYSTEM.md`** written; Lab Ledger implemented in `frontend/app/globals.css` with self-hosted Hanken Grotesk + IBM Plex Mono.
+- **Repo scaffold + Docker:** `backend/` (FastAPI) + `frontend/` (Next.js 14) + `docker-compose.yml` (one command). Config via pydantic-settings + `.env`.
+- **M0 Data spine:** DuckDB view per CSV + schema introspection (`/schema`).
+- **M1 Eval harness:** self-seeded error injection (read-only CTE, concurrency-safe) → precision/recall/FPR (`/eval/run`; 20 injected → P/R 1.0, FPR 0).
+- **M2 Rule library:** plausibility (single-pass, MIT bounds), units, temporal, completeness, duplicates → R/A/G scorecard; findings tagged data_error/real_finding/caveat (`/quality/scorecard`, warmed + cached → 8ms).
+- **M3 Cohort IR layer:** plain-English → validated IR (OpenAI structured-output, keyword fallback offline) → DuckDB compiler with provenance funnel + data-hash (`/cohort/build`; demo phrase → 9 gold subject_ids, funnel 100→44→44→9).
+- **Frontend pages:** Schema Explorer (list + search + sample + keys), Cohorts (builder + Provenance Ledger + IR/SQL), Quality (scorecard + findings), Evaluation (metrics), About/Safety. Safety banner on every page.
+- **Session/local store + sandboxed execution:** cohort session persists to localStorage (reload-safe); queries run deterministically over the fixed DuckDB store; IR + SQL + data-hash stored.
+- **Tests:** 14 pass in Docker (`docker compose run --rm backend pytest`) — data/quality/cohort/eval/api.
+- **Two demo-reliability bugs found + fixed:** scorecard 17s → 8ms (single-pass + cache); eval temp-table concurrency race → read-only CTE.
+
+## ⏳ Pending
+
+- [ ] **Reversible fix-ledger UI** (suggest → apply → undo, logged; never mutates source) — supports the brief's "reversible correction rate".
+- [ ] **Evidence & submission:** `docs/EVALUATION_REPORT.md`, `docs/SAFETY_STATEMENT.md`, README polish (run instructions + screenshots), ≤1000-char pitch.
+- [ ] Human deliverables: demo video + slides (script already in `TENTATIVE_AGILE_PLAN.md`).
 
 ## 🖼️ UI screenshots
 Latest UI screenshots live in `docs/ui-screenshots/`. **Update them whenever the UI changes** (test in claude-in-chrome, overwrite the "latest" set).

@@ -39,6 +39,17 @@ def get_db() -> Database:
     return Database()
 
 
+# The data is frozen, so the scorecard is deterministic — compute once and reuse
+# (keeps the Quality page instant during a live demo).
+_scorecard_cache: dict[str, Any] | None = None
+
+
+@app.on_event("startup")
+def _warm() -> None:
+    global _scorecard_cache
+    _scorecard_cache = quality.scorecard(get_db())
+
+
 class BuildRequest(BaseModel):
     text: str
 
@@ -79,7 +90,10 @@ def build_cohort(req: BuildRequest) -> dict[str, Any]:
 
 @app.get("/quality/scorecard")
 def get_scorecard() -> dict[str, Any]:
-    return {**quality.scorecard(get_db()), "safety": SAFETY}
+    global _scorecard_cache
+    if _scorecard_cache is None:
+        _scorecard_cache = quality.scorecard(get_db())
+    return {**_scorecard_cache, "safety": SAFETY}
 
 
 @app.get("/eval/run")

@@ -15,4 +15,17 @@ services:
     volumes:
       - ./mimic-iv-clinical-database-demo-2.2:/data:ro
 
-  # frontend service is added once the Next.js app lands (Lab Ledger design system).
+  frontend:
+    build: ./frontend
+    image: cohortfit-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # The browser (on the host) calls the host-mapped backend port.
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    # Mount source for hot-reload in dev; keep the image's node_modules.
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend

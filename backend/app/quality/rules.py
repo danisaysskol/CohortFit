@@ -31,23 +31,29 @@ class Finding:
 
 
 def check_plausibility(db: Database) -> list[Finding]:
+    # Single pass over chartevents, joined to a small in-query bounds table.
+    # (Per-itemid loops were 11x full scans of 669k rows — far too slow for a live demo.)
+    values = ", ".join(f"({iid}, {lo}, {hi})" for iid, (lo, hi, _, _) in VITAL_RANGES.items())
+    rows = db.query(
+        f"WITH bounds(itemid, lo, hi) AS (VALUES {values}) "
+        "SELECT c.itemid AS itemid, "
+        "count(*) FILTER (WHERE c.valuenum IS NOT NULL) AS n, "
+        "count(*) FILTER (WHERE c.valuenum < b.lo OR c.valuenum > b.hi) AS bad, "
+        "min(c.valuenum) AS mn, max(c.valuenum) AS mx "
+        "FROM chartevents c JOIN bounds b ON c.itemid = b.itemid "
+        "GROUP BY c.itemid"
+    )
     out: list[Finding] = []
-    for itemid, (lo, hi, label, uom) in VITAL_RANGES.items():
-        r = db.query(
-            "SELECT count(*) FILTER (WHERE valuenum IS NOT NULL) AS n, "
-            "count(*) FILTER (WHERE valuenum < ? OR valuenum > ?) AS bad, "
-            "min(valuenum) AS mn, max(valuenum) AS mx "
-            "FROM chartevents WHERE itemid = ?",
-            [lo, hi, itemid],
-        )[0]
+    for r in rows:
         n, bad = int(r["n"] or 0), int(r["bad"] or 0)
         if n == 0 or bad == 0:
             continue
+        lo, hi, label, uom = VITAL_RANGES[int(r["itemid"])]
         out.append(Finding(
             "plausibility", "red", "chartevents",
-            f"{label} ({itemid}): {bad} of {n} numeric values outside [{lo},{hi}] {uom} "
+            f"{label} ({int(r['itemid'])}): {bad} of {n} numeric values outside [{lo},{hi}] {uom} "
             f"(observed {r['mn']}..{r['mx']})",
-            bad, "data_error", f"itemid {itemid}",
+            bad, "data_error", f"itemid {int(r['itemid'])}",
         ))
     return out
 

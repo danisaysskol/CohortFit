@@ -28,22 +28,26 @@ def run_temporal_eval(db: Database, n_inject: int = 20, seed: int = 42) -> dict[
     total = len(valid)
     k = min(n_inject, total)
     victims = {r["hadm_id"] for r in rng.sample(valid, k)}
+    if not victims:
+        return score(0, 0, 0, total, check="temporal: admittime >= dischtime",
+                     table="admissions", injected=0, flagged=0, seed=seed, population=total)
 
-    db.con.execute("CREATE OR REPLACE TEMP TABLE adm_eval AS SELECT * FROM admissions")
-    id_list = ", ".join("'" + v.replace("'", "''") + "'" for v in victims)
-    # Swap the two timestamps for the victims so admittime becomes >= dischtime.
-    db.con.execute(
-        "UPDATE adm_eval SET admittime = dischtime, dischtime = admittime "
-        f"WHERE CAST(hadm_id AS VARCHAR) IN ({id_list})"
-    )
-
+    # Detect on a *virtually* corrupted copy built in a read-only CTE (swap admit/disch
+    # for the victims). No temp table, no mutation -> safe under concurrent requests.
+    victim_values = ", ".join("('" + v.replace("'", "''") + "')" for v in victims)
     flagged = {
         r["hadm_id"]
         for r in db.query(
-            "SELECT CAST(hadm_id AS VARCHAR) AS hadm_id FROM adm_eval WHERE admittime >= dischtime"
+            f"WITH victims(hadm_id) AS (VALUES {victim_values}), "
+            "corrupt AS ("
+            "  SELECT CAST(a.hadm_id AS VARCHAR) AS hadm_id, "
+            "    CASE WHEN v.hadm_id IS NOT NULL THEN a.dischtime ELSE a.admittime END AS admittime, "
+            "    CASE WHEN v.hadm_id IS NOT NULL THEN a.admittime ELSE a.dischtime END AS dischtime "
+            "  FROM admissions a "
+            "  LEFT JOIN victims v ON CAST(a.hadm_id AS VARCHAR) = v.hadm_id) "
+            "SELECT hadm_id FROM corrupt WHERE admittime >= dischtime"
         )
     }
-    db.con.execute("DROP TABLE IF EXISTS adm_eval")
 
     tp = len(flagged & victims)
     fp = len(flagged - victims)

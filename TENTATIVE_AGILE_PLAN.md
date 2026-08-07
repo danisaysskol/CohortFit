@@ -64,7 +64,7 @@ CohortFit **abstains**, states *why*, and points to the missing/again-not-suppor
 - Claims clinical validity, effectiveness, or cross-institution generalization.
 - Hides which content is AI-generated vs. from source data.
 - Infers calendar dates / seasonality / cross-patient chronology (data are date-shifted).
-- Sends patient-level rows to any external service (only schema + aggregates go to the LLM).
+- Dumps patient-level data to external services. Per the licence we **minimize** what's sent — schema + aggregates by default, only the minimal rows a task needs, always disclosed — and never upload to a service whose terms disallow it.
 
 **On every screen:** the mandatory banner —
 > *Research and educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.*
@@ -75,10 +75,10 @@ CohortFit **abstains**, states *why*, and points to the missing/again-not-suppor
 
 | Category (weight) | How we win it |
 |---|---|
-| **AI & Data Quality (25%)** — heaviest | AI is **necessary** (NL→cohort is impossible with fixed rules alone); joins/temporal logic are **sound and shown**; **data lineage visible** (IR + SQL + source rows); **leakage controlled** (patient-grouped folds, index-time discipline); **honest evaluation** with baseline + precision/recall/FPR + uncertainty. |
+| **AI & Data Quality (25%)** — heaviest | AI is **necessary** (parsing free-text cohort descriptions into correct schema logic is not something fixed rules can do); joins/temporal logic are **sound and shown**; **data lineage visible** (IR + SQL + source rows); **leakage controlled** (patient-grouped folds, index-time discipline); **honest evaluation** with baseline + precision/recall/FPR + uncertainty. |
 | **Problem & Impact (20%)** | A precise, real pain (researchers waste weeks on unfit data); a realistic user; measurable proxy value (time-to-investigate, issues caught). Scope sized to 100 patients. |
 | **Working Product (20%)** | End-to-end FastAPI + Next.js app; core workflows usable; reproducible setup; sensible handling of missing/malformed/out-of-scope inputs (UC6). |
-| **Safety & Reliability (15%)** — "free marks" | Banner everywhere; provenance + uncertainty; AI content visually distinct; hallucination/out-of-scope **tested**; human-review boundary stated; licence-respecting (no rows leave); no unsupported claims. |
+| **Safety & Reliability (15%)** — "free marks" | Banner everywhere; provenance + uncertainty; AI content visually distinct; hallucination/out-of-scope **tested**; human-review boundary stated; licence-respecting (minimize + disclose data sent externally); no unsupported claims. |
 | **Innovation (10%)** | The **real-finding-vs-error classifier** + **self-seeded error harness** for honest metrics + **abstention as a first-class feature**. |
 | **Pitch & Clarity (10%)** | The 3-minute demo arc in §8; lead with the honest failure case. |
 
@@ -93,8 +93,10 @@ Nobody hands us labeled errors — so we **make our own** and measure against th
 3. **Score:** precision, recall, false-positive rate, **per table** and per dimension. Report **uncertainty** (fold-level variation), not a single number.
 4. **Baseline to beat:** the "dumb version" — fixed hard rules / manual scan. We show we catch more, with fewer false positives, because we gate on `param_type` and reference ranges (real-vs-error discipline).
 
+**Cohort-definition correctness (the other required metric).** For the cohort side we build a small set of **gold cohorts** — hand-written SQL for unambiguous queries with a known answer (e.g. "ICU patients over 65 who died in hospital" → **9** patients: subject_ids 10003400, 10005817, 10007818, 10010471, 10015931, 10017492, 10025463, 10026255, 10037861; "age ≥ 65" → 44) — and check the tool's compiled query returns exactly that set. We report exact-match rate + set precision/recall against the gold cohorts, and log ambiguous descriptions the tool correctly abstains on.
+
 **Leakage-prevention paragraph (we will include this verbatim in the evaluation report):**
-> All records for a given `subject_id` stay in the same fold; no patient appears in both the rule-tuning and evaluation sets. For any time-dependent check we fix an index time and use only information available at or before it. Injected (synthetic) errors are kept strictly separate from any claim about real clinical performance, and are clearly labeled as synthetic.
+> All records for a given `subject_id` stay in the same fold; no patient appears in both the rule-tuning and evaluation sets. For any time-dependent check we fix an index time and use only information available at or before it. Injected (synthetic) errors live only in a separate corrupted *copy*, are clearly labeled as synthetic, and are never used to imply real-world clinical performance — matching the brief's rule that synthetic data stay separate from real records.
 
 ---
 

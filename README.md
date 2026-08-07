@@ -19,7 +19,7 @@ Concretely, we commit to doing these — most teams will do none:
 3. **Abstention as a first-class feature.** We demo the **failure path**: when the data can't support a request, the tool says so and explains why, instead of inventing an answer.
 4. **Provenance to the exact row.** Every flag and every cohort member links back to its source table, column, id, and time — nothing is a black box.
 5. **Reproducibility by construction.** We store the IR + compiled SQL + a data-hash; re-running the stored query reproduces results exactly, even if the model drifts.
-6. **Privacy by architecture.** Zero patient rows ever leave the machine — the LLM sees only schema and aggregate summaries. Documented and enforced, not just claimed.
+6. **Licence-aware data minimization.** We follow the PhysioNet licence and the brief's rule to *minimize data sent to external services*: by default the model receives schema and aggregate summaries, and only the minimal patient-level detail a task genuinely needs — always disclosed. We never dump the dataset to any service. (This is the requirement met deliberately, not an over-constraint that limits what the tool can do.)
 7. **System behavior over feature count.** We deliberately test and show how CohortFit handles **missing, ambiguous, duplicate, mis-timed, and out-of-scope** inputs — because a research tool is judged by how it behaves at the edges.
 8. **Craft in every detail.** Every number in our docs is *measured* and traceable; a from-scratch explainer for zero-context readers; a bespoke, consistent **design system** (not a template, not AI-slop); tracked UI screenshots; dead-code hygiene; disciplined commits. Nothing is left to "good enough."
 

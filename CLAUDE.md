@@ -18,7 +18,7 @@ Do not build or modify this project on a different model unless the user explici
 
 **Product contract (must hold in all code + UI):**
 - **DOES:** visible cohort queries (inclusion + exclusion); red/amber/green data-fitness scorecard with drill-down to source rows; distinguishes a real clinical finding from a data error; reversible, rule-backed fixes only; provenance for every patient-level claim; **abstains** when unsupported.
-- **NEVER:** silently edits/deletes source data; gives medical/diagnostic/triage advice; claims clinical validity; hides AI-generated content; infers calendar dates (data are date-shifted); sends patient rows to any external service (LLM sees only schema + aggregates).
+- **NEVER:** silently edits/deletes source data; gives medical/diagnostic/triage advice; claims clinical validity; hides AI-generated content; infers calendar dates (data are date-shifted); dumps patient-level data to external services — per the licence we **minimize** what's sent (schema + aggregates by default; only the minimal rows a task genuinely needs), disclose it, and never upload to a service whose terms disallow it.
 - **On every screen:** *Research and educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.*
 
 **Locked decisions:** Stack = **FastAPI + Next.js** (deploy to Vercel) · LLM = **OpenAI only** (strict Structured Outputs, column enums; GPT-5.6 Terra primary / Luna fallback / Sol escalate) · **NL → validated JSON IR → DuckDB SQL** (the LLM never writes executable SQL) · Ace card = **demo-verifiable only** (every flag traces to a real 100-patient row).

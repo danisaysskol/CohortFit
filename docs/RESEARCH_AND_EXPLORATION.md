@@ -62,7 +62,7 @@ Researcher types plain English
         ▼
   Data-quality rules score fitness (red/amber/green), each flag links to the real row
 ```
-Key safety property: the AI only ever sees the **schema (column names) and aggregate summaries — never patient rows** — which respects the data licence and keeps things reproducible.
+Key safety property: by default the AI sees the **schema (column names) and aggregate summaries**, and only the minimal patient-level detail a task genuinely needs — the brief's *"minimize data sent to external services"* met deliberately (not an over-constraint), which respects the data licence and keeps things reproducible.
 
 ---
 
@@ -259,7 +259,7 @@ The LLM **never** writes executable SQL. It emits a constrained **intermediate r
 
 ### D4. Reproducibility, privacy, cost
 - `temperature:0` + fixed `seed` + pinned snapshot; log `system_fingerprint`. Seed is **best-effort** — the real guarantee is the stored IR + deterministic compiler.
-- **Never send patient rows.** Send only NL + schema/DDL + few-shot IR examples + **aggregate DQ summaries** (counts/ranges), satisfying "minimize data sent to external services." Constant schema prefix → automatic prompt caching (~10% of input rate).
+- **Minimize external data (licence requirement, not zero-rows dogma).** Default payload = NL + schema/DDL + few-shot IR examples + **aggregate DQ summaries** (counts/ranges); send minimal patient-level rows only when a task genuinely needs them, and disclose it. This satisfies the brief's "minimize data sent to external services" without over-constraining what the tool can do. Constant schema prefix → automatic prompt caching (~10% of input rate).
 - Optional PII guardrail (OpenAI Guardrails, MIT-licensed) as a leakage backstop.
 
 ### D5. Engine: DuckDB + pandas

@@ -14,7 +14,7 @@ _Last updated: 2026-08-08._
 
 **Goal:** do what 99.9% of teams won't — ship a system whose **every minute detail is deliberate** and whose **behavior, not just its features, is engineered and evidenced**. Judges should notice that nothing was left to "good enough." Full statement in [`README.md`](README.md#-north-star--what-999-of-teams-wont-do).
 
-The eight commitments (self-check on each feature): 1) honest quantified eval (precision/recall/FPR + uncertainty) · 2) real-finding-vs-data-error gating on `param_type` · 3) abstention demoed as a feature · 4) provenance to the exact row · 5) reproducibility (IR + SQL + data-hash) · 6) privacy by architecture (no patient rows to the LLM) · 7) system behavior at the edges (missing/ambiguous/duplicate/mis-timed/out-of-scope) · 8) craft in every detail (measured numbers, bespoke non-AI-slop design, tracked screenshots, dead-code hygiene, clean commits).
+The eight commitments (self-check on each feature): 1) honest quantified eval (precision/recall/FPR + uncertainty) · 2) real-finding-vs-data-error gating on `param_type` · 3) abstention demoed as a feature · 4) provenance to the exact row · 5) reproducibility (IR + SQL + data-hash) · 6) licence-aware data minimization (minimize + disclose what's sent externally; schema + aggregates by default) · 7) system behavior at the edges (missing/ambiguous/duplicate/mis-timed/out-of-scope) · 8) craft in every detail (measured numbers, bespoke non-AI-slop design, tracked screenshots, dead-code hygiene, clean commits).
 
 > **Working rule:** if a change doesn't move us toward the North Star, reconsider it. Every PR/commit should be defensible as "a judge would notice the care here."
 
@@ -36,8 +36,9 @@ The eight commitments (self-check on each feature): 1) honest quantified eval (p
 
 ## 🔄 Current (in progress)
 
-- **Design-system selection.** Presenting **4 warm-light design philosophies** (Apple- + Claude-like) as an interactive options page with editable filters (typeface, size, motion, material, color, overlay/modal). User tweaks + picks → then it's implemented and documented in `FRONTEND_DESIGN_SYSTEM.md`.
-- **OpenAI cost-features research** running (background) → will land in `docs/RESEARCH_AND_EXPLORATION.md` §D as a per-task config table.
+- **Design direction = Lab Ledger, realized.** Distinctive warm-light system (Hanken Grotesk + IBM Plex Mono, greige paper, prussian accent, hairline structure, 6px radius, Provenance Ledger signature) — see `docs/design-direction.md` and the live `docs/design-explorer.html` (fonts embedded; verified in-browser, screenshot in `docs/ui-screenshots/`). Chosen to kill AI-slop tells. Will be codified in `FRONTEND_DESIGN_SYSTEM.md` when built in Next.js.
+- **Backend scaffold started** (`backend/`: config, DuckDB loader) — **held uncommitted until Docker-verified** (local Python is 3.14, no duckdb wheel; run path is `python:3.12-slim` in Docker). Next: finish schema/rules/API + `docker compose up` verification.
+- **Docs audited** against the brief: relaxed the over-strict "zero patient rows" to the brief's actual "minimize + disclose"; softened one over-claim; added a cohort-correctness ground-truth plan.
 
 ## ⏳ Pending (next — scrum: build → test → verify → update → next)
 
@@ -67,3 +68,5 @@ Latest UI screenshots live in `docs/ui-screenshots/`. **Update them whenever the
 | 2026-08-08 | LLM = OpenAI only | Strict Structured Outputs + column enums; key in gitignored `.env`. |
 | 2026-08-08 | Ace card = demo-verifiable only | Honesty is the pitch; every flag traces to a real 100-patient row. |
 | 2026-08-08 | NL → JSON IR → DuckDB (LLM never writes SQL) | Transparent, safe, reproducible; IR is the showable inclusion/exclusion logic. |
+| 2026-08-08 | Relaxed "zero patient rows to LLM" → **minimize + disclose** | The brief only requires *minimizing* data sent externally, not zero rows; the strict rule over-constrained creativity. We keep schema+aggregates as default, allow minimal disclosed rows when a task needs them. |
+| 2026-08-08 | Design direction = **Lab Ledger** (Hanken Grotesk + IBM Plex Mono, greige paper, prussian accent, hairlines, 6px radius, Provenance Ledger signature) | Kills the four AI-slop tells; reads as a shipped data product. From design R&D (`docs/design-direction.md`). |

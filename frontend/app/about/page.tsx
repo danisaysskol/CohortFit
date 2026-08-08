@@ -36,6 +36,25 @@ export default function AboutPage() {
         </section>
       </div>
 
+      <section className="panel" style={{ marginTop: 18 }}>
+        <div className="panel-h"><span className="lbl">How CohortFit beats the dumb version</span></div>
+        <div className="panel-b">
+          <div className="tablewrap">
+            <table className="gt">
+              <thead><tr><th>The dumb version</th><th>CohortFit</th></tr></thead>
+              <tbody>
+                <tr><td className="muted">Fixed thresholds, breaks on anything unusual</td><td>Adapts — uses reference ranges and context (gated on <span className="mono">param_type</span>)</td></tr>
+                <tr><td className="muted">Flags everything equally</td><td><b>Ranks</b> flags so the reviewer sees the worst first</td></tr>
+                <tr><td className="muted">Can&apos;t tell a real finding from a data error</td><td>Separates a genuine extreme value from a typo</td></tr>
+                <tr><td className="muted">Silent, no explanation</td><td>Every flag has a plain-English reason and a source pointer</td></tr>
+                <tr><td className="muted">Reviewer wades through everything</td><td>Reports <b>reviewer time saved</b> per validated issue</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="note">Quantified on the Evaluation page: on the injected-error benchmark, the dumb fixed rule reaches ~0.07 precision (it flags almost everything) while CohortFit holds precision at 1.0.</p>
+        </div>
+      </section>
+
       <div className="abstain" style={{ marginTop: 18 }}>
         <span className="k">Required notice</span> — Research and educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.
       </div>

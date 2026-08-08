@@ -83,6 +83,23 @@ def get_table(table: str, limit: int = 25) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail=f"unknown table: {table}")
 
 
+@app.get("/explore/{table}")
+def explore_table(
+    table: str,
+    limit: int = 25,
+    offset: int = 0,
+    col: str | None = None,
+    op: str | None = None,
+    val: str | None = None,
+    search: str | None = None,
+) -> dict[str, Any]:
+    try:
+        return schema_mod.explore(get_db(), table, limit=min(limit, 100), offset=max(offset, 0),
+                                  col=col, op=op, val=val, search=search)
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"unknown table: {table}")
+
+
 @app.post("/cohort/build")
 def build_cohort(req: BuildRequest) -> dict[str, Any]:
     ir, method = nl.to_ir(req.text)

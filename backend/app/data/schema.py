@@ -49,3 +49,55 @@ def sample(db: Database, table: str, limit: int = 25) -> dict[str, Any]:
     cols = [c["column_name"] for c in db.query(f"DESCRIBE {table}")]
     rows = db.query(f"SELECT * FROM {table} LIMIT {int(limit)}")
     return {"table": table, "columns": cols, "rows": rows}
+
+
+_EXPLORE_OPS = {"=", "!=", ">", ">=", "<", "<="}
+
+
+def explore(
+    db: Database,
+    table: str,
+    *,
+    limit: int = 25,
+    offset: int = 0,
+    col: str | None = None,
+    op: str | None = None,
+    val: str | None = None,
+    search: str | None = None,
+) -> dict[str, Any]:
+    """Filtered, paginated data explorer over one table (local UI only).
+
+    Safe: the table and filter column are whitelisted against the real schema, and all
+    values are bound parameters — never string-formatted into SQL. Read-only.
+    """
+    if table not in db.tables():
+        raise KeyError(table)
+    cols = [c["column_name"] for c in db.query(f"DESCRIBE {table}")]
+
+    where: list[str] = []
+    params: list[Any] = []
+    if col in cols and val not in (None, ""):
+        if op == "contains":
+            where.append(f'CAST("{col}" AS VARCHAR) ILIKE ?')
+            params.append(f"%{val}%")
+        elif op in {"=", "!="}:
+            where.append(f'CAST("{col}" AS VARCHAR) {op} ?')
+            params.append(str(val))
+        elif op in _EXPLORE_OPS:
+            try:
+                params.append(float(val))
+                where.append(f'TRY_CAST("{col}" AS DOUBLE) {op} ?')
+            except ValueError:
+                pass
+    if search:
+        ors = " OR ".join(f'CAST("{c}" AS VARCHAR) ILIKE ?' for c in cols)
+        where.append("(" + ors + ")")
+        params += [f"%{search}%"] * len(cols)
+
+    clause = (" WHERE " + " AND ".join(where)) if where else ""
+    total = int(db.query(f"SELECT count(*) AS n FROM {table}{clause}", params)[0]["n"])
+    rows = db.query(
+        f"SELECT * FROM {table}{clause} LIMIT {int(limit)} OFFSET {int(offset)}", params
+    )
+    return {"table": table, "columns": cols, "rows": rows, "total": total,
+            "limit": limit, "offset": offset}

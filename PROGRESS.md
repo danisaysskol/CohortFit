@@ -69,7 +69,8 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 ## ⏳ Pending (refreshed 2026-08-08)
 
 **High priority (user-requested / correctness):**
-- [ ] **Schema page = ERD + free data explorer.** Replace the sample-only view with (a) an ER diagram of table relationships, and (b) a data explorer where a researcher applies column filters + search + pagination (needs a safe backend `/explore/{table}` with whitelisted columns + parameterized filters).
+- [x] **Schema page = ERD + free data explorer** — DONE: SVG ER diagram (spine + event/dictionary tables, cardinality) + a live explorer with column filter/operator/value, search-all, and pagination, backed by a safe parameterized `/explore/{table}`. Verified in-browser (`app-schema-erd`, `app-schema-explorer`).
+- [x] **Dumb-vs-tool comparison** — DONE: on the About page + `docs/EVALUATION_REPORT.md` §3b (ranking, reviewer-time-saved, error-vs-finding, reasons+source, baseline P 0.07 vs 1.0).
 - [ ] **Re-run the 46-case suite with OpenAI active** and refresh `docs/test-cases/results.json` + `RESULTS.md` (current log is the keyword-fallback path). Cache the OpenAI responses so we don't re-call.
 - [ ] **Extend the compiler to match OpenAI's reach** (or make OpenAI emit only supported kinds): OpenAI may propose criteria the compiler can't compile → currently errors to "clarify". Decide: add negation/aggregation/temporal-join kinds, or constrain the schema.
 - [ ] **Missing DQ checks** (beat the dumb version harder): `storetime < charttime`; results hidden in `comments` with null `valuenum` (HIV itemid 51652); per-ICU-stay heart-rate completeness (MIMIC's own ≥99% rule); near-duplicate measurement rows.

@@ -20,6 +20,14 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 export type Column = { name: string; type: string };
+export type ExploreResult = {
+  table: string;
+  columns: string[];
+  rows: Record<string, unknown>[];
+  total: number;
+  limit: number;
+  offset: number;
+};
 export type TableInfo = {
   table: string;
   module: string;
@@ -89,6 +97,8 @@ export const api = {
   schema: () => get<{ tables: TableInfo[] }>("/schema"),
   table: (t: string, limit = 25) =>
     get<{ table: string; columns: string[]; rows: Record<string, unknown>[] }>(`/schema/${t}?limit=${limit}`),
+  explore: (t: string, params: Record<string, string>) =>
+    get<ExploreResult>(`/explore/${t}?${new URLSearchParams(params).toString()}`),
   buildCohort: (text: string) => post<CohortResult>("/cohort/build", { text }),
   scorecard: () => get<Scorecard>("/quality/scorecard"),
   fixes: () => get<{ fixes: Fix[]; note: string }>("/quality/fixes"),

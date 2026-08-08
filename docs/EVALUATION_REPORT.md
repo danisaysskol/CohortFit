@@ -25,6 +25,18 @@ Clinical-data researchers/educators defining cohorts and judging data fitness. T
 
 **Honest caveat.** This temporal rule is a *strong but easy* case: the real demo has 0 pre-existing violations (275/275 valid), so a swapped-timestamp injection is cleanly separable. We report it as a working, reproducible harness — not a claim that all dimensions are this easy. Near-duplicate and unit-normalization detection are harder and would show lower precision/recall; extending the harness to those is future work.
 
+## 3b. Beating the "dumb version" (baseline contrast)
+
+| The dumb version | CohortFit |
+|---|---|
+| Fixed thresholds, breaks on anything unusual | Adapts — uses reference ranges + context, gated on `d_items.param_type` |
+| Flags everything equally | **Ranks** flags worst-first (severity → kind → volume) |
+| Can't tell a real finding from a data error | Separates a genuine extreme value from a typo (finding vs error) |
+| Silent, no explanation | Every flag carries a plain-English reason + a source pointer (table/itemid) |
+| Reviewer wades through everything | Reports **reviewer time saved** per validated issue |
+
+Quantified on the temporal injected-error benchmark (5 seeds): the dumb "flag every row" rule reaches **precision ≈ 0.07** (recall 1.0 — it flags almost everything), while CohortFit holds **precision 1.00 ± 0.00** at recall 1.00. Same recall, ~14× the precision.
+
 ## 4. Real, demo-verifiable quality findings (no injection)
 Every flag points to real rows in the 100 patients (via `/quality/scorecard`, 11 findings):
 

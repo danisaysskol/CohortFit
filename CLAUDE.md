@@ -38,6 +38,60 @@ Do not build or modify this project on a different model unless the user explici
 - **UI screenshots:** whenever the UI changes, test it in **claude-in-chrome** and save the latest screenshot(s) to `docs/ui-screenshots/` (overwrite the "latest" set) so the repo always shows the current UI.
 - **Dead code:** remove unused code, utilities, config keys, and copy as you go — keep the tree clean.
 - **Docs follow the 7 Cs** (clear, concise, concrete, correct, coherent, complete, courteous) and must be understandable by someone with zero prior context.
+- **Project source tree (below) must be kept current** — update the "Project source tree" section in this file after **every** file/folder create, rename, or delete. It excludes the already-documented subtrees (`mimic-iv-clinical-database-demo-2.2/`, `mimic-iv-docs/`), the gitignored `mimic-code-main/`, `.zip` archives, and build artifacts (`node_modules/`, `.next/`, `__pycache__/`).
+
+## Project source tree
+
+_Excludes the extracted dataset, `mimic-iv-docs/`, `mimic-code-main/`, `.zip` files, and build artifacts (see trees for those elsewhere in this file). Keep this updated on every file/folder change._
+
+```
+patient-care-track-2/
+├── backend/                          # FastAPI + DuckDB
+│   ├── app/
+│   │   ├── api/__init__.py
+│   │   ├── cohort/                   # NL → IR → SQL
+│   │   │   ├── __init__.py
+│   │   │   ├── compiler.py           # IR → DuckDB SQL (+ joins/temporal/negation/LOS)
+│   │   │   ├── ir.py                 # CohortIR pydantic models
+│   │   │   └── nl.py                 # OpenAI structured output + keyword fallback
+│   │   ├── data/
+│   │   │   ├── __init__.py
+│   │   │   ├── loader.py             # DuckDB view per CSV
+│   │   │   └── schema.py             # introspection + /explore
+│   │   ├── eval/
+│   │   │   ├── __init__.py
+│   │   │   ├── inject.py             # error-injection harness (baseline + multiseed)
+│   │   │   └── metrics.py
+│   │   ├── quality/
+│   │   │   ├── __init__.py
+│   │   │   ├── ranges.py             # plausibility bounds (MIT vitalsign.sql)
+│   │   │   └── rules.py              # checks + scorecard + fixes
+│   │   ├── __init__.py
+│   │   ├── config.py                 # pydantic-settings (models, paths)
+│   │   └── main.py                   # FastAPI app + endpoints
+│   ├── tests/                        # pytest (conftest forces keyword path)
+│   │   ├── __init__.py · conftest.py · test_api.py
+│   │   ├── test_cohort_and_eval.py · test_data_and_quality.py
+│   ├── Dockerfile · README.md · pytest.ini · requirements.txt
+├── docs/
+│   ├── test-cases/                   # test suite + reusable result logs
+│   │   ├── RESULTS.md · results.json · cohortfit-test-suite.json · sample-test-cases.json
+│   ├── ui-screenshots/               # latest UI screenshots (refresh on UI change)
+│   ├── EVALUATION_REPORT.md · SAFETY_STATEMENT.md · TRACK2_REQUIREMENTS.md
+│   ├── RESEARCH_AND_EXPLORATION.md · design-direction.md · design-explorer.html
+├── frontend/                         # Next.js 14 (Lab Ledger design system)
+│   ├── app/
+│   │   ├── about/page.tsx · cohorts/page.tsx · evaluation/page.tsx
+│   │   ├── quality/{page.tsx, FixLedger.tsx} · schema/{page.tsx, Erd.tsx}
+│   │   ├── components/               # reusable: DataTable, FilterBar, Nav, useTableExplorer
+│   │   ├── lib/api.ts · globals.css · layout.tsx · page.tsx
+│   ├── public/fonts/                 # self-hosted Hanken Grotesk + IBM Plex Mono
+│   ├── Dockerfile · package.json · tsconfig.json · next.config.mjs · .dockerignore · .gitignore
+├── hackathon-instructions/           # the two source PDFs
+├── .env.example · .gitattributes · .gitignore
+├── CLAUDE.md · README.md · PROGRESS.md · TENTATIVE_AGILE_PLAN.md · FRONTEND_DESIGN_SYSTEM.md
+└── docker-compose.yml
+```
 
 ## Key project docs (read these before building)
 

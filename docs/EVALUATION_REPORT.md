@@ -14,7 +14,19 @@ Clinical-data researchers/educators defining cohorts and judging data fitness. T
 | "age ≥ 65" | 44 patients | 44 | ✅ |
 | Provenance funnel for the first query | 100 → 44 → 44 → 9 | 100 → 44 → 44 → 9 | ✅ |
 
-**Abstention.** For out-of-scope requests (e.g. "positive COVID PCR last winter" — not in the data; and calendar-time queries — dates are shifted) the tool sets `answerable=false` with a reason instead of fabricating a query. Verified by test.
+**Multi-table joins & temporal logic** (rubric §8 "joins and temporal logic are sound") — verified live via the OpenAI path (`method=openai`):
+
+| Query | Capability | Result |
+|---|---|---|
+| "patients with a diabetes diagnosis" | ICD long_title join (both ICD-9/10) | 35 |
+| "female patients older than 70" | gender + age | 13 |
+| "patients with potassium over 5.5" | lab threshold by itemid | 32 |
+| "ICU stays longer than 7 days" | `icustays.los` | 18 |
+| "patients who had a lab drawn before ICU admission" | labevents ⋈ icustays (temporal) | 61 |
+| "patients readmitted within 30 days of discharge" | admissions self-join | 26 |
+| "ICU patients who did NOT receive antibiotics" | anti-join (`exclude`) | 24 |
+
+**Abstention / clarification / refusal.** Out-of-scope requests are handled honestly, not fabricated: "admitted in winter" → **abstain** (dates shifted); "under 12 AND over 65" → **clarify** (contradiction); "most likely to die next" → **refuse** (prediction). Verified by tests + live.
 
 ## 3. Data-quality detection — injected-error harness
 **Baseline to beat:** manual review / fixed hard rules. **Protocol:** inject N labeled errors into a *copy* (seeded, reproducible), run the detector, score against ground truth. Synthetic errors live only in a read-only working copy and are never used to imply clinical performance.
@@ -47,7 +59,12 @@ Every flag points to real rows in the 100 patients (via `/quality/scorecard`, 11
 | Units | MCHC in g/dL and % in one column (2,760 rows) | labevents · 51249 | data error |
 | Temporal | 2,168 labs charted outside their admission window | labevents | data error |
 | Completeness | hadm_id missing on 28,420/107,727 (26.4%) — outpatient labs | labevents · hadm_id | **caveat, not defect** |
+| Completeness | **9,469 lab rows (144 itemids) have NULL valuenum but a result in `comments`** — the documented MIMIC pattern (e.g. viral-load "DETECTED"), demo-verified | labevents | data error |
+| Completeness | all 140 ICU stays have a heart-rate measurement (confirms MIMIC's ≥99% rule) | icustays · itemid 220045 | **real finding (clean)** |
 | Duplicates | 0 duplicate (subject_id, hadm_id, seq_num) keys | diagnoses_icd | **real finding (clean)** |
+| Duplicates | 21,896 (patient, stay, itemid, charttime) groups with >1 chartevents row — near-duplicates for **review** (not auto-deleted) | chartevents | data error (review) |
+
+*(14 findings total across the 5 dimensions; each carries a severity, a data-error/real-finding/caveat class, and a source pointer.)*
 
 **Real-finding-vs-error discipline.** Numeric rules are gated on `d_items.param_type` and reference ranges, so an extreme-but-real lab (e.g. potassium 7.8 mEq/L, flagged abnormal, within a documented range) is reported as a *finding*, not a typo — the exact distinction Track 2 requires.
 

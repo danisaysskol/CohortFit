@@ -68,17 +68,19 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 
 ## ⏳ Pending (refreshed 2026-08-08)
 
-**High priority (user-requested / correctness):**
-- [x] **Schema page = ERD + free data explorer** — DONE: SVG ER diagram (spine + event/dictionary tables, cardinality) + a live explorer with column filter/operator/value, search-all, and pagination, backed by a safe parameterized `/explore/{table}`. Verified in-browser (`app-schema-erd`, `app-schema-explorer`).
-- [x] **Dumb-vs-tool comparison** — DONE: on the About page + `docs/EVALUATION_REPORT.md` §3b (ranking, reviewer-time-saved, error-vs-finding, reasons+source, baseline P 0.07 vs 1.0).
-- [ ] **Re-run the 46-case suite with OpenAI active** and refresh `docs/test-cases/results.json` + `RESULTS.md` (current log is the keyword-fallback path). Cache the OpenAI responses so we don't re-call.
-- [ ] **Extend the compiler to match OpenAI's reach** (or make OpenAI emit only supported kinds): OpenAI may propose criteria the compiler can't compile → currently errors to "clarify". Decide: add negation/aggregation/temporal-join kinds, or constrain the schema.
-- [ ] **Missing DQ checks** (beat the dumb version harder): `storetime < charttime`; results hidden in `comments` with null `valuenum` (HIV itemid 51652); per-ICU-stay heart-rate completeness (MIMIC's own ≥99% rule); near-duplicate measurement rows.
+**Done this wave (OpenAI + joins + DQ + UI):**
+- [x] **OpenAI live & verified** — `method=openai` (gpt-5.6-terra, structured outputs, `reasoning_effort=low`, no temperature). Never the sol tier. Confirmed against current docs via Context7.
+- [x] **Multi-table joins / temporal / negation / LOS / readmission** (rubric "joins and temporal logic are sound") — IR `exclude` + kinds `los_threshold`/`lab_temporal`/`readmission`; compiler runs labevents⋈icustays temporal joins + admissions self-join. Verified live (NOT-antibiotics 24, LOS>7 18, lab-before-ICU 61, readmit≤30 26, diabetes 35, potassium>5.5 32).
+- [x] **Honest dispositions** — refuse / abstain / clarify (contradiction, seasonality, cross-hospital, prediction) surfaced in the UI.
+- [x] **Missing DQ checks added** — results-hidden-in-comments (9,469 rows/144 itemids — the documented MIMIC finding), storetime<charttime, per-stay HR completeness, near-duplicate. 14 findings now.
+- [x] **Schema ERD + reusable modern data explorer** — `DataTable`/`FilterBar`/`useTableExplorer` (removable type-aware filter chips, add-filter composer, sortable sticky table). Verified.
+- [x] **Dumb-vs-tool** table (About + EVALUATION_REPORT); eval **baseline + multi-seed uncertainty**; flag **ranking** + reviewer-time-saved.
+- [x] **CLAUDE.md project tree** + keep-updated instruction; Windows HMR polling fix.
 
-**Polish / evidence:**
-- [ ] **UI-clarity pass** — visual hierarchy, borders, clear focused/unfocused distinction, user-centric copy (a full critique + fixes, beyond the SQL-scroll fix already done).
-- [ ] **Dumb-vs-tool comparison** (the reviewer's table) → add to `docs/EVALUATION_REPORT.md` and the About page; the pieces (ranking, reviewer-time-saved, error-vs-finding, reasons+source, baseline) are built — document them as the explicit contrast.
-- [ ] Update `docs/EVALUATION_REPORT.md` with the multi-seed baseline numbers + the OpenAI-path note.
+**In progress / next:**
+- [~] **Re-run the 46-case suite through OpenAI** and refresh `docs/test-cases/results.json` + `RESULTS.md` (testing agent running — the current logs are the stale pre-key run).
+- [ ] Optional: `backend/scripts/batch_eval.py` implementing the **Batch API** offline path (async, 50% off) — the documented sync(live)/async(offline) split, made real.
+- [ ] Extend `TENTATIVE_AGILE_PLAN.md` use-cases + a broader UI-clarity sweep if the redesign surfaces gaps.
 
 **Human-only:**
 - [ ] Demo video + slides (3-min script in `TENTATIVE_AGILE_PLAN.md`), Sofstica portal submission, CVs.

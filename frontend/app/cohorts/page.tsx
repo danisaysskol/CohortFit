@@ -31,8 +31,8 @@ export default function CohortsPage() {
   const [live, setLive] = useState<FunnelStep[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<"ir" | "sql">("ir");
   const [showAll, setShowAll] = useState(false);
+  const [rtab, setRtab] = useState<"patients" | "ir" | "sql">("patients");   // results panel tab
   const [tl, setTl] = useState<PatientTimeline | null>(null);
   const [tlLoading, setTlLoading] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -118,6 +118,45 @@ export default function CohortsPage() {
     ? (({ refuse: "Request declined", clarify: "Needs clarification", abstain: "Cannot answer" } as Record<string, string>)[res.disposition ?? "abstain"] ?? "Cannot answer")
     : "";
 
+  const queryNote = <p className="note">The model proposes a structured recipe from the schema and your words; a deterministic compiler turns it into the SQL. The model never writes executable SQL.</p>;
+  const patientsInner = (
+    <>
+      <div className="hint"><Icon name="activity" size={13} /> <span>Select any patient to open their full <b>event timeline</b> — a time-ordered journey with the source of every event.</span></div>
+      <div className="tablewrap" style={{ maxHeight: 372, overflowY: "auto" }}>
+        <table className="gt">
+          <thead><tr><th>subject_id</th><th>sex</th><th className="num">age</th><th className="num">ICU stays</th><th className="num">days in ICU</th><th className="num">admissions</th><th>outcome</th><th></th></tr></thead>
+          <tbody>
+            {shown.map((p, i) => {
+              const active = tl?.subject_id === Number(p.subject_id);
+              return (
+                <tr key={i} className={"row-click" + (active ? " row-on" : "")} onClick={() => openTimeline(String(p.subject_id))} title="View patient timeline">
+                  <td className="mono">
+                    {tlLoading === String(p.subject_id) ? <span className="spin" style={{ verticalAlign: -1 }} /> : <Icon name="activity" size={11} style={{ color: "var(--accent)", verticalAlign: -1, marginRight: 5 }} />}
+                    {String(p.subject_id)}
+                  </td>
+                  <td className="mono">{String(p.gender)}</td>
+                  <td className="num mono">{String(p.age)}</td>
+                  <td className="num mono">{String(p.icu_stays)}</td>
+                  <td className="num mono">{String(p.total_los)}</td>
+                  <td className="num mono">{String(p.admissions)}</td>
+                  <td>{Number(p.died) === 1
+                    ? <span className="pill err"><Icon name="alert" size={10} style={{ verticalAlign: -1 }} /> Died in hospital</span>
+                    : <span className="pill find"><Icon name="check" size={10} style={{ verticalAlign: -1 }} /> Survived</span>}</td>
+                  <td><span className="rowcta">{active ? "Viewing" : "Timeline"} <Icon name="arrow" size={11} /></span></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {patients.length > 10 && (
+        <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setShowAll((v) => !v)}>
+          <Icon name="chevron" size={13} /> {showAll ? "Show fewer" : `Show all ${patients.length}`}
+        </button>
+      )}
+    </>
+  );
+
   return (
     <>
       <div className="page-h" style={{ marginBottom: 10 }}>
@@ -191,64 +230,24 @@ export default function CohortsPage() {
         </div>
       )}
 
-      {/* Query + patients */}
+      {/* Result + query in one compact panel — patients first, recipe/SQL a tab away. */}
       {res && res.answerable && (
-        <>
-          <section className="panel" style={{ marginTop: 16 }}>
-            <div className="panel-h">
-              <span className="lbl lbl-i"><Icon name="hash" size={13} /> Generated query</span>
-              <span className="codetabs">
-                <button aria-pressed={tab === "ir"} onClick={() => setTab("ir")}>Recipe</button>
-                <button aria-pressed={tab === "sql"} onClick={() => setTab("sql")}>SQL</button>
-              </span>
-            </div>
-            <div className="panel-b">
-              {tab === "ir" ? <pre><code>{JSON.stringify(res.ir, null, 2)}</code></pre> : <pre><code>{res.sql || "—"}</code></pre>}
-              <p className="note">The model proposes a structured recipe from the schema and your words; a deterministic compiler turns it into the SQL above. The model never writes executable SQL.</p>
-            </div>
-          </section>
-
-          {patients.length > 0 && (
-            <section className="panel" style={{ marginTop: 16 }}>
-              <div className="panel-h"><span className="lbl lbl-i"><Icon name="users" size={13} /> Matched patients</span><span className="lbl">{patients.length} shown</span></div>
-              <div className="panel-b">
-                <div className="hint"><Icon name="activity" size={13} /> <span>Select any patient to open their full <b>event timeline</b> — a time-ordered journey with the source of every event.</span></div>
-                <div className="tablewrap">
-                  <table className="gt">
-                    <thead><tr><th>subject_id</th><th>sex</th><th className="num">age</th><th className="num">ICU stays</th><th className="num">days in ICU</th><th className="num">admissions</th><th>outcome</th><th></th></tr></thead>
-                    <tbody>
-                      {shown.map((p, i) => {
-                        const active = tl?.subject_id === Number(p.subject_id);
-                        return (
-                        <tr key={i} className={"row-click" + (active ? " row-on" : "")} onClick={() => openTimeline(String(p.subject_id))} title="View patient timeline">
-                          <td className="mono">
-                            {tlLoading === String(p.subject_id) ? <span className="spin" style={{ verticalAlign: -1 }} /> : <Icon name="activity" size={11} style={{ color: "var(--accent)", verticalAlign: -1, marginRight: 5 }} />}
-                            {String(p.subject_id)}
-                          </td>
-                          <td className="mono">{String(p.gender)}</td>
-                          <td className="num mono">{String(p.age)}</td>
-                          <td className="num mono">{String(p.icu_stays)}</td>
-                          <td className="num mono">{String(p.total_los)}</td>
-                          <td className="num mono">{String(p.admissions)}</td>
-                          <td>{Number(p.died) === 1
-                            ? <span className="pill err"><Icon name="alert" size={10} style={{ verticalAlign: -1 }} /> Died in hospital</span>
-                            : <span className="pill find"><Icon name="check" size={10} style={{ verticalAlign: -1 }} /> Survived</span>}</td>
-                          <td><span className="rowcta">{active ? "Viewing" : "Timeline"} <Icon name="arrow" size={11} /></span></td>
-                        </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                {patients.length > 10 && (
-                  <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setShowAll((v) => !v)}>
-                    <Icon name="chevron" size={13} /> {showAll ? "Show fewer" : `Show all ${patients.length}`}
-                  </button>
-                )}
-              </div>
-            </section>
-          )}
-        </>
+        <section className="panel rise-in" style={{ marginTop: 16 }}>
+          <div className="panel-h">
+            <span className="codetabs">
+              <button aria-pressed={rtab === "patients"} onClick={() => setRtab("patients")}>Patients</button>
+              <button aria-pressed={rtab === "ir"} onClick={() => setRtab("ir")}>Recipe</button>
+              <button aria-pressed={rtab === "sql"} onClick={() => setRtab("sql")}>SQL</button>
+            </span>
+            <span className="lbl">{res.n} matched</span>
+          </div>
+          <div className="panel-b">
+            {rtab === "patients" ? patientsInner
+              : rtab === "ir"
+                ? <><div style={{ maxHeight: 452, overflow: "auto" }}><pre><code>{JSON.stringify(res.ir, null, 2)}</code></pre></div>{queryNote}</>
+                : <><div style={{ maxHeight: 452, overflow: "auto" }}><pre><code>{res.sql || "—"}</code></pre></div>{queryNote}</>}
+          </div>
+        </section>
       )}
 
       {tl && (

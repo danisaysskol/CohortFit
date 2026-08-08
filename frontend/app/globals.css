@@ -70,12 +70,16 @@ main{padding:22px 0 64px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--rc);box-shadow:var(--elev-1)}
 .panel-h{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--line);
   background:var(--surface-2);border-radius:var(--rc) var(--rc) 0 0}
-.panel-h .lbl{font-size:11px;color:var(--ink);letter-spacing:.09em;font-weight:600}
+.panel-h .lbl{font-size:11.5px;color:var(--ink-strong);letter-spacing:.09em;font-weight:700}
 .panel-h .lbl-i{display:inline-flex;align-items:center;gap:6px;color:var(--accent)}
+.panel-h .lbl-i svg{opacity:1}
 .panel-b{padding:15px}
 /* a focus surface — the timeline / drill-in panels that open in response to a click */
 .panel-pop{box-shadow:var(--elev-2);border-color:var(--line-strong);animation:pop .18s ease}
 @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* purposeful entrance for freshly-built results */
+.rise-in{animation:rise .3s cubic-bezier(.22,.61,.36,1)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .grid2{display:grid;grid-template-columns:1.15fr 1fr;gap:18px}
 .grid2>*{min-width:0}          /* prevents a wide <pre>/table from forcing the column (and page) wider */
 @media(max-width:860px){.grid2{grid-template-columns:1fr}}

@@ -65,7 +65,7 @@ export default function QualityPage() {
       {sc && derived && (
         <>
           {/* Hero: verdict + headline numbers */}
-          <div className="grid2" style={{ gridTemplateColumns: "1.4fr 1fr", alignItems: "stretch" }}>
+          <div className="grid2 rise-in" style={{ gridTemplateColumns: "1.4fr 1fr", alignItems: "stretch" }}>
             <Verdict severity={derived.overall} title={verdictCopy[derived.overall].t} sub={verdictCopy[derived.overall].s} />
             <div className="metrics" style={{ gridTemplateColumns: "1fr 1fr" }}>
               <StatTile value={String(sc.summary.issues_found)} label="Data-error issues" meaning="Ranked most severe first" />
@@ -74,7 +74,7 @@ export default function QualityPage() {
           </div>
 
           {/* Dimension tiles */}
-          <div className="dgrid" style={{ marginTop: 18 }}>
+          <div className="dgrid" style={{ marginTop: 14 }}>
             {sc.dimensions.map((d) => (
               <DimTile key={d.dimension} dimension={d.dimension} severity={d.severity as Sev}
                        detail={`${derived.perDim[d.dimension] ?? 0} finding${(derived.perDim[d.dimension] ?? 0) === 1 ? "" : "s"}`} />
@@ -82,7 +82,7 @@ export default function QualityPage() {
           </div>
 
           {/* Severity distribution + findings */}
-          <div className="grid2" style={{ marginTop: 18 }}>
+          <div className="grid2" style={{ marginTop: 14, alignItems: "start" }}>
             <section className="panel">
               <div className="panel-h"><span className="lbl">Finding distribution</span><span className="lbl">{sc.findings.length} total</span></div>
               <div className="panel-b">

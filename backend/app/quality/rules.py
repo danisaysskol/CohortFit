@@ -131,16 +131,22 @@ def check_comments_hidden(db: Database) -> list[Finding]:
 
 
 def check_storetime(db: Database) -> list[Finding]:
-    r = db.query(
-        "SELECT count(*) AS n FROM labevents "
-        "WHERE storetime IS NOT NULL AND charttime IS NOT NULL AND storetime < charttime"
-    )[0]
-    n = int(r["n"] or 0)
-    if n == 0:
-        return []
-    return [Finding("temporal", "amber", "labevents",
-                    f"{n} lab rows have storetime earlier than charttime (a documented MIMIC quirk — "
-                    f"validation time can precede the charted time)", n, "caveat", "storetime < charttime")]
+    out: list[Finding] = []
+    for table in ("chartevents", "labevents"):
+        n = int(db.query(
+            f"SELECT count(*) AS n FROM {table} "
+            "WHERE storetime IS NOT NULL AND charttime IS NOT NULL AND storetime < charttime"
+        )[0]["n"])
+        if n:
+            out.append(Finding("temporal", "amber", table,
+                               f"{n} {table} rows have storetime earlier than charttime (a documented "
+                               f"MIMIC quirk — validation time can precede the charted time)",
+                               n, "caveat", "storetime < charttime"))
+    if not out:  # always surface the check so a clean pass is visible, not silently absent
+        out.append(Finding("temporal", "green", "chartevents",
+                           "0 rows with storetime earlier than charttime", 0, "real_finding",
+                           "storetime < charttime"))
+    return out
 
 
 def check_hr_completeness(db: Database) -> list[Finding]:

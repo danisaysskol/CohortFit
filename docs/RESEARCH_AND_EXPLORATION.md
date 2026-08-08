@@ -286,6 +286,14 @@ User-confirmed GPT-5.6 pricing per 1M tokens: **sol** $5 in / $0.50 cached / $6.
 **Verify before locking:** exact callable model IDs (`gpt-5.6-terra` vs bare `gpt-5.6`+tier), the 1.25× cache-write multiplier, the 30-min-only TTL (add a keep-warm ping if idle gaps > 30m), and the effort floors.
 - Sources: OpenAI docs — prompt-caching, reasoning, structured-outputs, deployment-checklist, batch; Simon Willison GPT-5.6 (2026-07-09). Full write-up available from the R&D research pass.
 
+### D7. Implementation status + sync vs async (confirmed against current OpenAI docs via Context7)
+**Live and working.** The cohort builder calls `client.beta.chat.completions.parse(model="gpt-5.6-terra", reasoning_effort="low", response_format=CohortIR)` — **no `temperature`** (gpt-5.6 reasoning models reject a custom temperature; that mismatch was the only bug — determinism comes from the deterministic IR→SQL compiler + stored IR). Verified `method=openai` end-to-end. Never the `sol` tier.
+
+**Sync vs async — the deliberate split:**
+- **Synchronous** (`/v1/chat/completions` parse) for the **live cohort builder** — the researcher is waiting, so it must return now. This is the only interactive LLM path.
+- **Asynchronous / Batch API** for the **offline eval + test-suite** — not latency-sensitive, so the right tool is the Batch API: write a JSONL of `/v1/chat/completions` requests → `files.create(purpose="batch")` → `batches.create(endpoint="/v1/chat/completions", completion_window="24h")` → poll → download the output file → compile each returned IR locally. ~50% cheaper, ideal for bulk re-runs. (Ref: OpenAI Batch guide.) For fast iteration we run the suite synchronously and **cache** every response to `docs/test-cases/results.json` so we never re-call to reproduce.
+- **Caching:** the constant prefix (system prompt + itemid reference + schema) is a stable head, so automatic prompt-caching bills it cheaply across calls.
+
 ---
 
 ## E. What this means for the build (summary)

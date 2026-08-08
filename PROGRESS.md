@@ -77,10 +77,12 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Dumb-vs-tool** table (About + EVALUATION_REPORT); eval **baseline + multi-seed uncertainty**; flag **ranking** + reviewer-time-saved.
 - [x] **CLAUDE.md project tree** + keep-updated instruction; Windows HMR polling fix.
 
-**In progress / next:**
-- [~] **Re-run the 46-case suite through OpenAI** and refresh `docs/test-cases/results.json` + `RESULTS.md` (testing agent running — the current logs are the stale pre-key run).
+- [x] **Re-ran the 46-case suite through OpenAI** → `docs/test-cases/{results.json,RESULTS.md}` refreshed: **43 pass / 2 partial / 1 fail** (was 21/13/12), `method=openai`, counts CSV-verified. Fixed the two issues it surfaced (storetime check now scans chartevents=54,144 and always surfaces; "high blood pressure" → clarify).
+- [x] **Clickable ERD** — click a table box → column dropdown (name+type); also loads that table in the explorer.
+
+**Next / optional:**
 - [ ] Optional: `backend/scripts/batch_eval.py` implementing the **Batch API** offline path (async, 50% off) — the documented sync(live)/async(offline) split, made real.
-- [ ] Extend `TENTATIVE_AGILE_PLAN.md` use-cases + a broader UI-clarity sweep if the redesign surfaces gaps.
+- [ ] Broader UI-clarity sweep + more `TENTATIVE_AGILE_PLAN.md` use-cases if gaps surface.
 
 **Human-only:**
 - [ ] Demo video + slides (3-min script in `TENTATIVE_AGILE_PLAN.md`), Sofstica portal submission, CVs.

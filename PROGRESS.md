@@ -110,8 +110,14 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Production build** — root cause was the Next.js **dev server compiling each route on first visit** (multi-second). The Docker frontend now does `next build` + `output:standalone` + `next start` (multi-stage Dockerfile; source bind-mount removed). Measured page loads dropped to **20–210ms cold, ~20ms warm** (was multiple seconds). Nav uses `next/link`, so prod prefetches routes on hover/viewport. **Dev-loop note:** after editing frontend code, rebuild: `docker compose up -d --build frontend`.
 - [x] **Client-side caching** — the demo dataset is frozen, so every GET is deterministic; API responses are cached in `sessionStorage` keyed by path (instant repeat visits, one round-trip per session).
 
+**Done (compact layouts + control audit + narrative context):**
+- [x] **Cohorts layout** — tried three layouts (split / tabbed / result-first); kept **tabbed**: matched patients + Recipe + SQL share one compact panel (patients full-width) instead of three stacked panels. Funnel above still shows the transparent query.
+- [x] **Quality layout** — distribution panel no longer stretches (align-items:start); gaps trimmed.
+- [x] **Prominent segmented control** — the Patients/Recipe/SQL toggle is now a tactile track with an accent-filled active pill (was a tiny mono switch).
+- [x] **Control audit** (same class of fix, app-wide): schema **table selector** active state now has an accent bar + bold + elevation (was a faint border); **sort headers** read as clickable (hover fill, clearer carets); the table-filter **input** got a focus glow. Bolder panel subheadings.
+- [x] **Quality & Evaluation narrative** — a compact `Explain` strip (Context → Problem → Method → Result) tells each page's story in one band without adding scroll. Reusable `components/Explain.tsx`.
+
 **Next:**
-- [ ] **Quality & Evaluation context** — each page should tell the context, the problem, the steps taken, and the results (per docs), not just the numbers.
 - [ ] **Critique report** — a complete assessment of the app's attention/interactivity: what's good, what lags, what to improve, what to remove.
 - [ ] The larger exploration: make Track-2 points 2 (data-quality judging) & 3 (measurement explorer) as interactive/user-centric as point 1 — try 3 paths against pre-set criteria, pick the best, implement.
 - [ ] Human deliverables (demo video, slides, submission, CVs).

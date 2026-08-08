@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, EvalResult } from "../lib/api";
 import { StatTile, CompareBars, ConfusionMatrix } from "../components/charts";
+import { Explain } from "../components/Explain";
 
 export default function EvaluationPage() {
   const [ev, setEv] = useState<EvalResult | null>(null);
@@ -32,6 +33,13 @@ export default function EvaluationPage() {
 
       {ev && (
         <>
+          <Explain items={[
+            { k: "Context", icon: "chart", t: <>You cannot grade a bug-finder on the bugs it <b>happens to find</b> — there is no ground truth to score against.</> },
+            { k: "Problem", icon: "alert", t: <>So we inject a <b>known number of errors</b> into a copy of the data and measure how many the engine recovers.</> },
+            { k: "Method", icon: "play", t: <>Seeded injection across <b>{ev.seeds.length} seeds</b>; precision / recall / FPR vs a naive fixed-rule baseline. The source is never touched.</> },
+            { k: "Result", icon: "check", t: <>Recall <b>{ev.aggregate.recall.mean.toFixed(2)}</b>, precision <b>{ev.aggregate.precision.mean.toFixed(2)}</b> on this check — reported honestly as a strong case, not a clinical claim.</> },
+          ]} />
+
           {/* Headline metrics with plain-English meaning */}
           <div className="metrics">
             <StatTile value={ev.aggregate.precision.mean.toFixed(2)} label="Precision" meaning="Of the rows flagged, the share that were genuine injected errors." />

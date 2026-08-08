@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { api, Scorecard, Finding, FindingRows } from "../lib/api";
 import { Verdict, StatTile, DimTile, SeverityBar, Sev } from "../components/charts";
 import { Icon } from "../components/Icon";
+import { Explain } from "../components/Explain";
 import { FixLedger } from "./FixLedger";
 
 const KIND_PILL: Record<string, string> = { data_error: "err", real_finding: "find", caveat: "caveat" };
@@ -64,6 +65,13 @@ export default function QualityPage() {
 
       {sc && derived && (
         <>
+          <Explain items={[
+            { k: "Context", icon: "database", t: <>Real ICU and hospital records (MIMIC-IV demo, <b>100 patients</b>), de-identified and date-shifted.</> },
+            { k: "Problem", icon: "alert", t: <>Before trusting an analysis you must know if the data are fit — and tell a <b>genuine clinical extreme</b> from a <b>data error</b>.</> },
+            { k: "Method", icon: "filter", t: <>Rules across <b>five dimensions</b>, each gated on <span className="mono">d_items.param_type</span> so text items are not miscounted.</> },
+            { k: "Result", icon: "check", t: <><b>{sc.summary.issues_found} data errors</b> + caveats, ranked worst-first, each traceable to real rows.</> },
+          ]} />
+
           {/* Hero: verdict + headline numbers */}
           <div className="grid2 rise-in" style={{ gridTemplateColumns: "1.4fr 1fr", alignItems: "stretch" }}>
             <Verdict severity={derived.overall} title={verdictCopy[derived.overall].t} sub={verdictCopy[derived.overall].s} />

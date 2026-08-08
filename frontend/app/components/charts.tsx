@@ -7,7 +7,7 @@
 
 export type Sev = "red" | "amber" | "green";
 const SEV_VAR: Record<Sev, string> = { red: "var(--danger)", amber: "var(--warn)", green: "var(--ok)" };
-const SEV_WORD: Record<Sev, string> = { red: "Critical", amber: "Caution", green: "Clean" };
+const SEV_WORD: Record<Sev, string> = { red: "Critical", amber: "Review", green: "Clean" };
 
 export function Verdict({ severity, title, sub }: { severity: Sev; title: string; sub: string }) {
   return (

@@ -52,3 +52,16 @@ def test_patient_timeline_endpoint():
     assert r.status_code == 200
     assert r.json()["events"]
     assert client.get("/patient/999999999/timeline").status_code == 404
+
+
+def test_negative_limit_is_clamped_not_500():
+    # A negative limit/offset must clamp to a valid page, never reach SQL as a
+    # negative LIMIT (which crashed DuckDB -> 500). Regression for the blackbox find.
+    assert client.get("/explore/patients", params={"limit": -5, "offset": -9}).status_code == 200
+    assert client.get("/schema/patients", params={"limit": -3}).status_code == 200
+
+
+def test_empty_cohort_build_is_clarify():
+    r = client.post("/cohort/build", json={"text": "   "})
+    assert r.status_code == 200 and r.json()["answerable"] is False
+    assert r.json()["disposition"] == "clarify"

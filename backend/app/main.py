@@ -94,7 +94,7 @@ def get_schema() -> dict[str, Any]:
 @app.get("/schema/{table}")
 def get_table(table: str, limit: int = 25) -> dict[str, Any]:
     try:
-        return schema_mod.sample(get_db(), table, limit=min(limit, 200))
+        return schema_mod.sample(get_db(), table, limit=min(max(limit, 1), 200))
     except KeyError:
         raise HTTPException(status_code=404, detail=f"unknown table: {table}")
 
@@ -110,7 +110,7 @@ def explore_table(
     search: str | None = None,
 ) -> dict[str, Any]:
     try:
-        return schema_mod.explore(get_db(), table, limit=min(limit, 100), offset=max(offset, 0),
+        return schema_mod.explore(get_db(), table, limit=min(max(limit, 1), 100), offset=max(offset, 0),
                                   col=col, op=op, val=val, search=search)
     except KeyError:
         raise HTTPException(status_code=404, detail=f"unknown table: {table}")

@@ -80,6 +80,40 @@ main{padding:22px 0 64px}
 /* purposeful entrance for freshly-built results */
 .rise-in{animation:rise .3s cubic-bezier(.22,.61,.36,1)}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+/* measurement explorer (Track-2 point 3) */
+.mcov{display:flex;flex-direction:column;gap:13px}
+.mcov-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mcov-label{font-size:13px;font-weight:600;color:var(--ink-strong)}
+.mcov-pct{font-size:12px;color:var(--accent);font-weight:700}
+.mcov-bar{height:8px;border-radius:999px;background:color-mix(in srgb,var(--line) 75%,var(--surface));overflow:hidden;margin-top:5px}
+.mcov-bar>span{display:block;height:100%;border-radius:999px;background:var(--accent);transition:width .4s cubic-bezier(.22,.61,.36,1)}
+.mcov-meta{font-size:10px;color:var(--muted);margin-top:4px}
+.mcov-warn{color:var(--warn);font-weight:600}
+.codebar{display:flex;height:16px;border-radius:4px;overflow:hidden;background:var(--line);gap:2px}
+.codebar-9{background:var(--accent)}.codebar-10{background:var(--accent-2)}
+.codelegend{display:flex;gap:16px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.codelegend span{display:inline-flex;align-items:center;gap:6px}
+.codelegend i{width:10px;height:10px;border-radius:2px}
+.codelegend i.c9{background:var(--accent)}.codelegend i.c10{background:var(--accent-2)}
+.mlab{display:flex;flex-direction:column}
+.mlab-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.mlab-row:first-child{border-top:0}
+.mlab-name{font-size:12.5px;color:var(--ink)}
+.mlab-meta{font-size:10.5px;color:var(--muted);white-space:nowrap}
+/* cross-link from a built cohort into the workspace loop */
+.wslink{display:flex;align-items:center;gap:11px;margin-top:16px;padding:14px 18px;border-radius:var(--rc);
+  background:var(--accent);color:var(--accent-ink);box-shadow:var(--elev-1);font-size:14px;font-weight:600;
+  transition:transform .12s ease,box-shadow .12s ease,filter .12s ease}
+.wslink:hover{transform:translateY(-1px);box-shadow:var(--elev-2);filter:brightness(1.06)}
+.wslink b{color:var(--accent-ink)}
+.wslink svg{flex:0 0 auto}
+/* cohort banner — the active cohort a scoped view is judging */
+.cohort-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 15px;border-radius:var(--rc);
+  background:color-mix(in srgb,var(--accent) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));
+  box-shadow:var(--elev-1);margin-bottom:16px}
+.cohort-banner .cb-n{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.cohort-banner .cb-q{font-size:13.5px;color:var(--ink-strong);font-weight:600}
+.cohort-banner .cb-none{font-size:13px;color:var(--muted)}
 /* compact narrative strip: context -> problem -> method -> result */
 .explain{margin-bottom:16px;overflow:hidden}
 .explain-grid{display:grid}
@@ -229,6 +263,7 @@ code{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--ink);
 .codetabs button:active:not([aria-pressed=true]){transform:scale(.97)}
 .codetabs button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);box-shadow:var(--elev-1);font-weight:700}
 .codetabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.codetabs button:disabled{opacity:.4;cursor:default}
 
 /* scorecard + tables */
 .gt{width:100%;border-collapse:collapse}

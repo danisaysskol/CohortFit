@@ -102,6 +102,38 @@ export type Scorecard = {
   findings: Finding[];
   summary: ScoreSummary;
 };
+export type CohortScorecard = Scorecard & { n_patients: number; scoped: boolean };
+export type Vital = {
+  itemid: number; label: string; coverage_pct: number; stays_with: number; stays_total: number;
+  n: number; units: string[]; unit_variation: boolean;
+  min: number | null; max: number | null; mean: number | null;
+  plausible: [number, number] | null; out_of_range: number | null;
+};
+export type LabMeasure = {
+  itemid: number; label: string; n: number; units: string[]; unit_variation: boolean;
+  min: number | null; max: number | null; mean: number | null;
+};
+export type Coding = { icd9: number; icd10: number; total: number; top: { code: string; version: number; title: string; n: number }[] };
+export type Measurements = {
+  n_patients: number; n_stays: number; n_admissions: number;
+  vitals: Vital[]; labs: LabMeasure[]; coding: Coding; scoped: boolean;
+};
+
+// The cohort the user last built (persisted by the Cohorts page). Read by the
+// scoped Quality / Measurements views so they judge *this* cohort, not the dataset.
+export const ACTIVE_COHORT_KEY = "cohortfit:last-cohort";
+export type ActiveCohort = { text: string; subject_ids: number[]; n: number };
+export function readActiveCohort(): ActiveCohort | null {
+  try {
+    const raw = localStorage.getItem(ACTIVE_COHORT_KEY);
+    if (!raw) return null;
+    const { text, res } = JSON.parse(raw);
+    const ids = (res?.subject_ids ?? []).map((s: string | number) => Number(s));
+    if (!ids.length) return null;
+    return { text: text ?? "your cohort", subject_ids: ids, n: ids.length };
+  } catch { return null; }
+}
+
 export type AggStat = { mean: number; std: number; min: number; max: number };
 export type EvalResult = {
   seeds: number[];
@@ -158,6 +190,10 @@ export const api = {
   patientTimeline: (id: string | number) => get<PatientTimeline>(`/patient/${id}/timeline`),
   scorecard: () => get<Scorecard>("/quality/scorecard"),
   findingRows: (id: string, limit = 50) => get<FindingRows>(`/quality/finding/${encodeURIComponent(id)}/rows?limit=${limit}`),
+  cohortQuality: (subject_ids: number[]) => post<CohortScorecard>("/cohort/quality", { subject_ids }),
+  cohortFindingRows: (subject_ids: number[], finding_id: string, limit = 50) =>
+    post<FindingRows>("/cohort/quality/rows", { subject_ids, finding_id, limit }),
+  cohortMeasurements: (subject_ids: number[]) => post<Measurements>("/cohort/measurements", { subject_ids }),
   fixes: () => get<{ fixes: Fix[]; note: string }>("/quality/fixes"),
   runEval: () => get<EvalResult>("/eval/run"),
 };

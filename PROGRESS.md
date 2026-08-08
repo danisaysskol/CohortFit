@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-08 — Full UX pass shipped & verified: design v2 (contrast/scale/tactility/motion), page-switch latency fixed at root (production build → 20–210ms), compact tabbed Cohorts + tighter Quality, prominent segmented control + app-wide weak-control audit, Context→Problem→Method→Result strips on Quality/Evaluation, and a "Less but Better" declutter pass (dimension tiles now filter findings, redundant hints removed, Evaluation per-seed table collapsed). Next: the big exploration — make Track-2 points 2 & 3 as interactive as point 1 (cohort-scoped quality + measurements)._
+_Last updated: 2026-08-08 — The cohort → data-fitness → measurements loop is live. Built cohort-scoped quality + a measurement explorer on the backend, implemented and evaluated three UI approaches (A toggle / B workspace / C explore-first) against pre-set criteria, and synthesized to the **Workspace** (B): build a cohort on Cohorts, then a CTA opens a one-screen workspace showing that cohort's fitness scorecard and its measurement coverage/units/coding. Verified end-to-end; 30 backend tests pass. Next: human deliverables (demo, slides, submission)._
 
 ---
 
@@ -120,8 +120,15 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 **Done (interactivity critique → acted on, then removed):**
 - [x] Wrote an honest attention/interactivity critique (six heuristics; per-page; what works / lags / improve / remove), **implemented its declutter + control recommendations** (dimension tiles now filter findings; redundant hint/prompt signals removed; Evaluation per-seed table collapsed; `openai` chip clarified), then **deleted the critique doc** now that it is consumed. Headline it surfaced: interactivity is still **lopsided** — Cohorts is richly interactive while Quality/Evaluation lean read-only; the top-value next step is cohort-scoped, cross-linked quality + measurement views.
 
+**Done (the big one — Track-2 points 2 & 3 made interactive & cohort-scoped):**
+- [x] **Shared backend** — every quality check takes optional `subject_ids` (scope to a cohort or the whole dataset; 30 tests still green); new `measure.py` for measurement coverage / unit variation / value-range-vs-bounds / ICD-9/10 coding, cohort-scoped. Endpoints: `POST /cohort/quality`, `/cohort/quality/rows`, `/cohort/measurements`.
+- [x] **Built all three UI approaches and evaluated each in-browser against the pre-set criteria** (Track-2 fit / loop-coherence / demo-impact / honesty / cost-safety):
+  - **A** — dataset↔cohort toggle on the Quality page (score 85).
+  - **B** — a dedicated **Workspace**: one screen, cohort banner + Data-fitness / Measurements lenses (score **93**).
+  - **C** — measurement-first Explore page (score 70; dropped the scorecard verdict, had a fetch race).
+- [x] **Synthesis → selected B.** A's value is fully contained in B (both use the shared `CohortFitness` + `Measurements` components), so keeping B removed duplication rather than losing anything; C dropped. Reverted A (Quality is clean whole-dataset again), deleted C. Added a cohort→Workspace cross-link CTA on the Cohorts page. **The loop is live:** build a cohort → "Judge this cohort's data fitness & explore its measurements →" → Workspace shows the cohort's scorecard (e.g. plausibility flips green for the 9-patient gold cohort) and its measurement coverage/units/coding. Verified end-to-end.
+
 **Next:**
-- [ ] The larger exploration: make Track-2 points 2 (data-quality judging) & 3 (measurement explorer) as interactive/user-centric as point 1 — try 3 paths against pre-set criteria, pick the best, implement. **The critique points to cohort-scoped quality + measurements as the strongest path.**
 - [ ] Human deliverables (demo video, slides, submission, CVs).
 
 **Human-only:**

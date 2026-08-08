@@ -8,6 +8,7 @@ const LINKS: { href: string; label: string; icon: IconName }[] = [
   { href: "/schema", label: "Schema", icon: "sitemap" },
   { href: "/cohorts", label: "Cohorts", icon: "users" },
   { href: "/quality", label: "Quality", icon: "shield" },
+  { href: "/workspace", label: "Workspace", icon: "spark" },
   { href: "/evaluation", label: "Evaluation", icon: "chart" },
   { href: "/about", label: "About", icon: "info" },
 ];

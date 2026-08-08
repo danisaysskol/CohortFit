@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { api, streamCohort, CohortResult, PatientTimeline, FunnelStep } from "../lib/api";
 import { Icon } from "../components/Icon";
 import { StepTrace, Step } from "./StepTrace";
@@ -247,6 +248,14 @@ export default function CohortsPage() {
                 : <><div style={{ maxHeight: 452, overflow: "auto" }}><pre><code>{res.sql || "—"}</code></pre></div>{queryNote}</>}
           </div>
         </section>
+      )}
+
+      {res && res.answerable && patients.length > 0 && (
+        <Link href="/workspace" className="wslink rise-in">
+          <Icon name="spark" size={16} />
+          <span>Judge <b>this cohort&rsquo;s</b> data fitness &amp; explore its measurements</span>
+          <Icon name="arrow" size={15} style={{ marginLeft: "auto" }} />
+        </Link>
       )}
 
       {tl && (

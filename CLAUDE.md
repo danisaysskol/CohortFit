@@ -65,8 +65,9 @@ patient-care-track-2/
 │   │   │   └── metrics.py
 │   │   ├── quality/
 │   │   │   ├── __init__.py
+│   │   │   ├── measure.py            # cohort measurement explorer (coverage/units/coding)
 │   │   │   ├── ranges.py             # plausibility bounds (MIT vitalsign.sql)
-│   │   │   └── rules.py              # checks + scorecard + fixes
+│   │   │   └── rules.py              # checks + scorecard + fixes (cohort-scopable)
 │   │   ├── __init__.py
 │   │   ├── config.py                 # pydantic-settings (models, paths)
 │   │   └── main.py                   # FastAPI app + endpoints
@@ -83,8 +84,8 @@ patient-care-track-2/
 ├── frontend/                         # Next.js 14 (Lab Ledger design system)
 │   ├── app/
 │   │   ├── about/page.tsx · cohorts/{page.tsx, StepTrace.tsx, Timeline.tsx} · evaluation/page.tsx
-│   │   ├── quality/{page.tsx, FixLedger.tsx} · schema/{page.tsx, Erd.tsx}
-│   │   ├── components/               # reusable: Icon, DataTable, FilterBar, Nav, useTableExplorer, charts, Explain
+│   │   ├── quality/{page.tsx, FixLedger.tsx} · schema/{page.tsx, Erd.tsx} · workspace/page.tsx
+│   │   ├── components/               # reusable: Icon, DataTable, FilterBar, Nav, useTableExplorer, charts, Explain, CohortFitness, Measurements
 │   │   ├── lib/api.ts · globals.css · layout.tsx · page.tsx
 │   ├── public/fonts/                 # self-hosted Hanken Grotesk + IBM Plex Mono
 │   ├── Dockerfile · package.json · tsconfig.json · next.config.mjs · .dockerignore · .gitignore

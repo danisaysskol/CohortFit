@@ -78,7 +78,7 @@ patient-care-track-2/
 │   ├── test-cases/                   # test suite + reusable result logs
 │   │   ├── RESULTS.md · results.json · cohortfit-test-suite.json · sample-test-cases.json
 │   ├── ui-screenshots/               # latest UI screenshots (refresh on UI change)
-│   ├── EVALUATION_REPORT.md · SAFETY_STATEMENT.md · TRACK2_REQUIREMENTS.md
+│   ├── EVALUATION_REPORT.md · SAFETY_STATEMENT.md · TRACK2_REQUIREMENTS.md · UX_CRITIQUE.md
 │   ├── RESEARCH_AND_EXPLORATION.md · design-direction.md · design-explorer.html
 ├── frontend/                         # Next.js 14 (Lab Ledger design system)
 │   ├── app/

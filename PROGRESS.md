@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-08 — Design v2 shipped: higher contrast (near-black headings/data), larger type, Material tactile elevation, explicit discoverability (hint banners + row CTAs), and purposeful motion (results scroll into view). Design doc renamed to TENTATIVE_FRONTEND_DESIGN_SYSTEM.md. Verified in-browser. Next: page-switch latency, Quality/Eval narrative context, and a full interactivity critique report._
+_Last updated: 2026-08-08 — Full UX pass shipped & verified: design v2 (contrast/scale/tactility/motion), page-switch latency fixed at root (production build → 20–210ms), compact tabbed Cohorts + tighter Quality, prominent segmented control + app-wide weak-control audit, Context→Problem→Method→Result strips on Quality/Evaluation, and an honest interactivity critique (`docs/UX_CRITIQUE.md`). Next: the big exploration — make Track-2 points 2 & 3 as interactive as point 1 (cohort-scoped quality + measurements)._
 
 ---
 
@@ -117,9 +117,11 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Control audit** (same class of fix, app-wide): schema **table selector** active state now has an accent bar + bold + elevation (was a faint border); **sort headers** read as clickable (hover fill, clearer carets); the table-filter **input** got a focus glow. Bolder panel subheadings.
 - [x] **Quality & Evaluation narrative** — a compact `Explain` strip (Context → Problem → Method → Result) tells each page's story in one band without adding scroll. Reusable `components/Explain.tsx`.
 
+**Done (interactivity critique report):**
+- [x] **`docs/UX_CRITIQUE.md`** — honest assessment of attention & interactivity across all pages (six heuristics; per-page; what works / lags / improve / remove; scorecard). Headline: demo-ready, but interactivity is **lopsided** — Cohorts is richly interactive while Quality/Evaluation are largely read-only. Top-value next step: cohort-scoped, cross-linked quality + measurement views.
+
 **Next:**
-- [ ] **Critique report** — a complete assessment of the app's attention/interactivity: what's good, what lags, what to improve, what to remove.
-- [ ] The larger exploration: make Track-2 points 2 (data-quality judging) & 3 (measurement explorer) as interactive/user-centric as point 1 — try 3 paths against pre-set criteria, pick the best, implement.
+- [ ] The larger exploration: make Track-2 points 2 (data-quality judging) & 3 (measurement explorer) as interactive/user-centric as point 1 — try 3 paths against pre-set criteria, pick the best, implement. **The critique points to cohort-scoped quality + measurements as the strongest path.**
 - [ ] Human deliverables (demo video, slides, submission, CVs).
 
 **Human-only:**

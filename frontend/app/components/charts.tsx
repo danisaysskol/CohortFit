@@ -31,14 +31,22 @@ export function StatTile({ value, label, meaning }: { value: string; label: stri
   );
 }
 
-export function DimTile({ dimension, severity, detail }: { dimension: string; severity: Sev; detail: string }) {
-  return (
-    <div className="dtile" title={`${dimension}: ${SEV_WORD[severity]} — ${detail}`}>
+export function DimTile({ dimension, severity, detail, active, onClick }:
+  { dimension: string; severity: Sev; detail: string; active?: boolean; onClick?: () => void }) {
+  const title = `${dimension}: ${SEV_WORD[severity]} — ${detail}`;
+  const body = (
+    <>
       <span className="dtile-stripe" style={{ background: SEV_VAR[severity] }} />
       <div className="dtile-d">{dimension}</div>
       <div className="dtile-s" style={{ color: SEV_VAR[severity] }}>● {SEV_WORD[severity]}</div>
       <div className="dtile-x">{detail}</div>
-    </div>
+    </>
+  );
+  if (!onClick) return <div className="dtile" title={title}>{body}</div>;
+  return (
+    <button className={"dtile dtile-btn" + (active ? " dtile-on" : "")} onClick={onClick} aria-pressed={active} title={title}>
+      {body}
+    </button>
   );
 }
 

@@ -107,6 +107,17 @@ main{padding:22px 0 64px}
 .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line-strong);box-shadow:none}
 .btn-ghost:hover:not(:disabled){border-color:var(--accent);color:var(--accent);box-shadow:none;filter:none}
 .btn-2{background:var(--accent-2);color:var(--accent-2-ink)}
+.btn-sm{padding:5px 10px;font-size:10px}
+/* disclosure — collapse secondary detail to keep pages calm (Less but Better) */
+.fold{border:1px solid var(--line);border-radius:var(--rc);background:var(--surface);box-shadow:var(--elev-1);overflow:hidden;margin-top:18px}
+.fold>summary{cursor:pointer;list-style:none;padding:12px 15px;display:flex;align-items:center;gap:9px;
+  background:var(--surface-2);font-family:var(--mono);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-strong)}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary .lbl{margin-left:auto;color:var(--faint)}
+.fold>summary::after{content:"▸";color:var(--muted);transition:transform .15s ease;font-size:10px}
+.fold[open]>summary::after{transform:rotate(90deg)}
+.fold[open]>summary{border-bottom:1px solid var(--line)}
+.fold-b{padding:15px}
 .field{display:flex;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--line-strong);border-radius:var(--rk);padding:9px 11px;
   transition:border-color .15s ease,box-shadow .15s ease}
 .field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
@@ -156,12 +167,7 @@ main{padding:22px 0 64px}
 .cap-t{font-weight:640;font-size:14px}
 .cap-b{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:3px}
 
-/* discoverability: inline hint + row call-to-action */
-.hint{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:9px 12px;border-radius:var(--rk);
-  background:color-mix(in srgb,var(--accent) 7%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 18%,var(--line));
-  color:var(--ink);font-size:12.5px;line-height:1.45}
-.hint svg{color:var(--accent);flex:0 0 auto}
-.hint b{color:var(--ink-strong)}
+/* row call-to-action — the single, self-evident affordance on a clickable row */
 .rowcta{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;font-family:var(--mono);font-size:9.5px;
   letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--accent);
   border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:999px;padding:3px 9px;
@@ -269,6 +275,13 @@ code{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--ink);
 .dtile-d{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .dtile-s{font-family:var(--mono);font-size:12px;font-weight:600;margin-top:3px}
 .dtile-x{font-size:10.5px;color:var(--faint);margin-top:5px;line-height:1.35}
+/* a dimension tile that filters the findings list */
+.dtile-btn{cursor:pointer;font:inherit;text-align:left;width:100%;display:block;
+  transition:box-shadow .14s ease,border-color .14s ease,transform .1s ease}
+.dtile-btn:hover{border-color:var(--line-strong);box-shadow:var(--elev-2)}
+.dtile-btn:active{transform:translateY(1px)}
+.dtile-on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent),var(--elev-1)}
+.dtile-on .dtile-d{color:var(--ink-strong);font-weight:700}
 .sevbar{display:flex;gap:2px;height:18px;border-radius:3px;overflow:hidden;background:var(--line)}
 .sevseg{min-width:3px}
 .sevlegend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--muted)}

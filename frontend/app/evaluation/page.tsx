@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api, EvalResult } from "../lib/api";
 import { StatTile, CompareBars, ConfusionMatrix } from "../components/charts";
 import { Explain } from "../components/Explain";
+import { Icon } from "../components/Icon";
 
 export default function EvaluationPage() {
   const [ev, setEv] = useState<EvalResult | null>(null);
@@ -72,9 +73,11 @@ export default function EvaluationPage() {
             </section>
           </div>
 
-          <section className="panel" style={{ marginTop: 18 }}>
-            <div className="panel-h"><span className="lbl">Per-seed detail</span><span className="lbl">check: {String(ev.runs[0]?.check ?? "")}</span></div>
-            <div className="panel-b">
+          <p className="note" style={{ marginTop: 14 }}><b>{ev.note}</b></p>
+
+          <details className="fold">
+            <summary><Icon name="chart" size={13} /> Per-seed detail <span className="lbl">{ev.seeds.length} seeds · {String(ev.runs[0]?.check ?? "")}</span></summary>
+            <div className="fold-b">
               <div className="tablewrap">
                 <table className="gt">
                   <thead><tr><th>Seed</th><th className="num">Injected</th><th className="num">True positives</th><th className="num">False positives</th><th className="num">Precision</th><th className="num">Recall</th></tr></thead>
@@ -92,9 +95,8 @@ export default function EvaluationPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="note"><b>{ev.note}</b></p>
             </div>
-          </section>
+          </details>
         </>
       )}
     </>

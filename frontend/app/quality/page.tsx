@@ -17,6 +17,7 @@ export default function QualityPage() {
   const [drill, setDrill] = useState<FindingRows | null>(null);
   const [drillId, setDrillId] = useState<string | null>(null);
   const [drillLoading, setDrillLoading] = useState(false);
+  const [dimFilter, setDimFilter] = useState<string | null>(null);   // focus findings by dimension
   const drillRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -81,11 +82,13 @@ export default function QualityPage() {
             </div>
           </div>
 
-          {/* Dimension tiles */}
+          {/* Dimension tiles double as filters for the findings list */}
           <div className="dgrid" style={{ marginTop: 14 }}>
             {sc.dimensions.map((d) => (
               <DimTile key={d.dimension} dimension={d.dimension} severity={d.severity as Sev}
-                       detail={`${derived.perDim[d.dimension] ?? 0} finding${(derived.perDim[d.dimension] ?? 0) === 1 ? "" : "s"}`} />
+                       detail={`${derived.perDim[d.dimension] ?? 0} finding${(derived.perDim[d.dimension] ?? 0) === 1 ? "" : "s"}`}
+                       active={dimFilter === d.dimension}
+                       onClick={() => setDimFilter((v) => (v === d.dimension ? null : d.dimension))} />
             ))}
           </div>
 
@@ -104,12 +107,14 @@ export default function QualityPage() {
 
             <section className="panel">
               <div className="panel-h">
-                <span className="lbl">Findings, ranked</span>
-                <span className="lbl lbl-i"><Icon name="search" size={12} /> Select a row to inspect</span>
+                <span className="lbl">{dimFilter ? `Findings · ${dimFilter}` : "Findings, ranked"}</span>
+                {dimFilter
+                  ? <button className="btn btn-ghost btn-sm" onClick={() => setDimFilter(null)}><Icon name="x" size={11} /> Clear filter</button>
+                  : <span className="lbl">{sc.findings.length} total</span>}
               </div>
               <div className="panel-b" style={{ maxHeight: 360, overflow: "auto" }}>
                 <div className="flags">
-                  {sc.findings.map((f, i) => {
+                  {sc.findings.filter((f) => !dimFilter || f.dimension === dimFilter).map((f, i) => {
                     const active = drillId === f.id;
                     return (
                       <div className={"flag" + (f.drillable ? " flag-click" : "") + (active ? " flag-on" : "")}

@@ -121,7 +121,6 @@ export default function CohortsPage() {
   const queryNote = <p className="note">The model proposes a structured recipe from the schema and your words; a deterministic compiler turns it into the SQL. The model never writes executable SQL.</p>;
   const patientsInner = (
     <>
-      <div className="hint"><Icon name="activity" size={13} /> <span>Select any patient to open their full <b>event timeline</b> — a time-ordered journey with the source of every event.</span></div>
       <div className="tablewrap" style={{ maxHeight: 372, overflowY: "auto" }}>
         <table className="gt">
           <thead><tr><th>subject_id</th><th>sex</th><th className="num">age</th><th className="num">ICU stays</th><th className="num">days in ICU</th><th className="num">admissions</th><th>outcome</th><th></th></tr></thead>
@@ -188,7 +187,7 @@ export default function CohortsPage() {
               {ex.neg && <Icon name="shield" size={10} style={{ verticalAlign: -1, marginRight: 3 }} />}{ex.t}
             </button>
           ))}
-          {res?.method && <span className="chip" style={{ marginLeft: "auto" }}><Icon name="spark" size={11} style={{ color: "var(--accent)" }} /> {res.method}</span>}
+          {res?.method && <span className="chip" style={{ marginLeft: "auto" }} title={res.method === "openai" ? "Interpreted by the language model into a validated recipe" : "Interpreted offline by the keyword parser"}><Icon name="spark" size={11} style={{ color: "var(--accent)" }} /> {res.method === "openai" ? "GPT-5.6" : "offline parser"}</span>}
         </div>
       </div>
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from app.cohort import nl
 from app.cohort.compiler import compile_ir
+from app.cohort.ir import CohortIR, Criterion
 from app.cohort.nl import _keyword_ir
 from app.eval.inject import run_eval, run_temporal_eval
 
@@ -64,6 +65,36 @@ def test_parses_gender_and_age():
     fields = {(c.field, c.op, c.value) for c in ir.include if c.kind == "demographic"}
     assert ("gender", "=", "F") in fields
     assert ("anchor_age", ">=", "70") in fields
+
+
+# --- Multi-table joins / temporal / negation / LOS (compiler-level, deterministic) ---
+
+def test_compiler_los_threshold(db):
+    ir = CohortIR(include=[Criterion(kind="los_threshold", op=">", value="7", label="ICU LOS > 7 days")])
+    r = compile_ir(db, ir)
+    assert 1 <= r["n"] <= 100  # some ICU stays exceed 7 days
+
+
+def test_compiler_negation_antibiotics(db):
+    ir = CohortIR(
+        include=[Criterion(kind="has_icu_stay", label="ICU")],
+        exclude=[Criterion(kind="medication", value="antibiotics", label="antibiotics")],
+    )
+    r = compile_ir(db, ir)
+    assert r["n"] < 100  # some ICU patients received antibiotics, so the anti-join removes them
+    assert any(s["criterion"].startswith("excluding") for s in r["funnel"])
+
+
+def test_compiler_lab_temporal_before_icu(db):
+    ir = CohortIR(include=[Criterion(kind="lab_temporal", relation="before_icu", label="lab before ICU")])
+    r = compile_ir(db, ir)
+    assert isinstance(r["n"], int) and r["n"] >= 0  # runs the labevents⋈icustays join without error
+
+
+def test_compiler_readmission(db):
+    ir = CohortIR(include=[Criterion(kind="readmission", value="30", label="readmitted ≤ 30 days")])
+    r = compile_ir(db, ir)
+    assert isinstance(r["n"], int) and r["n"] >= 0  # admissions self-join compiles + runs
 
 
 def test_temporal_eval_recovers_injected_errors(db):

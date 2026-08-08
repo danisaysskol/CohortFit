@@ -14,8 +14,11 @@ from pydantic import BaseModel, Field
 CriterionKind = Literal[
     "demographic", "has_icu_stay", "mortality", "diagnosis",
     "lab_threshold", "vital_threshold", "medication",
+    "los_threshold", "lab_temporal", "readmission",
 ]
 Op = Literal[">=", "<=", "=", "<", ">"]
+# Temporal relation of a lab to the ICU stay (for lab_temporal criteria).
+Relation = Literal["during_icu", "before_icu"]
 # How the tool responds. Only "cohort" runs a query; the rest are honest non-answers.
 Disposition = Literal["cohort", "clarify", "refuse", "abstain"]
 
@@ -27,11 +30,13 @@ class Criterion(BaseModel):
     op: Optional[Op] = None
     value: Optional[str] = None     # kept as string; the compiler casts safely
     table: Optional[str] = None
+    relation: Optional[Relation] = None  # for lab_temporal
 
 
 class CohortIR(BaseModel):
     entity: Literal["patient"] = "patient"
     include: list[Criterion] = Field(default_factory=list)
+    exclude: list[Criterion] = Field(default_factory=list)  # anti-join (patients WITHOUT ...)
     answerable: bool = True
     disposition: Disposition = "cohort"
     abstain_reason: Optional[str] = None

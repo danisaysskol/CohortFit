@@ -173,29 +173,45 @@ def _keyword_ir(text: str) -> CohortIR:
     return CohortIR(include=crit, answerable=True, disposition="cohort", confidence=0.6)
 
 
+def _itemid_reference() -> str:
+    labs = ", ".join(f"{n}={i}" for n, i in _LABS.items())
+    vitals = ", ".join(f"{n}={i}" for n, i in _VITALS.items())
+    return f"Lab itemids (labevents): {labs}. Vital itemids (chartevents): {vitals}."
+
+
+_SYSTEM_PROMPT = (
+    "Convert a plain-English patient-cohort description into a CohortIR over MIMIC-IV "
+    "(100-patient demo; every patient has an ICU stay). Supported criterion kinds:\n"
+    "- demographic: field=anchor_age|anchor_year|gender, op, value (gender value 'F'/'M')\n"
+    "- has_icu_stay; mortality (died in hospital)\n"
+    "- diagnosis: value=disease text matched against ICD long_title\n"
+    "- medication: value=drug name, or the literal 'antibiotics' for the antibiotic class\n"
+    "- lab_threshold / vital_threshold: field=itemid, op, value\n"
+    "- los_threshold: op, value (ICU length of stay in days)\n"
+    "- lab_temporal: relation=during_icu|before_icu, optional field=itemid\n"
+    "- readmission: value=<days> (readmitted within N days of a prior discharge)\n"
+    "Put anti-join criteria (patients WITHOUT X, e.g. 'not on antibiotics') in `exclude`.\n"
+    "Use the correct itemid from this reference: " + _itemid_reference() + "\n"
+    "Set disposition='refuse' for prediction/advice/re-identification; 'abstain' when the data "
+    "can't support it (seasonality, exact calendar year, cross-hospital); 'clarify' for ambiguous "
+    "terms, contradictions, or unsupported shapes (aggregation/averages/counts). Set answerable=false "
+    "for any non-'cohort' disposition. Only emit criteria you can ground in the schema."
+)
+
+
 def _openai_ir(text: str) -> CohortIR:
-    """Structured-output IR via OpenAI. Only called when a key is configured."""
+    """Structured-output IR via OpenAI. Only called when a key is configured.
+
+    gpt-5.6 reasoning models reject a custom temperature, so we don't send one —
+    reproducibility comes from the deterministic IR->SQL compiler + the stored IR.
+    """
     from openai import OpenAI
 
     client = OpenAI(api_key=settings.openai_api_key)
-    system = (
-        "Convert a plain-English patient-cohort description into a CohortIR over MIMIC-IV. "
-        "Supported criterion kinds: demographic (field=anchor_age|anchor_year|gender), "
-        "has_icu_stay, mortality, diagnosis (value=text matched vs ICD long_title), "
-        "medication (value=drug), lab_threshold/vital_threshold (field=itemid, op, value). "
-        "Set disposition to 'refuse' for prediction/advice/re-identification, 'abstain' when the "
-        "data can't support it (seasonality, exact calendar year, cross-hospital), 'clarify' for "
-        "ambiguous terms or unsupported shapes (negation, aggregation, temporal joins), and "
-        "answerable=false in those cases. Only emit criteria you can ground in the schema."
-    )
-    # Note: GPT-5.6 reasoning models only accept the default temperature, so we don't send
-    # one. Determinism/reproducibility comes from the deterministic IR->SQL compiler + the
-    # stored IR (see docs), not from temperature. `reasoning_effort="low"` keeps the
-    # bounded schema-mapping task cheap and fast.
     completion = client.beta.chat.completions.parse(
         model=settings.openai_model_primary,
-        reasoning_effort="low",
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": text}],
+        reasoning_effort=settings.openai_reasoning_effort,
+        messages=[{"role": "system", "content": _SYSTEM_PROMPT}, {"role": "user", "content": text}],
         response_format=CohortIR,
     )
     return completion.choices[0].message.parsed or _keyword_ir(text)

@@ -7,8 +7,9 @@ import { useState } from "react";
 // hang off it. Boxes are clickable: click one to see its columns and load it below.
 
 type Box = { id: string; label: string; x: number; y: number; kind: "spine" | "fact" | "dict" };
-type Edge = { from: string; to: string };
+type Edge = { from: string; to: string; col: string };
 export type ColumnInfo = { name: string; type: string };
+export type TableKeys = { pk: string[]; fk: { col: string; ref: string }[] };
 
 const VW = 648;
 const VH = 512;
@@ -33,19 +34,19 @@ const BOXES: Box[] = [
 ];
 
 const EDGES: Edge[] = [
-  { from: "patients", to: "admissions" },
-  { from: "admissions", to: "icustays" },
-  { from: "admissions", to: "diagnoses_icd" },
-  { from: "admissions", to: "labevents" },
-  { from: "admissions", to: "prescriptions" },
-  { from: "admissions", to: "emar" },
-  { from: "admissions", to: "transfers" },
-  { from: "icustays", to: "chartevents" },
-  { from: "icustays", to: "inputevents" },
-  { from: "icustays", to: "outputevents" },
-  { from: "diagnoses_icd", to: "d_icd_diagnoses" },
-  { from: "labevents", to: "d_labitems" },
-  { from: "chartevents", to: "d_items" },
+  { from: "patients", to: "admissions", col: "subject_id" },
+  { from: "admissions", to: "icustays", col: "hadm_id" },
+  { from: "admissions", to: "diagnoses_icd", col: "hadm_id" },
+  { from: "admissions", to: "labevents", col: "hadm_id" },
+  { from: "admissions", to: "prescriptions", col: "hadm_id" },
+  { from: "admissions", to: "emar", col: "hadm_id" },
+  { from: "admissions", to: "transfers", col: "hadm_id" },
+  { from: "icustays", to: "chartevents", col: "stay_id" },
+  { from: "icustays", to: "inputevents", col: "stay_id" },
+  { from: "icustays", to: "outputevents", col: "stay_id" },
+  { from: "diagnoses_icd", to: "d_icd_diagnoses", col: "icd_code" },
+  { from: "labevents", to: "d_labitems", col: "itemid" },
+  { from: "chartevents", to: "d_items", col: "itemid" },
 ];
 
 const byId = (id: string) => BOXES.find((b) => b.id === id)!;
@@ -57,16 +58,21 @@ function edgePath(a: Box, b: Box) {
 
 export function Erd({
   columnsByTable = {},
+  keysByTable = {},
   onSelect,
   selected,
 }: {
   columnsByTable?: Record<string, ColumnInfo[]>;
+  keysByTable?: Record<string, TableKeys>;
   onSelect?: (table: string) => void;
   selected?: string | null;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const openBox = open ? byId(open) : null;
   const cols = open ? columnsByTable[open] ?? [] : [];
+  const keys = open ? keysByTable[open] ?? { pk: [], fk: [] } : { pk: [], fk: [] };
+  const pkSet = new Set(keys.pk);
+  const fkMap = new Map(keys.fk.map((f) => [f.col, f.ref]));
 
   // Popover placed by percentage of the viewBox so it tracks the responsive SVG.
   const popStyle = openBox
@@ -87,7 +93,8 @@ export function Erd({
             <g key={i}>
               <line x1={p.x1} y1={p.y1} x2={p.x2} y2={p.y2} stroke="var(--line-strong)" strokeWidth={1} />
               <circle cx={p.x1} cy={p.y1} r={2.5} fill="var(--accent)" />
-              <text x={mx} y={my - 3} textAnchor="middle" fontFamily="var(--mono)" fontSize={8} fill="var(--faint)">1 · ∞</text>
+              <text x={mx} y={my - 8} textAnchor="middle" fontFamily="var(--mono)" fontSize={8.5} fontWeight={600} fill="var(--accent)">{e.col}</text>
+              <text x={mx} y={my + 2} textAnchor="middle" fontFamily="var(--mono)" fontSize={7} fill="var(--faint)">1 · ∞</text>
             </g>
           );
         })}
@@ -119,12 +126,20 @@ export function Erd({
           </div>
           <div className="erd-pop-b">
             {cols.length === 0 && <div className="muted" style={{ fontSize: 12 }}>Loading columns…</div>}
-            {cols.map((c) => (
-              <div className="erd-col" key={c.name}>
-                <span>{c.name}</span>
-                <span className="erd-col-t">{c.type}</span>
-              </div>
-            ))}
+            {cols.map((c) => {
+              const isPk = pkSet.has(c.name);
+              const ref = fkMap.get(c.name);
+              return (
+                <div className="erd-col" key={c.name} title={ref ? `foreign key → ${ref}` : isPk ? "primary key" : c.type}>
+                  <span>
+                    {c.name}
+                    {isPk && <span className="keybadge pk">PK</span>}
+                    {ref && <span className="keybadge fk">FK</span>}
+                  </span>
+                  <span className="erd-col-t">{ref ? `→ ${ref.split(".")[0]}` : c.type}</span>
+                </div>
+              );
+            })}
           </div>
           <div className="erd-pop-f lbl">loaded below ↓</div>
         </div>

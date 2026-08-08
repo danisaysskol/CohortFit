@@ -36,6 +36,10 @@ export default function SchemaPage() {
     () => Object.fromEntries(tables.map((t) => [t.table, t.columns])),
     [tables]
   );
+  const keysByTable = useMemo(
+    () => Object.fromEntries(tables.map((t) => [t.table, { pk: t.pk, fk: t.fk }])),
+    [tables]
+  );
 
   // The Schema page's only backend-specific glue: map the generic explorer params onto
   // api.explore's string query. Everything richer is built on top of this single contract.
@@ -83,7 +87,7 @@ export default function SchemaPage() {
           <span className="lbl">Schema map</span>
           <span className="lbl">patient → admission → ICU stay</span>
         </div>
-        <div className="panel-b"><Erd columnsByTable={columnsByTable} onSelect={setSel} selected={sel} /></div>
+        <div className="panel-b"><Erd columnsByTable={columnsByTable} keysByTable={keysByTable} onSelect={setSel} selected={sel} /></div>
       </section>
 
       <div className="grid2" style={{ gridTemplateColumns: "260px 1fr" }}>
@@ -121,7 +125,8 @@ export default function SchemaPage() {
           <div className="panel-b">
             {info && (
               <div className="chips" style={{ marginTop: 0, marginBottom: 12 }}>
-                {info.join_keys.map((k) => <span key={k} className="chip">key · <b>{k}</b></span>)}
+                {info.pk.map((k) => <span key={"pk" + k} className="chip"><span className="pk">PK</span> · <b>{k}</b></span>)}
+                {info.fk.map((f) => <span key={"fk" + f.col} className="chip"><span className="fk">FK</span> · <b>{f.col}</b> → {f.ref}</span>)}
                 {info.timestamps.map((k) => <span key={k} className="chip">time · <b>{k}</b></span>)}
               </div>
             )}

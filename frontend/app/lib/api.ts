@@ -28,6 +28,7 @@ export type ExploreResult = {
   limit: number;
   offset: number;
 };
+export type ForeignKey = { col: string; ref: string };
 export type TableInfo = {
   table: string;
   module: string;
@@ -35,6 +36,8 @@ export type TableInfo = {
   columns: Column[];
   join_keys: string[];
   timestamps: string[];
+  pk: string[];
+  fk: ForeignKey[];
 };
 export type FunnelStep = { criterion: string; source: string; remaining: number; delta: number | null };
 export type Disposition = "cohort" | "clarify" | "refuse" | "abstain";

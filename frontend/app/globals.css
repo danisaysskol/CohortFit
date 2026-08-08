@@ -120,6 +120,11 @@ code{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--ink);
 .erd-col{display:flex;justify-content:space-between;gap:10px;padding:4px 8px;font-family:var(--mono);font-size:11px;border-radius:3px}
 .erd-col:hover{background:var(--surface-2)}
 .erd-col-t{color:var(--faint)}
+.keybadge{display:inline-block;margin-left:6px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.04em;padding:1px 4px;border-radius:2px;vertical-align:middle}
+.keybadge.pk{color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line))}
+.keybadge.fk{color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 40%,var(--line))}
+.chip .pk{color:var(--accent);font-weight:700}
+.chip .fk{color:var(--warn);font-weight:700}
 .erd-pop-f{padding:6px 10px;border-top:1px solid var(--line);text-align:right}
 
 /* ===== dashboard charts (Quality + Evaluation) ===== */

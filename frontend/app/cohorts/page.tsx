@@ -251,7 +251,8 @@ export default function CohortsPage() {
       )}
 
       {res && res.answerable && patients.length > 0 && (
-        <Link href="/workspace" className="wslink rise-in">
+        <Link href="/quality" className="wslink rise-in"
+          onClick={() => { try { sessionStorage.setItem("cohortfit:want-cohort-scope", "1"); } catch { /* ignore */ } }}>
           <Icon name="spark" size={16} />
           <span>Judge <b>this cohort&rsquo;s</b> data fitness &amp; explore its measurements</span>
           <Icon name="arrow" size={15} style={{ marginLeft: "auto" }} />

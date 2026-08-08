@@ -128,6 +128,11 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
   - **C** — measurement-first Explore page (score 70; dropped the scorecard verdict, had a fetch race).
 - [x] **Synthesis → selected B.** A's value is fully contained in B (both use the shared `CohortFitness` + `Measurements` components), so keeping B removed duplication rather than losing anything; C dropped. Reverted A (Quality is clean whole-dataset again), deleted C. Added a cohort→Workspace cross-link CTA on the Cohorts page. **The loop is live:** build a cohort → "Judge this cohort's data fitness & explore its measurements →" → Workspace shows the cohort's scorecard (e.g. plausibility flips green for the 9-patient gold cohort) and its measurement coverage/units/coding. Verified end-to-end.
 
+**Done (perf + IA + honesty polish):**
+- [x] **Cohort-view latency fixed at the root** — the loader registered CSVs as DuckDB *views* (re-parsed on every query); materialising them into in-memory tables dropped cohort/quality **23s→0.27s** and cohort/measurements **9.9s→0.36s** (cached repeats ~10ms). Also replaced a correlated NOT EXISTS with an anti-join and cached each cohort's scoped findings/measurements.
+- [x] **Navbar merged & focused** — Workspace merged into **Data fitness** (one page with a Whole-dataset ↔ This-cohort toggle + the cohort's measurements); nav is now **Cohorts (first) · Data fitness · Schema · Evaluation · About** (5 tabs). Cohorts CTA lands directly on the cohort scope.
+- [x] **Evaluation honesty** — a prominent scope banner states the perfect scores cover **one check (temporal integrity)**, not all five dimensions; the other four are evidenced by real findings, not injection. Prevents the P/R 1.00 tiles reading as a whole-system claim.
+
 **Next:**
 - [ ] Human deliverables (demo video, slides, submission, CVs).
 

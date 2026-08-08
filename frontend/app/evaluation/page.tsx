@@ -29,6 +29,10 @@ export default function EvaluationPage() {
         </div>
       </div>
 
+      <div className="abstain" style={{ borderColor: "var(--line-strong)", background: "var(--surface-2)", marginBottom: 16 }}>
+        <span className="k" style={{ color: "var(--accent)" }}>Scope of these scores</span> — they cover <b>one check: temporal integrity</b> (admittime ≥ dischtime), the single dimension with a clean injectable ground truth (the real demo has 0 such violations, so a swapped timestamp is cleanly separable). This shows the harness is real, reproducible, and beats a naive baseline — <b>it is not a claim that all five dimensions score 1.00</b>. The other four are evidenced by real, clickable findings on the Data-fitness page, not by injection.
+      </div>
+
       {err && !ev && <div className="abstain"><span className="k">Unavailable</span> — {err}. Confirm the backend is running on port 8000.</div>}
       {!ev && !err && <div className="loading">Running the injected-error evaluation across seeds…</div>}
 

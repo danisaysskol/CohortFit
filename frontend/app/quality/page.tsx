@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { api, Scorecard, Finding, FindingRows } from "../lib/api";
+import { api, Scorecard, Finding, FindingRows, ActiveCohort, Measurements as MData, readActiveCohort } from "../lib/api";
 import { Verdict, StatTile, DimTile, SeverityBar, Sev } from "../components/charts";
 import { Icon } from "../components/Icon";
 import { Explain } from "../components/Explain";
+import { CohortFitness } from "../components/CohortFitness";
+import { Measurements } from "../components/Measurements";
 import { FixLedger } from "./FixLedger";
+
+const SCOPE_FLAG = "cohortfit:want-cohort-scope";   // set by the Cohorts CTA
 
 const KIND_PILL: Record<string, string> = { data_error: "err", real_finding: "find", caveat: "caveat" };
 const KIND_LABEL: Record<string, string> = { data_error: "Data error", real_finding: "Verified finding", caveat: "Documented caveat" };
@@ -19,10 +23,21 @@ export default function QualityPage() {
   const [drillLoading, setDrillLoading] = useState(false);
   const [dimFilter, setDimFilter] = useState<string | null>(null);   // focus findings by dimension
   const drillRef = useRef<HTMLElement>(null);
+  const [scope, setScope] = useState<"dataset" | "cohort">("dataset");
+  const [cohort, setCohort] = useState<ActiveCohort | null>(null);
+  const [meas, setMeas] = useState<MData | null>(null);
 
   useEffect(() => {
     api.scorecard().then(setSc).catch((e) => setErr(String(e)));
+    const c = readActiveCohort();
+    setCohort(c);
+    // arriving from the "Judge this cohort" CTA lands directly on the cohort scope
+    if (c && sessionStorage.getItem(SCOPE_FLAG)) { setScope("cohort"); sessionStorage.removeItem(SCOPE_FLAG); }
   }, []);
+
+  useEffect(() => {
+    if (scope === "cohort" && cohort && !meas) api.cohortMeasurements(cohort.subject_ids).then(setMeas).catch(() => {});
+  }, [scope, cohort, meas]);
 
   // Motion with purpose: bring the offending rows into view the moment they load.
   useEffect(() => {
@@ -59,7 +74,26 @@ export default function QualityPage() {
           <h1>Data-fitness assessment</h1>
           <p>An at-a-glance verdict across five quality dimensions, with every finding traced to its source table and classified as a data error, a verified clinical finding, or a documented caveat.</p>
         </div>
+        <span className="codetabs">
+          <button aria-pressed={scope === "dataset"} onClick={() => setScope("dataset")}>Whole dataset</button>
+          <button aria-pressed={scope === "cohort"} onClick={() => cohort && setScope("cohort")} disabled={!cohort} title={cohort ? "" : "Build a cohort first"}>This cohort{cohort ? ` · ${cohort.n}` : ""}</button>
+        </span>
       </div>
+
+      {scope === "cohort" && cohort && (
+        <>
+          <div className="cohort-banner">
+            <Icon name="users" size={18} style={{ color: "var(--accent)" }} />
+            <span className="cb-n">{cohort.n}</span>
+            <span className="cb-q">“{cohort.text}”</span>
+          </div>
+          <CohortFitness subjectIds={cohort.subject_ids} />
+          <div className="page-h" style={{ marginTop: 26, marginBottom: 12 }}><div><h1 style={{ fontSize: 21 }}>Its measurements</h1></div></div>
+          {meas ? <Measurements data={meas} /> : <div className="loading">Summarising this cohort&rsquo;s measurements…</div>}
+        </>
+      )}
+
+      {scope === "dataset" && <>
 
       {err && !sc && <div className="abstain"><span className="k">Unavailable</span> — {err}. Confirm the backend is running on port 8000.</div>}
       {!sc && !err && <div className="loading">Assessing the dataset…</div>}
@@ -179,6 +213,8 @@ export default function QualityPage() {
           <FixLedger />
         </>
       )}
+
+      </>}
     </>
   );
 }

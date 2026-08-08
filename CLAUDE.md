@@ -84,7 +84,7 @@ patient-care-track-2/
 ├── frontend/                         # Next.js 14 (Lab Ledger design system)
 │   ├── app/
 │   │   ├── about/page.tsx · cohorts/{page.tsx, StepTrace.tsx, Timeline.tsx} · evaluation/page.tsx
-│   │   ├── quality/{page.tsx, FixLedger.tsx} · schema/{page.tsx, Erd.tsx} · workspace/page.tsx
+│   │   ├── quality/{page.tsx, FixLedger.tsx} · schema/{page.tsx, Erd.tsx}
 │   │   ├── components/               # reusable: Icon, DataTable, FilterBar, Nav, useTableExplorer, charts, Explain, CohortFitness, Measurements
 │   │   ├── lib/api.ts · globals.css · layout.tsx · page.tsx
 │   ├── public/fonts/                 # self-hosted Hanken Grotesk + IBM Plex Mono

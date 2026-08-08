@@ -27,7 +27,7 @@ Do not build or modify this project on a different model unless the user explici
 
 **Frontend shape (multi-page, so judges can mark progressively):** each capability gets its own page so results are easy to see and grade — e.g. **Schema Explorer** (schema + ER diagram + relevant data with filters & search), **Cohort Builder** (NL → IR + SQL + who's in/out), **Data-Fitness Scorecard** (red/amber/green + clickable flag rows), **Evaluation** (error-injection metrics), and an **About/Safety** page. This layout is tentative and evolves.
 
-**Design:** Apple- and Claude-like, **user-centric, warm light mode only (no dark mode)**. The design system is chosen by the user from presented options, then documented in **`FRONTEND_DESIGN_SYSTEM.md`** (the single source of truth for tokens, type, motion, components). Build UI to match that file.
+**Design:** Apple clarity blended with Google **Material** tactility (focus on the user, material as metaphor, motion with purpose), **user-centric, warm light mode only (no dark mode)**. The design system is documented in **`TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`** (the single source of truth for tokens, type, elevation, motion, components) — tentative and evolving. Build UI to match that file.
 
 **Demo-safety engineering (so we never get doomed live):** near-perfect **session management + local store** (a cohort/flag session persists and reloads exactly), and **deterministic, sandboxed execution** of every query/code path (compiled SQL over the fixed DuckDB store; store IR + SQL + data-hash; no surprise network calls in the hot path).
 
@@ -90,7 +90,7 @@ patient-care-track-2/
 │   ├── Dockerfile · package.json · tsconfig.json · next.config.mjs · .dockerignore · .gitignore
 ├── hackathon-instructions/           # the two source PDFs
 ├── .env.example · .gitattributes · .gitignore
-├── CLAUDE.md · README.md · PROGRESS.md · TENTATIVE_AGILE_PLAN.md · FRONTEND_DESIGN_SYSTEM.md
+├── CLAUDE.md · README.md · PROGRESS.md · TENTATIVE_AGILE_PLAN.md · TENTATIVE_FRONTEND_DESIGN_SYSTEM.md
 └── docker-compose.yml
 ```
 

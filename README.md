@@ -54,7 +54,7 @@ Plain English ──▶ OpenAI (or keyword fallback) ──▶ validated JSON IR
   (Lab Ledger)          (:8000)                      quality scorecard · reversible fixes · eval
 ```
 
-- **Frontend:** Next.js 14 (App Router), the *Lab Ledger* design system (`FRONTEND_DESIGN_SYSTEM.md`), self-hosted fonts.
+- **Frontend:** Next.js 14 (App Router), the *Lab Ledger* design system (`TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`), self-hosted fonts.
 - **Backend:** FastAPI + DuckDB over the frozen demo CSVs (read-only). The LLM emits a validated **IR**, never executable SQL; a deterministic compiler runs it.
 - **Reproducible:** IR + compiled SQL + a data-hash are stored; the eval harness is seeded.
 
@@ -78,7 +78,7 @@ Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledge
 - [`docs/TRACK2_REQUIREMENTS.md`](docs/TRACK2_REQUIREMENTS.md) — the hackathon brief, extracted.
 - [`docs/RESEARCH_AND_EXPLORATION.md`](docs/RESEARCH_AND_EXPLORATION.md) — data map, evidence, model/method R&D (from-scratch explainer + real samples).
 - [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) · [`docs/SAFETY_STATEMENT.md`](docs/SAFETY_STATEMENT.md) — required deliverables.
-- [`FRONTEND_DESIGN_SYSTEM.md`](FRONTEND_DESIGN_SYSTEM.md) · [`docs/design-direction.md`](docs/design-direction.md) — the design system.
+- [`TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`](TENTATIVE_FRONTEND_DESIGN_SYSTEM.md) · [`docs/design-direction.md`](docs/design-direction.md) — the design system.
 - [`PROGRESS.md`](PROGRESS.md) — living status + decision log.
 
 ---

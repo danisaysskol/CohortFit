@@ -36,11 +36,19 @@ export default function CohortsPage() {
   const [tl, setTl] = useState<PatientTimeline | null>(null);
   const [tlLoading, setTlLoading] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const tlRef = useRef<HTMLElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   function openTimeline(id: string) {
     setTlLoading(id); setTl(null);
     api.patientTimeline(id).then(setTl).catch(() => {}).finally(() => setTlLoading(null));
   }
+
+  // Motion with purpose: when a timeline opens, bring it into view so the user
+  // never has to hunt down the page for the result of their click.
+  useEffect(() => {
+    if (tl) tlRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [tl]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -204,12 +212,15 @@ export default function CohortsPage() {
             <section className="panel" style={{ marginTop: 16 }}>
               <div className="panel-h"><span className="lbl lbl-i"><Icon name="users" size={13} /> Matched patients</span><span className="lbl">{patients.length} shown</span></div>
               <div className="panel-b">
+                <div className="hint"><Icon name="activity" size={13} /> <span>Select any patient to open their full <b>event timeline</b> — a time-ordered journey with the source of every event.</span></div>
                 <div className="tablewrap">
                   <table className="gt">
-                    <thead><tr><th>subject_id</th><th>sex</th><th className="num">age</th><th className="num">ICU stays</th><th className="num">days in ICU</th><th className="num">admissions</th><th>outcome</th></tr></thead>
+                    <thead><tr><th>subject_id</th><th>sex</th><th className="num">age</th><th className="num">ICU stays</th><th className="num">days in ICU</th><th className="num">admissions</th><th>outcome</th><th></th></tr></thead>
                     <tbody>
-                      {shown.map((p, i) => (
-                        <tr key={i} className="row-click" onClick={() => openTimeline(String(p.subject_id))} title="View patient timeline">
+                      {shown.map((p, i) => {
+                        const active = tl?.subject_id === Number(p.subject_id);
+                        return (
+                        <tr key={i} className={"row-click" + (active ? " row-on" : "")} onClick={() => openTimeline(String(p.subject_id))} title="View patient timeline">
                           <td className="mono">
                             {tlLoading === String(p.subject_id) ? <span className="spin" style={{ verticalAlign: -1 }} /> : <Icon name="activity" size={11} style={{ color: "var(--accent)", verticalAlign: -1, marginRight: 5 }} />}
                             {String(p.subject_id)}
@@ -222,8 +233,10 @@ export default function CohortsPage() {
                           <td>{Number(p.died) === 1
                             ? <span className="pill err"><Icon name="alert" size={10} style={{ verticalAlign: -1 }} /> Died in hospital</span>
                             : <span className="pill find"><Icon name="check" size={10} style={{ verticalAlign: -1 }} /> Survived</span>}</td>
+                          <td><span className="rowcta">{active ? "Viewing" : "Timeline"} <Icon name="arrow" size={11} /></span></td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -239,7 +252,7 @@ export default function CohortsPage() {
       )}
 
       {tl && (
-        <section className="panel" style={{ marginTop: 16 }}>
+        <section className="panel panel-pop" ref={tlRef} style={{ marginTop: 16 }}>
           <div className="panel-h">
             <span className="lbl lbl-i"><Icon name="activity" size={13} /> Patient timeline · <span className="mono" style={{ textTransform: "none" }}>{tl.subject_id}</span></span>
             <button className="btn btn-ghost" onClick={() => setTl(null)}><Icon name="x" size={12} /> Close</button>

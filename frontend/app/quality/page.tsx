@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api, Scorecard, Finding, FindingRows } from "../lib/api";
 import { Verdict, StatTile, DimTile, SeverityBar, Sev } from "../components/charts";
 import { Icon } from "../components/Icon";
@@ -16,10 +16,16 @@ export default function QualityPage() {
   const [drill, setDrill] = useState<FindingRows | null>(null);
   const [drillId, setDrillId] = useState<string | null>(null);
   const [drillLoading, setDrillLoading] = useState(false);
+  const drillRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     api.scorecard().then(setSc).catch((e) => setErr(String(e)));
   }, []);
+
+  // Motion with purpose: bring the offending rows into view the moment they load.
+  useEffect(() => {
+    if (drill) drillRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [drill]);
 
   function openDrill(f: Finding) {
     if (!f.drillable) return;
@@ -89,7 +95,10 @@ export default function QualityPage() {
             </section>
 
             <section className="panel">
-              <div className="panel-h"><span className="lbl">Findings, ranked</span></div>
+              <div className="panel-h">
+                <span className="lbl">Findings, ranked</span>
+                <span className="lbl lbl-i"><Icon name="search" size={12} /> Select a row to inspect</span>
+              </div>
               <div className="panel-b" style={{ maxHeight: 360, overflow: "auto" }}>
                 <div className="flags">
                   {sc.findings.map((f, i) => {
@@ -105,10 +114,11 @@ export default function QualityPage() {
                         </span>
                         <span className={"pill " + KIND_PILL[f.kind]}>{KIND_LABEL[f.kind]}</span>
                         {f.drillable && (
-                          drillLoading && active
-                            ? <span className="spin" style={{ marginLeft: 8 }} />
-                            : <Icon name={active ? "chevron" : "search"} size={12}
-                                    style={{ marginLeft: 8, color: "var(--accent)", flex: "0 0 auto" }} />
+                          <span className="rowcta">
+                            {drillLoading && active
+                              ? <span className="spin" />
+                              : <><Icon name={active ? "chevron" : "search"} size={11} /> {active ? "Hide" : "Inspect"}</>}
+                          </span>
                         )}
                       </div>
                     );
@@ -119,7 +129,7 @@ export default function QualityPage() {
           </div>
 
           {drill && (
-            <section className="panel" style={{ marginTop: 18 }}>
+            <section className="panel panel-pop" ref={drillRef} style={{ marginTop: 18 }}>
               <div className="panel-h">
                 <span className="lbl lbl-i"><Icon name="search" size={13} /> Offending rows</span>
                 <button className="btn btn-ghost" onClick={() => { setDrill(null); setDrillId(null); }}>

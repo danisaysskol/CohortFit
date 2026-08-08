@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-08 — Two interactivity features shipped and verified in-browser: Patient Timeline (click a matched patient → time-ordered event journey with provenance) and Finding drill-in (click a quality flag → the actual offending rows + the SQL that found them). 30 backend tests pass._
+_Last updated: 2026-08-08 — Design v2 shipped: higher contrast (near-black headings/data), larger type, Material tactile elevation, explicit discoverability (hint banners + row CTAs), and purposeful motion (results scroll into view). Design doc renamed to TENTATIVE_FRONTEND_DESIGN_SYSTEM.md. Verified in-browser. Next: page-switch latency, Quality/Eval narrative context, and a full interactivity critique report._
 
 ---
 
@@ -48,7 +48,7 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 
 ## ✅ Past — build (done + verified)
 
-- **Design system `FRONTEND_DESIGN_SYSTEM.md`** written; Lab Ledger implemented in `frontend/app/globals.css` with self-hosted Hanken Grotesk + IBM Plex Mono.
+- **Design system `TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`** written; Lab Ledger implemented in `frontend/app/globals.css` with self-hosted Hanken Grotesk + IBM Plex Mono.
 - **Repo scaffold + Docker:** `backend/` (FastAPI) + `frontend/` (Next.js 14) + `docker-compose.yml` (one command). Config via pydantic-settings + `.env`.
 - **M0 Data spine:** DuckDB view per CSV + schema introspection (`/schema`).
 - **M1 Eval harness:** self-seeded error injection (read-only CTE, concurrency-safe) → precision/recall/FPR (`/eval/run`; 20 injected → P/R 1.0, FPR 0).
@@ -99,9 +99,19 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 **Done (Quality drill-in — a flag is never taken on trust):**
 - [x] **Finding drill-in** — click any data-quality flag on the Quality page → a panel shows the **actual offending rows** in the demo dataset, the **exact SQL** that found them, and a "showing N of TOTAL" count. E.g. clicking "ABP mean (220052)" reveals subject 10020944 with an arterial BP mean of 801 mmHg (down to −23). Each finding carries a stable `id`, a `drillable` flag, and its own `sample_sql`; green/zero-count checks aren't drillable. Backend `/quality/finding/{id}/rows` (`quality.find_offending_rows`, capped, read-only, source never modified); frontend renders it inline on `quality/page.tsx`. Verified in-browser + covered by tests (30 pass). This makes the honesty pitch tangible: every claimed error traces to a real, inspectable row.
 
+**Done (design v2 — contrast, scale, tactility, discoverability, motion):**
+- [x] **Higher contrast + larger type** — near-black `--ink`/`--ink-strong` for headings & data (was taupe); page titles 22→31px/800; headline numbers 24→31–33px; darker `--muted`. Fixes "everything feels like light creme".
+- [x] **Material tactility** — deeper greige ground + two-token elevation (`--elev-1` resting cards, `--elev-2` focus surfaces); sticky input gets blur + shadow. Cards now lift.
+- [x] **Discoverability (features speak for themselves)** — hint banners ("Select any patient to open their full event timeline…"), persistent row CTAs (`TIMELINE →`, `INSPECT`) that fill on hover and show active state (`VIEWING`, `HIDE`), and panel-header prompts ("SELECT A ROW TO INSPECT").
+- [x] **Motion with purpose** — opening a timeline or a finding drill-in smooth-scrolls the result into view (kills the "scroll so much" problem) + a short pop-in; `prefers-reduced-motion` honoured.
+- [x] **Design doc renamed** `FRONTEND_DESIGN_SYSTEM.md` → `TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`, rewritten with the Apple+Material philosophy, new tokens, elevation, motion, discoverability. References updated across CLAUDE.md/README/globals.css.
+
 **Next:**
+- [ ] **Page-switch latency** — root-cause the slow navigation (Turbopack dev per-route compile) and fix for good (production build for the demo, `<Link>` prefetch, client-side cache of API responses).
+- [ ] **Quality & Evaluation context** — each page should tell the context, the problem, the steps taken, and the results (per docs), not just the numbers.
+- [ ] **Critique report** — a complete assessment of the app's attention/interactivity: what's good, what lags, what to improve, what to remove.
 - [ ] The larger exploration: make Track-2 points 2 (data-quality judging) & 3 (measurement explorer) as interactive/user-centric as point 1 — try 3 paths against pre-set criteria, pick the best, implement.
-- [ ] Continue polish / any specific asks; human deliverables (demo video, slides, submission, CVs).
+- [ ] Human deliverables (demo video, slides, submission, CVs).
 
 **Human-only:**
 - [ ] Demo video + slides (3-min script in `TENTATIVE_AGILE_PLAN.md`), Sofstica portal submission, CVs.
@@ -116,7 +126,8 @@ Latest UI screenshots live in `docs/ui-screenshots/`. **Update them whenever the
 | 2026-08-08 | Claude Code model = **claude-opus-4-8** (`/model claude-opus-4-8`) | Consistency across sessions/collaborators; Opus 5 exists but we standardize on 4.8. |
 | 2026-08-08 | **Scrum** process; **frontend from the start**; **multi-page** UI | Continuous build→test→verify; per-capability pages let judges grade progressively. |
 | 2026-08-08 | **Docker** required (`docker compose up`) | A collaborator will also run it; reproducible env. |
-| 2026-08-08 | Design = Apple/Claude-like, **warm light mode only**, user-selected then documented in `FRONTEND_DESIGN_SYSTEM.md` | User-centric aesthetic; single source of truth for UI. |
+| 2026-08-08 | Design = Apple/Claude-like, **warm light mode only**, user-selected then documented in `TENTATIVE_FRONTEND_DESIGN_SYSTEM.md` | User-centric aesthetic; single source of truth for UI. |
+| 2026-08-08 | **Design v2:** blend Apple clarity with Google **Material** (focus on user, material as metaphor, motion with purpose) | Judges scan fast; higher contrast, larger type, tactile elevation, explicit affordances, and purposeful motion make features self-evident. |
 | 2026-08-08 | Stack = FastAPI + Next.js | Polished live-demo product; MVP cut line protects scope. |
 | 2026-08-08 | LLM = OpenAI only | Strict Structured Outputs + column enums; key in gitignored `.env`. |
 | 2026-08-08 | Ace card = demo-verifiable only | Honesty is the pitch; every flag traces to a real 100-patient row. |

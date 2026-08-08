@@ -96,6 +96,30 @@ export type Fix = {
   reversible: boolean;
 };
 
+// Streams the live build steps (Server-Sent Events) so the UI can show the work as it happens.
+export async function streamCohort(text: string, onEvent: (ev: Record<string, unknown>) => void): Promise<void> {
+  const r = await fetch(`${BASE}/cohort/stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  });
+  if (!r.ok || !r.body) throw new Error(`stream → ${r.status}`);
+  const reader = r.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i: number;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 2);
+      if (line.startsWith("data:")) onEvent(JSON.parse(line.slice(5).trim()));
+    }
+  }
+}
+
 export const api = {
   health: () => get<{ status: string; tables: number }>("/health"),
   schema: () => get<{ tables: TableInfo[] }>("/schema"),

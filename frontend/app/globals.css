@@ -93,6 +93,27 @@ main{padding:20px 0 60px}
 .chip-btn{cursor:pointer;transition:border-color .12s ease,color .12s ease,background .12s ease}
 .chip-btn:hover{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
 .pill.err,.pill.find{display:inline-flex;align-items:center;gap:4px}
+.ask-sticky{position:sticky;top:0;z-index:4;background:var(--bg);padding:8px 0 10px;border-bottom:1px solid var(--line)}
+.chip-neg{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 34%,var(--line))}
+.chip-neg:hover{border-color:var(--warn);color:var(--warn);background:color-mix(in srgb,var(--warn) 8%,var(--surface))}
+
+/* live step trace */
+.steptrace{display:flex;flex-direction:column}
+.stp-row{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:flex-start}
+.stp-mark{position:relative;display:flex;justify-content:center;padding-top:1px}
+.stp-dot{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;z-index:1;background:var(--surface)}
+.stp-dot.pending{border:1.5px solid var(--line-strong)}
+.stp-dot.running{border:1.5px solid var(--accent)}
+.stp-dot.done{background:var(--accent);color:var(--accent-ink)}
+.stp-dot.error{background:var(--danger);color:#fff}
+.stp-dot .spin{width:10px;height:10px;border-width:1.5px;border-color:color-mix(in srgb,var(--accent) 30%,transparent);border-top-color:var(--accent)}
+.stp-line{position:absolute;top:19px;bottom:-13px;left:50%;width:1.5px;transform:translateX(-50%);background:var(--line-strong)}
+.stp-line.filled{background:var(--accent)}
+.stp-body{padding-bottom:13px;display:flex;flex-direction:column;gap:2px}
+.stp-label{font-size:13px;color:var(--muted);transition:color .15s ease}
+.stp-row.running .stp-label,.stp-row.done .stp-label{color:var(--ink)}
+.stp-row.running .stp-label{font-weight:600}
+.stp-meta{font-family:var(--mono);font-size:10.5px;color:var(--faint);line-height:1.4}
 .search{background:var(--surface-2);border:1px solid var(--line-strong);border-radius:var(--rk);padding:8px 11px;font:inherit;color:var(--ink);width:220px}
 
 /* provenance ledger */

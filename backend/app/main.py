@@ -6,17 +6,19 @@ path (cohort/build) receives schema + the description, per licence-aware minimiz
 """
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from . import __version__
 from .config import settings
 from .cohort import nl
-from .cohort.compiler import CompileError, compile_ir
+from .cohort.compiler import CompileError, compile_ir, iter_compile
 from .data import schema as schema_mod
 from .data.loader import Database
 from .eval.inject import run_eval
@@ -114,6 +116,57 @@ def build_cohort(req: BuildRequest) -> dict[str, Any]:
                 "method": method, "ir": ir.model_dump(), "safety": SAFETY}
     return {"method": method, "disposition": "cohort", "ir": ir.model_dump(),
             **result, "safety": SAFETY}
+
+
+_DISPOSITION_LABEL = {"clarify": "Needs clarification", "refuse": "Request declined", "abstain": "Cannot answer"}
+
+
+def _sse(obj: dict[str, Any]) -> str:
+    return f"data: {json.dumps(obj)}\n\n"
+
+
+@app.post("/cohort/stream")
+def stream_cohort(req: BuildRequest) -> StreamingResponse:
+    """Server-sent stream of the real build steps, so the UI shows the work as it happens."""
+    def gen() -> Any:
+        yield _sse({"step": "understand", "label": "Reading your request"})
+        ir, method = nl.to_ir(req.text)
+        if not ir.answerable:
+            yield _sse({"step": "decision", "disposition": ir.disposition,
+                        "label": _DISPOSITION_LABEL.get(ir.disposition, "Cannot answer"),
+                        "reason": ir.abstain_reason})
+            yield _sse({"step": "done", "result": {
+                "answerable": False, "disposition": ir.disposition,
+                "abstain_reason": ir.abstain_reason, "method": method,
+                "ir": ir.model_dump(), "safety": SAFETY}})
+            return
+        criteria = [c.label for c in ir.include] + [f"not {c.label}" for c in ir.exclude]
+        yield _sse({"step": "criteria", "label": "Understood the criteria",
+                    "criteria": criteria, "method": method})
+        yield _sse({"step": "validate", "label": "Checked the criteria against the schema"})
+        try:
+            for ev in iter_compile(get_db(), ir):
+                if ev["type"] == "funnel":
+                    yield _sse({"step": "funnel", "funnel": {k: ev[k] for k in
+                                ("criterion", "source", "remaining", "delta")}})
+                elif ev["type"] == "sql":
+                    yield _sse({"step": "sql", "label": "Built the query"})
+                elif ev["type"] == "patients":
+                    yield _sse({"step": "patients", "label": "Loaded the matched patients",
+                                "count": ev["count"]})
+                elif ev["type"] == "result":
+                    yield _sse({"step": "done", "result": {
+                        "method": method, "disposition": "cohort", "ir": ir.model_dump(),
+                        **ev["result"], "safety": SAFETY}})
+        except CompileError as e:
+            yield _sse({"step": "decision", "disposition": "clarify",
+                        "label": "Needs clarification", "reason": str(e)})
+            yield _sse({"step": "done", "result": {
+                "answerable": False, "disposition": "clarify", "abstain_reason": str(e),
+                "method": method, "ir": ir.model_dump(), "safety": SAFETY}})
+
+    return StreamingResponse(gen(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
 @app.get("/quality/scorecard")

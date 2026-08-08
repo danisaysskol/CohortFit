@@ -1,20 +1,33 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { api, CohortResult } from "../lib/api";
+import { streamCohort, CohortResult } from "../lib/api";
 import { Icon } from "../components/Icon";
+import { StepTrace, Step } from "./StepTrace";
 
-const EXAMPLES = [
-  "ICU patients over 65 who died in hospital",
-  "patients with a diabetes diagnosis",
-  "ICU patients not on antibiotics",
-  "patients with potassium over 5.5",
+const EXAMPLES: { t: string; neg?: boolean }[] = [
+  { t: "ICU patients over 65 who died in hospital" },
+  { t: "patients with a diabetes diagnosis" },
+  { t: "ICU patients not on antibiotics" },
+  { t: "which patients were admitted in winter", neg: true },
+  { t: "show me the sick patients", neg: true },
+  { t: "which patient is most likely to die next", neg: true },
+];
+
+const PLAN: Step[] = [
+  { key: "understand", label: "Reading your request", status: "pending" },
+  { key: "criteria", label: "Identifying criteria", status: "pending" },
+  { key: "validate", label: "Checking against the schema", status: "pending" },
+  { key: "run", label: "Running the query", status: "pending" },
+  { key: "patients", label: "Loading matched patients", status: "pending" },
 ];
 const STORE_KEY = "cohortfit:last-cohort";
 
 export default function CohortsPage() {
-  const [text, setText] = useState(EXAMPLES[0]);
+  const [text, setText] = useState(EXAMPLES[0].t);
   const [res, setRes] = useState<CohortResult | null>(null);
+  const [steps, setSteps] = useState<Step[]>(PLAN);
+  const [live, setLive] = useState<CohortResult["funnel"]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<"ir" | "sql">("ir");
@@ -29,153 +42,189 @@ export default function CohortsPage() {
       if (saved) {
         const { text: t, res: r } = JSON.parse(saved);
         if (t) setText(t);
-        if (r) setRes(r);
+        if (r) { setRes(r); setLive(r.funnel ?? []); setSteps(PLAN.map((s) => ({ ...s, status: "done" }))); }
       }
     } catch { /* ignore */ }
   }, []);
 
+  function setStep(key: string, status: Step["status"], meta?: string) {
+    setSteps((prev) => prev.map((s) => (s.key === key ? { ...s, status, meta: meta ?? s.meta } : s)));
+  }
+
   async function build(q?: string) {
     const query = q ?? text;
-    if (q) setText(q);
-    setLoading(true);
-    setErr(null);
-    setShowAll(false);
+    if (q) setText(query);
+    setLoading(true); setErr(null); setRes(null); setShowAll(false);
+    setLive([]);
+    setSteps(PLAN.map((s, i) => ({ ...s, status: i === 0 ? "running" : "pending", meta: undefined })));
     try {
-      const r = await api.buildCohort(query);
-      setRes(r);
-      try { localStorage.setItem(STORE_KEY, JSON.stringify({ text: query, res: r })); } catch { /* ignore */ }
+      await streamCohort(query, (ev) => {
+        switch (ev.step) {
+          case "understand": setStep("understand", "running"); break;
+          case "criteria":
+            setStep("understand", "done");
+            setStep("criteria", "done", (ev.criteria as string[]).join(" · "));
+            setStep("validate", "running");
+            break;
+          case "validate": setStep("validate", "done"); setStep("run", "running"); break;
+          case "funnel": {
+            const f = ev.funnel as NonNullable<CohortResult["funnel"]>[number];
+            setLive((prev) => [...prev, f]);
+            setStep("run", "running", `${f.remaining} remaining`);
+            break;
+          }
+          case "patients":
+            setStep("run", "done");
+            setStep("patients", "done", `${ev.count as number} patients`);
+            break;
+          case "decision":
+            setSteps((prev) => prev.map((s) => (s.status === "running" ? { ...s, status: "done" } : s)));
+            break;
+          case "done": {
+            const r = ev.result as CohortResult;
+            setSteps((prev) => prev.map((s) => (s.status !== "error" ? { ...s, status: "done" } : s)));
+            setRes(r); setLive(r.funnel ?? []); setLoading(false);
+            try { localStorage.setItem(STORE_KEY, JSON.stringify({ text: query, res: r })); } catch { /* ignore */ }
+            break;
+          }
+        }
+      });
     } catch (e) {
-      setErr(String(e));
-    } finally {
-      setLoading(false);
+      setErr(String(e)); setLoading(false);
+      setSteps((prev) => prev.map((s) => (s.status === "running" ? { ...s, status: "error" } : s)));
     }
   }
 
   const patients = (res?.patients ?? []) as Record<string, unknown>[];
-  const shown = showAll ? patients : patients.slice(0, 12);
-  const label = res && !res.answerable
-    ? ({ refuse: "Refused", clarify: "Needs clarification", abstain: "Abstained" }[res.disposition ?? "abstain"] ?? "Abstained")
+  const shown = showAll ? patients : patients.slice(0, 10);
+  const funnel = live.length ? live : res?.funnel ?? [];
+  const dispLabel = res && !res.answerable
+    ? ({ refuse: "Request declined", clarify: "Needs clarification", abstain: "Cannot answer" }[res.disposition ?? "abstain"] ?? "Cannot answer")
     : "";
 
   return (
     <>
-      <div className="page-h">
+      <div className="page-h" style={{ marginBottom: 10 }}>
         <div>
           <h1>Cohort builder</h1>
-          <p>Describe a patient cohort in plain language. CohortFit builds a transparent query, shows who is included and excluded, and lists the matched patients.</p>
+          <p>Describe a patient group in plain words. CohortFit shows each step of its work, who is included and excluded, and the matched patients.</p>
         </div>
       </div>
 
-      {/* Hero input */}
-      <div className="hero-ask">
-        <label className="field hero-field">
-          <Icon name="search" size={17} style={{ color: "var(--accent)", flex: "0 0 auto" }} />
-          <input ref={inputRef} value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && build()}
-            placeholder="e.g. ICU patients over 65 who died in hospital"
-            aria-label="Describe the cohort in plain language" />
-        </label>
-        <button className="btn hero-btn" onClick={() => build()} disabled={loading}>
-          {loading ? <span className="spin" /> : <Icon name="play" size={14} />}
-          {loading ? "Building" : "Build cohort"}
-        </button>
-      </div>
-      <div className="chips" style={{ marginTop: 10 }}>
-        {EXAMPLES.map((ex) => (
-          <button key={ex} className="chip chip-btn" onClick={() => build(ex)}>{ex}</button>
-        ))}
-        {res?.method && <span className="chip" style={{ marginLeft: "auto" }}><Icon name="spark" size={11} style={{ color: "var(--accent)" }} /> {res.method}</span>}
+      {/* Sticky input */}
+      <div className="ask-sticky">
+        <div className="hero-ask">
+          <label className="field hero-field">
+            <Icon name="search" size={17} style={{ color: "var(--accent)", flex: "0 0 auto" }} />
+            <input ref={inputRef} value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !loading && build()}
+              placeholder="e.g. ICU patients over 65 who died in hospital"
+              aria-label="Describe the cohort in plain words" />
+          </label>
+          <button className="btn hero-btn" onClick={() => build()} disabled={loading}>
+            {loading ? <span className="spin" /> : <Icon name="play" size={14} />}
+            {loading ? "Building" : "Build cohort"}
+          </button>
+        </div>
+        <div className="chips" style={{ marginTop: 8 }}>
+          {EXAMPLES.map((ex) => (
+            <button key={ex.t} className={"chip chip-btn" + (ex.neg ? " chip-neg" : "")} onClick={() => build(ex.t)} disabled={loading}>
+              {ex.neg && <Icon name="shield" size={10} style={{ verticalAlign: -1, marginRight: 3 }} />}{ex.t}
+            </button>
+          ))}
+          {res?.method && <span className="chip" style={{ marginLeft: "auto" }}><Icon name="spark" size={11} style={{ color: "var(--accent)" }} /> {res.method}</span>}
+        </div>
       </div>
 
-      {err && <div className="abstain" style={{ marginTop: 14 }}><span className="k">Error</span> — {err}. Confirm the backend is running on port 8000.</div>}
+      {err && <div className="abstain" style={{ marginTop: 14 }}><span className="k">Connection error</span> — {err}. Confirm the backend is running on port 8000.</div>}
 
-      {res && !res.answerable && (
-        <div className="abstain" style={{ marginTop: 14 }}>
-          <span className="k">{label}</span> — {res.abstain_reason}
-          <div className="note">By design, when a request is out of scope, ambiguous, or unsupported, CohortFit declines and explains why rather than returning an unsupported answer.</div>
+      {/* Live work + provenance */}
+      {(loading || funnel.length > 0) && (
+        <div className="grid2" style={{ marginTop: 16, gridTemplateColumns: "300px 1fr" }}>
+          <section className="panel">
+            <div className="panel-h"><span className="lbl lbl-i"><Icon name="activity" size={13} /> Live steps</span></div>
+            <div className="panel-b"><StepTrace steps={steps} /></div>
+          </section>
+
+          <section className="panel">
+            <div className="panel-h"><span className="lbl lbl-i"><Icon name="filter" size={13} /> Inclusion &amp; exclusion</span>{res && <span className="lbl">{res.n} matched</span>}</div>
+            <div className="panel-b">
+              {funnel.length > 0 ? (
+                <div className="ledger">
+                  <div className="lh"><span>Criterion</span><span>Source</span><span>Remaining</span><span>Δ</span></div>
+                  {funnel.map((s, i) => (
+                    <div className={res && i === funnel.length - 1 ? "lr total" : "lr"} key={i}>
+                      <span className="crit">{s.criterion}</span>
+                      <span className="src">{s.source}</span>
+                      <span className="n">{s.remaining}</span>
+                      <span className={"d" + (s.delta ? "" : " zero")}>{s.delta == null ? "—" : s.delta === 0 ? "0" : s.delta}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : <div className="loading">Waiting for the first step…</div>}
+            </div>
+          </section>
         </div>
       )}
 
-      {res && res.answerable && res.funnel && (
-        <div className="grid2" style={{ marginTop: 18, gridTemplateColumns: "1fr 1fr" }}>
-          {/* Provenance ledger */}
-          <section className="panel">
-            <div className="panel-h"><span className="lbl lbl-i"><Icon name="filter" size={13} /> Provenance</span><span className="lbl">{res.n} match</span></div>
-            <div className="panel-b">
-              <div className="ledger">
-                <div className="lh"><span>Criterion</span><span>Source</span><span>Remaining</span><span>Δ</span></div>
-                {res.funnel.map((s, i) => (
-                  <div className={i === res.funnel!.length - 1 ? "lr total" : "lr"} key={i}>
-                    <span className="crit">{s.criterion}</span>
-                    <span className="src">{s.source}</span>
-                    <span className="n">{s.remaining}</span>
-                    <span className={"d" + (s.delta ? "" : " zero")}>{s.delta == null ? "—" : s.delta === 0 ? "0" : s.delta}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+      {res && !res.answerable && (
+        <div className="abstain" style={{ marginTop: 14 }}>
+          <span className="k">{dispLabel}</span> — {res.abstain_reason}
+          <div className="note">When a request is out of scope, ambiguous, or unsupported, CohortFit says so and explains why, rather than returning an answer the data cannot support.</div>
+        </div>
+      )}
 
-          {/* Query view */}
-          <section className="panel">
+      {/* Query + patients */}
+      {res && res.answerable && (
+        <>
+          <section className="panel" style={{ marginTop: 16 }}>
             <div className="panel-h">
-              <span className="lbl lbl-i"><Icon name="hash" size={13} /> Query</span>
+              <span className="lbl lbl-i"><Icon name="hash" size={13} /> Generated query</span>
               <span className="codetabs">
                 <button aria-pressed={tab === "ir"} onClick={() => setTab("ir")}>Recipe</button>
                 <button aria-pressed={tab === "sql"} onClick={() => setTab("sql")}>SQL</button>
               </span>
             </div>
             <div className="panel-b">
-              {tab === "ir" && <pre><code>{JSON.stringify(res.ir, null, 2)}</code></pre>}
-              {tab === "sql" && <pre><code>{res.sql || "—"}</code></pre>}
+              {tab === "ir" ? <pre><code>{JSON.stringify(res.ir, null, 2)}</code></pre> : <pre><code>{res.sql || "—"}</code></pre>}
+              <p className="note">The model proposes a structured recipe from the schema and your words; a deterministic compiler turns it into the SQL above. The model never writes executable SQL.</p>
             </div>
           </section>
-        </div>
-      )}
 
-      {/* Patient results table */}
-      {res && res.answerable && patients.length > 0 && (
-        <section className="panel" style={{ marginTop: 18 }}>
-          <div className="panel-h">
-            <span className="lbl lbl-i"><Icon name="users" size={13} /> Matched patients</span>
-            <span className="lbl">{patients.length} shown</span>
-          </div>
-          <div className="panel-b">
-            <div className="tablewrap">
-              <table className="gt">
-                <thead>
-                  <tr>
-                    <th>subject_id</th><th>gender</th><th className="num">age</th>
-                    <th className="num">ICU stays</th><th className="num">total LOS (d)</th>
-                    <th className="num">admissions</th><th>in-hospital death</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shown.map((p, i) => (
-                    <tr key={i}>
-                      <td className="mono">{String(p.subject_id)}</td>
-                      <td className="mono">{String(p.gender)}</td>
-                      <td className="num mono">{String(p.age)}</td>
-                      <td className="num mono">{String(p.icu_stays)}</td>
-                      <td className="num mono">{String(p.total_los)}</td>
-                      <td className="num mono">{String(p.admissions)}</td>
-                      <td>{Number(p.died) === 1
-                        ? <span className="pill err"><Icon name="alert" size={10} style={{ verticalAlign: -1 }} /> Died</span>
-                        : <span className="pill find"><Icon name="check" size={10} style={{ verticalAlign: -1 }} /> Survived</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {patients.length > 12 && (
-              <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setShowAll((v) => !v)}>
-                <Icon name="chevron" size={13} /> {showAll ? "Show fewer" : `Show all ${patients.length}`}
-              </button>
-            )}
-            <p className="note">Patient rows are served to this local interface only; the AI cohort path receives the schema and your description, not raw records.</p>
-          </div>
-        </section>
+          {patients.length > 0 && (
+            <section className="panel" style={{ marginTop: 16 }}>
+              <div className="panel-h"><span className="lbl lbl-i"><Icon name="users" size={13} /> Matched patients</span><span className="lbl">{patients.length} shown</span></div>
+              <div className="panel-b">
+                <div className="tablewrap">
+                  <table className="gt">
+                    <thead><tr><th>subject_id</th><th>sex</th><th className="num">age</th><th className="num">ICU stays</th><th className="num">days in ICU</th><th className="num">admissions</th><th>outcome</th></tr></thead>
+                    <tbody>
+                      {shown.map((p, i) => (
+                        <tr key={i}>
+                          <td className="mono">{String(p.subject_id)}</td>
+                          <td className="mono">{String(p.gender)}</td>
+                          <td className="num mono">{String(p.age)}</td>
+                          <td className="num mono">{String(p.icu_stays)}</td>
+                          <td className="num mono">{String(p.total_los)}</td>
+                          <td className="num mono">{String(p.admissions)}</td>
+                          <td>{Number(p.died) === 1
+                            ? <span className="pill err"><Icon name="alert" size={10} style={{ verticalAlign: -1 }} /> Died in hospital</span>
+                            : <span className="pill find"><Icon name="check" size={10} style={{ verticalAlign: -1 }} /> Survived</span>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {patients.length > 10 && (
+                  <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setShowAll((v) => !v)}>
+                    <Icon name="chevron" size={13} /> {showAll ? "Show fewer" : `Show all ${patients.length}`}
+                  </button>
+                )}
+              </div>
+            </section>
+          )}
+        </>
       )}
     </>
   );

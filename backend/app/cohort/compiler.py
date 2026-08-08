@@ -120,8 +120,11 @@ def _predicate(c: Criterion) -> tuple[str, str]:
     raise CompileError(f"unknown criterion kind: {k}")
 
 
-def compile_ir(db: Database, ir: CohortIR) -> dict[str, Any]:
-    # Each step is (label, source, clause) where clause is already negated for excludes.
+def iter_compile(db: Database, ir: CohortIR) -> "Iterator[dict[str, Any]]":
+    """Compile the IR, yielding one event per real step so the UI can show the work live:
+    a `funnel` event per criterion as its count is computed, then `sql`, `patients`, and a
+    final `result` event carrying the full payload. `compile_ir` just drains this.
+    """
     steps: list[tuple[str, str, str]] = []
     for c in ir.include:
         pred, src = _predicate(c)
@@ -134,20 +137,23 @@ def compile_ir(db: Database, ir: CohortIR) -> dict[str, Any]:
     funnel: list[dict[str, Any]] = [
         {"criterion": "All demo patients", "source": "patients", "remaining": base_n, "delta": None}
     ]
+    yield {"type": "funnel", **funnel[0]}
     prev = base_n
     cum: list[str] = []
     for label, src, clause in steps:
         cum.append(clause)
         where = " AND ".join(cum)
         n = int(db.query(f"SELECT count(*) AS n FROM patients p WHERE {where}")[0]["n"])
-        funnel.append({"criterion": label, "source": src, "remaining": n, "delta": n - prev})
+        step = {"criterion": label, "source": src, "remaining": n, "delta": n - prev}
+        funnel.append(step)
+        yield {"type": "funnel", **step}
         prev = n
 
     where_all = " AND ".join(cum) if cum else "TRUE"
     sql = f"SELECT DISTINCT p.subject_id FROM patients p WHERE {where_all} ORDER BY p.subject_id"
+    yield {"type": "sql", "sql": sql}
     ids = [str(r["subject_id"]) for r in db.query(sql)]
 
-    # Patient-level detail for the matched cohort so the UI can show people, not just ids.
     patients: list[dict[str, Any]] = []
     if ids:
         id_list = ",".join(ids)  # numeric subject_ids from our own query — safe
@@ -159,17 +165,22 @@ def compile_ir(db: Database, ir: CohortIR) -> dict[str, Any]:
             "(SELECT max(hospital_expire_flag) FROM admissions a WHERE a.subject_id = p.subject_id) AS died "
             f"FROM patients p WHERE p.subject_id IN ({id_list}) ORDER BY p.subject_id LIMIT 500"
         )
+    yield {"type": "patients", "count": len(ids)}
 
     data_hash = hashlib.sha256(
         (sql + "|" + json.dumps(ir.model_dump(), sort_keys=True)).encode()
     ).hexdigest()[:12]
-    return {
-        "sql": sql,
-        "funnel": funnel,
-        "subject_ids": ids,
-        "patients": patients,
-        "n": len(ids),
-        "answerable": ir.answerable,
-        "confidence": ir.confidence,
+    yield {"type": "result", "result": {
+        "sql": sql, "funnel": funnel, "subject_ids": ids, "patients": patients,
+        "n": len(ids), "answerable": ir.answerable, "confidence": ir.confidence,
         "data_hash": data_hash,
-    }
+    }}
+
+
+def compile_ir(db: Database, ir: CohortIR) -> dict[str, Any]:
+    result: dict[str, Any] | None = None
+    for ev in iter_compile(db, ir):
+        if ev.get("type") == "result":
+            result = ev["result"]
+    assert result is not None
+    return result

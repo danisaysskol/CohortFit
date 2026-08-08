@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api, Scorecard, Finding, FindingRows } from "../lib/api";
 import { Verdict, StatTile, DimTile, SeverityBar, Sev } from "../components/charts";
 import { Icon } from "../components/Icon";
 import { Explain } from "../components/Explain";
 import { CoverageByTable } from "../components/CoverageByTable";
+import { Drawer } from "../components/Drawer";
 import { FixLedger } from "./FixLedger";
 
 const KIND_PILL: Record<string, string> = { data_error: "err", real_finding: "find", caveat: "caveat" };
@@ -19,16 +20,10 @@ export default function QualityPage() {
   const [drillId, setDrillId] = useState<string | null>(null);
   const [drillLoading, setDrillLoading] = useState(false);
   const [dimFilter, setDimFilter] = useState<string | null>(null);   // focus findings by dimension
-  const drillRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     api.scorecard().then(setSc).catch((e) => setErr(String(e)));
   }, []);
-
-  // Motion with purpose: bring the offending rows into view the moment they load.
-  useEffect(() => {
-    if (drill) drillRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [drill]);
 
   function openDrill(f: Finding) {
     if (!f.drillable) return;
@@ -146,38 +141,31 @@ export default function QualityPage() {
           <div style={{ marginTop: 14 }}><CoverageByTable findings={sc.findings} /></div>
 
           {drill && (
-            <section className="panel panel-pop" ref={drillRef} style={{ marginTop: 18 }}>
-              <div className="panel-h">
-                <span className="lbl lbl-i"><Icon name="search" size={13} /> Offending rows</span>
-                <button className="btn btn-ghost" onClick={() => { setDrill(null); setDrillId(null); }}>
-                  <Icon name="x" size={12} /> Close
-                </button>
+            <Drawer wide onClose={() => { setDrill(null); setDrillId(null); }}
+              title={<><Icon name="search" size={13} /> Offending rows</>}>
+              <div className="t1" style={{ marginBottom: 4 }}>{drill.finding.detail}</div>
+              <div className="t2" style={{ marginBottom: 12 }}>
+                {drill.finding.table}{drill.ref ? " · " + drill.ref : ""} — showing {drill.shown.toLocaleString()} of {drill.total.toLocaleString()}
               </div>
-              <div className="panel-b">
-                <div className="t1" style={{ marginBottom: 4 }}>{drill.finding.detail}</div>
-                <div className="t2" style={{ marginBottom: 12 }}>
-                  {drill.finding.table}{drill.ref ? " · " + drill.ref : ""} — showing {drill.shown.toLocaleString()} of {drill.total.toLocaleString()}
-                </div>
-                <pre><code>{drill.sql}</code></pre>
-                <div style={{ overflowX: "auto", marginTop: 12 }}>
-                  <table className="drill-tbl">
-                    <thead>
-                      <tr>{drill.columns.map((c) => <th key={c}>{c}</th>)}</tr>
-                    </thead>
-                    <tbody>
-                      {drill.rows.map((r, i) => (
-                        <tr key={i}>
-                          {drill.columns.map((c) => (
-                            <td key={c}>{r[c] === null ? <span className="null">null</span> : String(r[c])}</td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="note">These are real rows in the demo dataset, returned by the query above. Source data is never modified — the flag points here so a reviewer can judge it directly.</p>
+              <pre><code>{drill.sql}</code></pre>
+              <div style={{ overflowX: "auto", marginTop: 12 }}>
+                <table className="drill-tbl">
+                  <thead>
+                    <tr>{drill.columns.map((c) => <th key={c}>{c}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {drill.rows.map((r, i) => (
+                      <tr key={i}>
+                        {drill.columns.map((c) => (
+                          <td key={c}>{r[c] === null ? <span className="null">null</span> : String(r[c])}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </section>
+              <p className="note">These are real rows in the demo dataset, returned by the query above. Source data is never modified — the flag points here so a reviewer can judge it directly.</p>
+            </Drawer>
           )}
 
           <FixLedger />

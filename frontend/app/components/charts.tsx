@@ -44,8 +44,10 @@ export function DimTile({ dimension, severity, detail, active, onClick }:
   );
   if (!onClick) return <div className="dtile" title={title}>{body}</div>;
   return (
-    <button className={"dtile dtile-btn" + (active ? " dtile-on" : "")} onClick={onClick} aria-pressed={active} title={title}>
+    <button className={"dtile dtile-btn" + (active ? " dtile-on" : "")} onClick={onClick} aria-pressed={active}
+      title={active ? `Showing only ${dimension} findings — click to clear` : `Filter findings to ${dimension}`}>
       {body}
+      <span className="dtile-filter">{active ? "Filtering ✕" : "Filter ▸"}</span>
     </button>
   );
 }

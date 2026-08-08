@@ -100,6 +100,17 @@ main{padding:22px 0 64px}
 .mlab-row:first-child{border-top:0}
 .mlab-name{font-size:12.5px;color:var(--ink)}
 .mlab-meta{font-size:10.5px;color:var(--muted);white-space:nowrap}
+/* modal side drawer (timeline / offending rows) */
+.drawer-scrim{position:fixed;inset:0;z-index:50;background:rgba(20,18,10,.30);display:flex;justify-content:flex-end;animation:scrim .18s ease}
+@keyframes scrim{from{opacity:0}to{opacity:1}}
+.drawer{width:min(600px,94vw);height:100%;background:var(--surface);border-left:1px solid var(--line-strong);
+  box-shadow:var(--elev-2);display:flex;flex-direction:column;animation:slidein .24s cubic-bezier(.22,.61,.36,1)}
+.drawer-wide{width:min(820px,96vw)}
+@keyframes slidein{from{transform:translateX(24px);opacity:.5}to{transform:none;opacity:1}}
+.drawer-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;
+  border-bottom:1px solid var(--line);background:var(--surface-2);flex:0 0 auto}
+.drawer-b{padding:16px 18px;overflow:auto;flex:1 1 auto}
+@media(prefers-reduced-motion:reduce){.drawer,.drawer-scrim{animation:none}}
 /* the cohort workspace lens switcher */
 .lens-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0}
 .empty-lens{padding:30px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.5}
@@ -315,6 +326,11 @@ code{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--ink);
 .dtile-btn:active{transform:translateY(1px)}
 .dtile-on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 30%,transparent),var(--elev-1)}
 .dtile-on .dtile-d{color:var(--ink-strong);font-weight:700}
+/* persistent "this tile filters the findings" cue */
+.dtile-filter{position:absolute;top:9px;right:11px;font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;
+  text-transform:uppercase;font-weight:700;color:var(--faint);opacity:.75;transition:color .12s ease,opacity .12s ease}
+.dtile-btn:hover .dtile-filter{color:var(--accent);opacity:1}
+.dtile-on .dtile-filter{color:var(--accent);opacity:1}
 .sevbar{display:flex;gap:2px;height:18px;border-radius:3px;overflow:hidden;background:var(--line)}
 .sevseg{min-width:3px}
 .sevlegend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--muted)}

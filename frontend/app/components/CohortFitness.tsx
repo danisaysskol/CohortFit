@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api, CohortScorecard, Finding, FindingRows } from "../lib/api";
 import { Verdict, DimTile, SeverityBar, Sev } from "./charts";
 import { CoverageByTable } from "./CoverageByTable";
+import { Drawer } from "./Drawer";
 import { Icon } from "./Icon";
 
 const SEV_RANK: Record<Sev, number> = { green: 0, amber: 1, red: 2 };
@@ -24,15 +25,12 @@ export function CohortFitness({ subjectIds }: { subjectIds: number[] }) {
   const [drill, setDrill] = useState<FindingRows | null>(null);
   const [drillId, setDrillId] = useState<string | null>(null);
   const [drillLoading, setDrillLoading] = useState(false);
-  const drillRef = useRef<HTMLElement>(null);
 
   const key = subjectIds.join(",");
   useEffect(() => {
     setSc(null); setErr(null); setDrill(null); setDrillId(null); setDimFilter(null);
     api.cohortQuality(subjectIds).then(setSc).catch((e) => setErr(String(e)));
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => { if (drill) drillRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [drill]);
 
   const derived = useMemo(() => {
     if (!sc) return null;
@@ -111,28 +109,23 @@ export function CohortFitness({ subjectIds }: { subjectIds: number[] }) {
       </section>
 
       {drill && (
-        <section className="panel panel-pop" ref={drillRef} style={{ marginTop: 16 }}>
-          <div className="panel-h">
-            <span className="lbl lbl-i"><Icon name="search" size={13} /> Offending rows</span>
-            <button className="btn btn-ghost" onClick={() => { setDrill(null); setDrillId(null); }}><Icon name="x" size={12} /> Close</button>
+        <Drawer wide onClose={() => { setDrill(null); setDrillId(null); }}
+          title={<><Icon name="search" size={13} /> Offending rows</>}>
+          <div className="t1" style={{ marginBottom: 4 }}>{drill.finding.detail}</div>
+          <div className="t2" style={{ marginBottom: 12 }}>{drill.finding.table}{drill.ref ? " · " + drill.ref : ""} — showing {drill.shown.toLocaleString()} of {drill.total.toLocaleString()}</div>
+          <pre><code>{drill.sql}</code></pre>
+          <div style={{ overflowX: "auto", marginTop: 12 }}>
+            <table className="drill-tbl">
+              <thead><tr>{drill.columns.map((c) => <th key={c}>{c}</th>)}</tr></thead>
+              <tbody>
+                {drill.rows.map((r, i) => (
+                  <tr key={i}>{drill.columns.map((c) => <td key={c}>{r[c] === null ? <span className="null">null</span> : String(r[c])}</td>)}</tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="panel-b">
-            <div className="t1" style={{ marginBottom: 4 }}>{drill.finding.detail}</div>
-            <div className="t2" style={{ marginBottom: 12 }}>{drill.finding.table}{drill.ref ? " · " + drill.ref : ""} — showing {drill.shown.toLocaleString()} of {drill.total.toLocaleString()}</div>
-            <pre><code>{drill.sql}</code></pre>
-            <div style={{ overflowX: "auto", marginTop: 12 }}>
-              <table className="drill-tbl">
-                <thead><tr>{drill.columns.map((c) => <th key={c}>{c}</th>)}</tr></thead>
-                <tbody>
-                  {drill.rows.map((r, i) => (
-                    <tr key={i}>{drill.columns.map((c) => <td key={c}>{r[c] === null ? <span className="null">null</span> : String(r[c])}</td>)}</tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="note">Real rows in the selected patients, returned by the query above. Source data is never modified.</p>
-          </div>
-        </section>
+          <p className="note">Real rows in the selected patients, returned by the query above. Source data is never modified.</p>
+        </Drawer>
       )}
     </>
   );

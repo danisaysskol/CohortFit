@@ -5,6 +5,7 @@ import { api, streamCohort, CohortResult, PatientTimeline, FunnelStep, Measureme
 import { Icon, IconName } from "../components/Icon";
 import { CohortFitness } from "../components/CohortFitness";
 import { Measurements } from "../components/Measurements";
+import { Drawer } from "../components/Drawer";
 import { StepTrace, Step } from "./StepTrace";
 import { Timeline } from "./Timeline";
 
@@ -48,7 +49,6 @@ export default function CohortsPage() {
   const [tl, setTl] = useState<PatientTimeline | null>(null);
   const [tlLoading, setTlLoading] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const tlRef = useRef<HTMLElement>(null);
 
   const sids = useMemo(() => (res?.subject_ids ?? []).map(Number), [res]);
 
@@ -64,8 +64,6 @@ export default function CohortsPage() {
   const emptyLens = (msg: string) => (
     <section className="panel"><div className="panel-b"><div className="empty-lens">{msg}</div></div></section>
   );
-
-  useEffect(() => { if (tl) tlRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [tl]);
 
   // Load the cohort's measurements lazily, the first time that lens is opened.
   useEffect(() => {
@@ -315,12 +313,8 @@ export default function CohortsPage() {
       )}
 
       {tl && (
-        <section className="panel panel-pop" ref={tlRef} style={{ marginTop: 16 }}>
-          <div className="panel-h">
-            <span className="lbl lbl-i"><Icon name="activity" size={13} /> Patient timeline · <span className="mono" style={{ textTransform: "none" }}>{tl.subject_id}</span></span>
-            <button className="btn btn-ghost" onClick={() => setTl(null)}><Icon name="x" size={12} /> Close</button>
-          </div>
-          <div className="panel-b">
+        <Drawer onClose={() => setTl(null)}
+          title={<><Icon name="activity" size={13} /> Patient timeline · <span className="mono" style={{ textTransform: "none" }}>{tl.subject_id}</span></>}>
             <div className="chips" style={{ marginTop: 0, marginBottom: 10 }}>
               <span className="chip"><b>{tl.gender}</b> · age {tl.age}</span>
               <span className="chip">{tl.labs.toLocaleString()} labs</span>
@@ -332,12 +326,11 @@ export default function CohortsPage() {
                 {tl.diagnoses.slice(0, 8).map((d, i) => <span key={i} className="chip" style={{ textTransform: "none" }}>{d}</span>)}
               </div>
             )}
-            <div style={{ maxHeight: 440, overflow: "auto", paddingRight: 6 }}>
+            <div style={{ paddingRight: 6 }}>
               <Timeline events={tl.events} />
             </div>
             <p className="note">Dates in MIMIC-IV are shifted, so the calendar is not real — but the order of a patient&rsquo;s events is. Each event links to its source table and id.</p>
-          </div>
-        </section>
+        </Drawer>
       )}
     </>
   );

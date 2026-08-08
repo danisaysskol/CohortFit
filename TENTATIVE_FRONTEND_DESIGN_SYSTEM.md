@@ -1,6 +1,6 @@
 # CohortFit — Frontend Design System ("Lab Ledger")
 
-> The single source of truth for the UI. Implemented in `frontend/app/globals.css`; every page uses these tokens and components. Warm-light only (no dark mode). This document is **tentative** — it evolves as we test the product with real judges' eyes. Rationale and anti-AI-slop reasoning: `docs/design-direction.md`.
+> The single source of truth for the UI. Implemented in `frontend/app/globals.css`; every page uses these tokens and components. Warm-light only (no dark mode). This document is **tentative** — it evolves as we test the product with real judges' eyes.
 
 ## Philosophy — Apple clarity, Google Material tactility
 

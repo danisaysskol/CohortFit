@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-08 — Full UX pass shipped & verified: design v2 (contrast/scale/tactility/motion), page-switch latency fixed at root (production build → 20–210ms), compact tabbed Cohorts + tighter Quality, prominent segmented control + app-wide weak-control audit, Context→Problem→Method→Result strips on Quality/Evaluation, and an honest interactivity critique (`docs/UX_CRITIQUE.md`). Next: the big exploration — make Track-2 points 2 & 3 as interactive as point 1 (cohort-scoped quality + measurements)._
+_Last updated: 2026-08-08 — Full UX pass shipped & verified: design v2 (contrast/scale/tactility/motion), page-switch latency fixed at root (production build → 20–210ms), compact tabbed Cohorts + tighter Quality, prominent segmented control + app-wide weak-control audit, Context→Problem→Method→Result strips on Quality/Evaluation, and a "Less but Better" declutter pass (dimension tiles now filter findings, redundant hints removed, Evaluation per-seed table collapsed). Next: the big exploration — make Track-2 points 2 & 3 as interactive as point 1 (cohort-scoped quality + measurements)._
 
 ---
 
@@ -117,8 +117,8 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Control audit** (same class of fix, app-wide): schema **table selector** active state now has an accent bar + bold + elevation (was a faint border); **sort headers** read as clickable (hover fill, clearer carets); the table-filter **input** got a focus glow. Bolder panel subheadings.
 - [x] **Quality & Evaluation narrative** — a compact `Explain` strip (Context → Problem → Method → Result) tells each page's story in one band without adding scroll. Reusable `components/Explain.tsx`.
 
-**Done (interactivity critique report):**
-- [x] **`docs/UX_CRITIQUE.md`** — honest assessment of attention & interactivity across all pages (six heuristics; per-page; what works / lags / improve / remove; scorecard). Headline: demo-ready, but interactivity is **lopsided** — Cohorts is richly interactive while Quality/Evaluation are largely read-only. Top-value next step: cohort-scoped, cross-linked quality + measurement views.
+**Done (interactivity critique → acted on, then removed):**
+- [x] Wrote an honest attention/interactivity critique (six heuristics; per-page; what works / lags / improve / remove), **implemented its declutter + control recommendations** (dimension tiles now filter findings; redundant hint/prompt signals removed; Evaluation per-seed table collapsed; `openai` chip clarified), then **deleted the critique doc** now that it is consumed. Headline it surfaced: interactivity is still **lopsided** — Cohorts is richly interactive while Quality/Evaluation lean read-only; the top-value next step is cohort-scoped, cross-linked quality + measurement views.
 
 **Next:**
 - [ ] The larger exploration: make Track-2 points 2 (data-quality judging) & 3 (measurement explorer) as interactive/user-centric as point 1 — try 3 paths against pre-set criteria, pick the best, implement. **The critique points to cohort-scoped quality + measurements as the strongest path.**
@@ -144,4 +144,4 @@ Latest UI screenshots live in `docs/ui-screenshots/`. **Update them whenever the
 | 2026-08-08 | Ace card = demo-verifiable only | Honesty is the pitch; every flag traces to a real 100-patient row. |
 | 2026-08-08 | NL → JSON IR → DuckDB (LLM never writes SQL) | Transparent, safe, reproducible; IR is the showable inclusion/exclusion logic. |
 | 2026-08-08 | Relaxed "zero patient rows to LLM" → **minimize + disclose** | The brief only requires *minimizing* data sent externally, not zero rows; the strict rule over-constrained creativity. We keep schema+aggregates as default, allow minimal disclosed rows when a task needs them. |
-| 2026-08-08 | Design direction = **Lab Ledger** (Hanken Grotesk + IBM Plex Mono, greige paper, prussian accent, hairlines, 6px radius, Provenance Ledger signature) | Kills the four AI-slop tells; reads as a shipped data product. From design R&D (`docs/design-direction.md`). |
+| 2026-08-08 | Design direction = **Lab Ledger** (Hanken Grotesk + IBM Plex Mono, greige paper, prussian accent, Provenance Ledger signature; later evolved with Material tactility) | Kills the four AI-slop tells; reads as a shipped data product. Codified in `TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`. |

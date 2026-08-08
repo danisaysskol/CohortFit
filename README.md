@@ -78,7 +78,7 @@ Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledge
 - [`docs/TRACK2_REQUIREMENTS.md`](docs/TRACK2_REQUIREMENTS.md) — the hackathon brief, extracted.
 - [`docs/RESEARCH_AND_EXPLORATION.md`](docs/RESEARCH_AND_EXPLORATION.md) — data map, evidence, model/method R&D (from-scratch explainer + real samples).
 - [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) · [`docs/SAFETY_STATEMENT.md`](docs/SAFETY_STATEMENT.md) — required deliverables.
-- [`TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`](TENTATIVE_FRONTEND_DESIGN_SYSTEM.md) · [`docs/design-direction.md`](docs/design-direction.md) — the design system.
+- [`TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`](TENTATIVE_FRONTEND_DESIGN_SYSTEM.md) — the design system.
 - [`PROGRESS.md`](PROGRESS.md) — living status + decision log.
 
 ---

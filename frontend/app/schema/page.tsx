@@ -32,6 +32,10 @@ export default function SchemaPage() {
 
   const info = tables.find((t) => t.table === sel);
   const columns = useMemo(() => toColumnMeta(info?.columns ?? []), [info]);
+  const columnsByTable = useMemo(
+    () => Object.fromEntries(tables.map((t) => [t.table, t.columns])),
+    [tables]
+  );
 
   // The Schema page's only backend-specific glue: map the generic explorer params onto
   // api.explore's string query. Everything richer is built on top of this single contract.
@@ -79,7 +83,7 @@ export default function SchemaPage() {
           <span className="lbl">Schema map</span>
           <span className="lbl">patient → admission → ICU stay</span>
         </div>
-        <div className="panel-b"><Erd /></div>
+        <div className="panel-b"><Erd columnsByTable={columnsByTable} onSelect={setSel} selected={sel} /></div>
       </section>
 
       <div className="grid2" style={{ gridTemplateColumns: "260px 1fr" }}>

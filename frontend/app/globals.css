@@ -149,4 +149,84 @@ code{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--ink);
 .tablelist button.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .tablelist button .rc{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
 .tablelist button .md{font-family:var(--mono);font-size:9px;color:var(--faint);text-transform:uppercase}
+/* ===================== Data explorer — FilterBar + DataTable =====================
+   Reusable filter/table surface. Filters read like a small query ledger (echoing the
+   provenance ledger). Hairlines, mono labels, 6px ceiling; the only drop-shadow is on
+   the add-filter popover, which the system permits for menus/popovers. */
+
+/* --- FilterBar --- */
+.fbar{display:flex;flex-direction:column;gap:10px}
+.fbar-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fbar-search{display:flex;align-items:center;gap:8px;flex:1 1 240px;min-width:200px;
+  background:var(--surface-2);border:1px solid var(--line-strong);border-radius:var(--rk);padding:0 11px}
+.fbar-search:focus-within{border-color:var(--accent)}
+.fbar-search-i{font-family:var(--mono);color:var(--faint);font-size:13px;flex:0 0 auto}
+.fbar-search input{border:0;background:transparent;font:inherit;color:var(--ink);width:100%;outline:none;padding:9px 0}
+.fbar-add{position:relative;flex:0 0 auto}
+.fbar-addbtn{text-transform:none;letter-spacing:.02em}
+.fbar-clear{border:0;background:transparent;color:var(--muted);cursor:pointer;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 6px}
+.fbar-clear:hover{color:var(--danger)}
+
+/* add-filter composer popover */
+.composer{position:absolute;top:calc(100% + 6px);right:0;z-index:20;width:290px;
+  background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--rc);
+  box-shadow:0 8px 26px -10px rgba(27,26,23,.28);padding:12px}
+.composer-h{margin-bottom:10px}
+.composer-grid{display:grid;grid-template-columns:52px 1fr;gap:8px 10px;align-items:center}
+.composer-grid label{justify-self:start;align-self:center}
+.composer-grid select,.composer-grid input{width:100%;background:var(--surface-2);
+  border:1px solid var(--line-strong);border-radius:var(--rk);padding:7px 9px;font:inherit;
+  font-size:12.5px;color:var(--ink)}
+.composer-grid select:focus,.composer-grid input:focus{outline:none;border-color:var(--accent)}
+.composer-f{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.composer-f .btn{padding:7px 12px}
+
+/* active filter tokens — the query ledger */
+.ftoks{display:flex;flex-wrap:wrap;gap:7px}
+.ftok{display:inline-flex;align-items:center;gap:7px;background:var(--surface-2);
+  border:1px solid var(--line-strong);border-radius:var(--rk);padding:4px 4px 4px 9px;
+  font-family:var(--mono);font-size:11px;line-height:1.2}
+.ftok-k{color:var(--ink);font-weight:500}
+.ftok-op{color:var(--accent);font-weight:600}
+.ftok-v{color:var(--ink);max-width:20ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ftok-tag{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
+  border:1px solid var(--line);border-radius:2px;padding:1px 4px}
+.ftok-x{border:0;background:transparent;color:var(--faint);cursor:pointer;font-size:14px;
+  line-height:1;padding:2px 5px;border-radius:3px}
+.ftok-x:hover{color:var(--danger);background:color-mix(in srgb,var(--danger) 9%,transparent)}
+
+/* --- DataTable --- */
+.dtwrap{border:1px solid var(--line);border-radius:var(--rc);overflow:auto;max-height:470px}
+.dt{width:100%;border-collapse:separate;border-spacing:0}
+.dt thead th{position:sticky;top:0;z-index:2;background:var(--surface-2);
+  text-align:left;padding:0;box-shadow:inset 0 -1px 0 var(--line-strong);white-space:nowrap}
+.dt thead th.dt-right{text-align:right}
+.dt-sort{display:inline-flex;align-items:center;gap:6px;width:100%;border:0;background:transparent;
+  cursor:pointer;font:inherit;padding:8px 11px;color:var(--faint)}
+.dt-right .dt-sort{flex-direction:row-reverse}
+.dt-col{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;
+  font-weight:500;color:var(--faint)}
+.dt-sort:hover .dt-col{color:var(--muted)}
+.dt-sort.on .dt-col{color:var(--accent);font-weight:600}
+.dt-caret{font-size:8px;color:var(--line-strong);flex:0 0 auto}
+.dt-sort:hover .dt-caret{color:var(--muted)}
+.dt-sort.on .dt-caret{color:var(--accent)}
+.dt thead th>.dt-col{display:inline-block;padding:8px 11px}
+.dt-cell{padding:7px 11px;border-top:1px solid var(--line);font-family:var(--mono);
+  font-size:11.5px;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap;
+  max-width:340px;overflow:hidden;text-overflow:ellipsis}
+.dt-cell.dt-right{text-align:right}
+.dt tbody tr:nth-child(even) .dt-cell{background:color-mix(in srgb,var(--surface-2) 55%,var(--surface))}
+.dt tbody tr:hover .dt-cell{background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.dt-null{color:var(--faint)}
+.dt-dim{opacity:.45}
+.dt-state td{padding:0}
+.dt-empty{padding:30px 14px;text-align:center}
+.dt-empty-t{font-size:13px;color:var(--ink);font-weight:600}
+.dt-empty-h{margin-top:3px;font-size:12px;color:var(--muted)}
+
+.dt-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;flex-wrap:wrap}
+.dt-pager{display:flex;gap:8px}
+
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

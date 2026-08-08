@@ -84,8 +84,9 @@ export default function CohortsPage() {
   }
 
   async function build(q?: string) {
-    const query = q ?? text;
-    if (q) setText(query);
+    const query = (q ?? text).trim();
+    if (!query || loading) return;   // never submit an empty request
+    if (query !== text) setText(query);
     setLoading(true); setErr(null); setRes(null); setShowAll(false); setTl(null); setMeas(null); setLens("patients");
     setLive([]);
     setSteps(PLAN.map((s, i) => ({ ...s, status: i === 0 ? "running" : "pending", meta: undefined })));
@@ -165,11 +166,13 @@ export default function CohortsPage() {
             <Icon name="search" size={17} style={{ color: "var(--accent)", flex: "0 0 auto" }} />
             <input ref={inputRef} value={text}
               onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !loading && build()}
+              onKeyDown={(e) => { if (e.key === "Enter") build(); }}
               placeholder="e.g. ICU patients over 65 who died in hospital"
+              maxLength={300}
               aria-label="Describe the cohort in plain words" />
           </label>
-          <button className="btn hero-btn" onClick={() => build()} disabled={loading}>
+          <button className="btn hero-btn" onClick={() => build()} disabled={loading || !text.trim()}
+            title={!text.trim() ? "Describe a patient group first" : ""}>
             {loading ? <span className="spin" /> : <Icon name="play" size={14} />}
             {loading ? "Building" : res ? "Update cohort" : "Build cohort"}
           </button>

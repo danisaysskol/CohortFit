@@ -116,8 +116,14 @@ def explore_table(
         raise HTTPException(status_code=404, detail=f"unknown table: {table}")
 
 
+_EMPTY_REASON = "Please describe a patient group — the request was empty."
+
+
 @app.post("/cohort/build")
 def build_cohort(req: BuildRequest) -> dict[str, Any]:
+    if not req.text.strip():
+        return {"answerable": False, "disposition": "clarify", "abstain_reason": _EMPTY_REASON,
+                "method": "guard", "ir": {}, "safety": SAFETY}
     ir, method = nl.to_ir(req.text)
     if not ir.answerable:
         return {"answerable": False, "disposition": ir.disposition,
@@ -144,6 +150,13 @@ def stream_cohort(req: BuildRequest) -> StreamingResponse:
     """Server-sent stream of the real build steps, so the UI shows the work as it happens."""
     def gen() -> Any:
         yield _sse({"step": "understand", "label": "Reading your request"})
+        if not req.text.strip():
+            yield _sse({"step": "decision", "disposition": "clarify",
+                        "label": "Needs clarification", "reason": _EMPTY_REASON})
+            yield _sse({"step": "done", "result": {
+                "answerable": False, "disposition": "clarify", "abstain_reason": _EMPTY_REASON,
+                "method": "guard", "ir": {}, "safety": SAFETY}})
+            return
         ir, method = nl.to_ir(req.text)
         if not ir.answerable:
             yield _sse({"step": "decision", "disposition": ir.disposition,

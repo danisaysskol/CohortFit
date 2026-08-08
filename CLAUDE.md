@@ -57,7 +57,8 @@ patient-care-track-2/
 │   │   ├── data/
 │   │   │   ├── __init__.py
 │   │   │   ├── loader.py             # DuckDB view per CSV
-│   │   │   └── schema.py             # introspection + /explore
+│   │   │   ├── schema.py             # introspection + /explore
+│   │   │   └── timeline.py           # patient event journey (/patient/{id}/timeline)
 │   │   ├── eval/
 │   │   │   ├── __init__.py
 │   │   │   ├── inject.py             # error-injection harness (baseline + multiseed)
@@ -81,7 +82,7 @@ patient-care-track-2/
 │   ├── RESEARCH_AND_EXPLORATION.md · design-direction.md · design-explorer.html
 ├── frontend/                         # Next.js 14 (Lab Ledger design system)
 │   ├── app/
-│   │   ├── about/page.tsx · cohorts/page.tsx · evaluation/page.tsx
+│   │   ├── about/page.tsx · cohorts/{page.tsx, StepTrace.tsx, Timeline.tsx} · evaluation/page.tsx
 │   │   ├── quality/{page.tsx, FixLedger.tsx} · schema/{page.tsx, Erd.tsx}
 │   │   ├── components/               # reusable: Icon, DataTable, FilterBar, Nav, useTableExplorer, charts
 │   │   ├── lib/api.ts · globals.css · layout.tsx · page.tsx

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { streamCohort, CohortResult } from "../lib/api";
+import { api, streamCohort, CohortResult, PatientTimeline } from "../lib/api";
 import { Icon } from "../components/Icon";
 import { StepTrace, Step } from "./StepTrace";
+import { Timeline } from "./Timeline";
 
 const EXAMPLES: { t: string; neg?: boolean }[] = [
   { t: "ICU patients over 65 who died in hospital" },
@@ -32,7 +33,14 @@ export default function CohortsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<"ir" | "sql">("ir");
   const [showAll, setShowAll] = useState(false);
+  const [tl, setTl] = useState<PatientTimeline | null>(null);
+  const [tlLoading, setTlLoading] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  function openTimeline(id: string) {
+    setTlLoading(id); setTl(null);
+    api.patientTimeline(id).then(setTl).catch(() => {}).finally(() => setTlLoading(null));
+  }
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -54,7 +62,7 @@ export default function CohortsPage() {
   async function build(q?: string) {
     const query = q ?? text;
     if (q) setText(query);
-    setLoading(true); setErr(null); setRes(null); setShowAll(false);
+    setLoading(true); setErr(null); setRes(null); setShowAll(false); setTl(null);
     setLive([]);
     setSteps(PLAN.map((s, i) => ({ ...s, status: i === 0 ? "running" : "pending", meta: undefined })));
     try {
@@ -201,8 +209,11 @@ export default function CohortsPage() {
                     <thead><tr><th>subject_id</th><th>sex</th><th className="num">age</th><th className="num">ICU stays</th><th className="num">days in ICU</th><th className="num">admissions</th><th>outcome</th></tr></thead>
                     <tbody>
                       {shown.map((p, i) => (
-                        <tr key={i}>
-                          <td className="mono">{String(p.subject_id)}</td>
+                        <tr key={i} className="row-click" onClick={() => openTimeline(String(p.subject_id))} title="View patient timeline">
+                          <td className="mono">
+                            {tlLoading === String(p.subject_id) ? <span className="spin" style={{ verticalAlign: -1 }} /> : <Icon name="activity" size={11} style={{ color: "var(--accent)", verticalAlign: -1, marginRight: 5 }} />}
+                            {String(p.subject_id)}
+                          </td>
                           <td className="mono">{String(p.gender)}</td>
                           <td className="num mono">{String(p.age)}</td>
                           <td className="num mono">{String(p.icu_stays)}</td>
@@ -225,6 +236,32 @@ export default function CohortsPage() {
             </section>
           )}
         </>
+      )}
+
+      {tl && (
+        <section className="panel" style={{ marginTop: 16 }}>
+          <div className="panel-h">
+            <span className="lbl lbl-i"><Icon name="activity" size={13} /> Patient timeline · <span className="mono" style={{ textTransform: "none" }}>{tl.subject_id}</span></span>
+            <button className="btn btn-ghost" onClick={() => setTl(null)}><Icon name="x" size={12} /> Close</button>
+          </div>
+          <div className="panel-b">
+            <div className="chips" style={{ marginTop: 0, marginBottom: 10 }}>
+              <span className="chip"><b>{tl.gender}</b> · age {tl.age}</span>
+              <span className="chip">{tl.labs.toLocaleString()} labs</span>
+              <span className="chip">{tl.meds} medications</span>
+              <span className="chip">{tl.events.length} events</span>
+            </div>
+            {tl.diagnoses.length > 0 && (
+              <div className="chips" style={{ marginTop: 0, marginBottom: 12 }}>
+                {tl.diagnoses.slice(0, 8).map((d, i) => <span key={i} className="chip" style={{ textTransform: "none" }}>{d}</span>)}
+              </div>
+            )}
+            <div style={{ maxHeight: 440, overflow: "auto", paddingRight: 6 }}>
+              <Timeline events={tl.events} />
+            </div>
+            <p className="note">Dates in MIMIC-IV are shifted, so the calendar is not real — but the order of a patient&rsquo;s events is. Each event links to its source table and id.</p>
+          </div>
+        </section>
       )}
     </>
   );

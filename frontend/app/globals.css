@@ -123,6 +123,23 @@ main{padding:20px 0 60px}
   background:color-mix(in srgb,var(--accent) 10%,var(--surface));color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line))}
 .cap-t{font-weight:640;font-size:14px}
 .cap-b{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:3px}
+
+/* clickable rows + patient timeline */
+.row-click{cursor:pointer}
+.row-click:hover td{background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.tl{display:flex;flex-direction:column}
+.tl-row{display:grid;grid-template-columns:22px 1fr;gap:11px;align-items:flex-start}
+.tl-mark{position:relative;display:flex;justify-content:center;padding-top:1px}
+.tl-dot{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;z-index:1;
+  background:color-mix(in srgb,var(--accent) 10%,var(--surface));color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 25%,var(--line))}
+.tl-dot.k-death{background:color-mix(in srgb,var(--danger) 12%,var(--surface));color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
+.tl-dot.k-icu_in,.tl-dot.k-icu_out{background:color-mix(in srgb,var(--warn) 12%,var(--surface));color:var(--warn);border-color:color-mix(in srgb,var(--warn) 30%,var(--line))}
+.tl-line{position:absolute;top:21px;bottom:-9px;left:50%;width:1.5px;transform:translateX(-50%);background:var(--line-strong)}
+.tl-body{padding-bottom:12px;min-width:0}
+.tl-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.tl-label{font-size:13px}
+.tl-time{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tl-src{font-family:var(--mono);font-size:9.5px;color:var(--faint)}
 .search{background:var(--surface-2);border:1px solid var(--line-strong);border-radius:var(--rk);padding:8px 11px;font:inherit;color:var(--ink);width:220px}
 
 /* provenance ledger */

@@ -20,6 +20,7 @@ from .config import settings
 from .cohort import nl
 from .cohort.compiler import CompileError, compile_ir, iter_compile
 from .data import schema as schema_mod
+from .data import timeline as timeline_mod
 from .data.loader import Database
 from .eval.inject import run_eval
 from .quality import rules as quality
@@ -167,6 +168,14 @@ def stream_cohort(req: BuildRequest) -> StreamingResponse:
 
     return StreamingResponse(gen(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@app.get("/patient/{subject_id}/timeline")
+def get_patient_timeline(subject_id: int) -> dict[str, Any]:
+    try:
+        return {**timeline_mod.patient_timeline(get_db(), subject_id), "safety": SAFETY}
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"unknown subject_id: {subject_id}")
 
 
 @app.get("/quality/scorecard")

@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-08 — MVP complete: full stack builds with one `docker compose up`, all 6 pages verified in-browser, 14 backend tests pass, all pages < 200ms._
+_Last updated: 2026-08-08 — Patient Timeline shipped (click a matched patient → time-ordered event journey with source provenance), verified in-browser. Finding drill-in is next._
 
 ---
 
@@ -93,7 +93,11 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Cohorts** — auto-focused hero input; **patient results table** (gender/age/ICU stays/LOS/admissions/death), not just subject_ids.
 - [x] **Schema map = star layout** — patients/admissions/icustays centred, all FK edges attached + labelled; PK/FK badges; clickable tables → column dropdown.
 
+**Done (Track-1 supporting feature — patient journey):**
+- [x] **Patient Timeline** — click any matched patient in the Cohorts table → a time-ordered journey of that patient's real events (admissions, ICU in/out, transfers, procedures, death) with each event linked to its **source table + id**, plus a header (gender/age, lab/med/event counts) and their **diagnoses** (provenance for why they matched the cohort). Backend `/patient/{subject_id}/timeline` (`backend/app/data/timeline.py`); frontend `frontend/app/cohorts/Timeline.tsx`. Verified in-browser (subject 10006580: F/63, 12 events, diabetes + insulin diagnoses shown). Dates are shifted (MIMIC de-identification) so the panel states the calendar is not real but event **order** is. The instructions allow supporting features from another track; this is the Track-1 "patient journey" view, and it doubles as row-level provenance for a cohort match.
+
 **Next:**
+- [ ] **Finding drill-in** (Quality page) — click a data-quality flag → see the actual offending rows.
 - [ ] Continue polish / any specific asks; human deliverables (demo video, slides, submission, CVs).
 
 **Human-only:**

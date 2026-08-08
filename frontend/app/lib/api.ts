@@ -19,6 +19,11 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   return r.json();
 }
 
+export type TimelineEvent = { time: string; kind: string; label: string; source: { table: string; id: string } };
+export type PatientTimeline = {
+  subject_id: number; gender: string; age: number; labs: number; meds: number;
+  diagnoses: string[]; events: TimelineEvent[];
+};
 export type Column = { name: string; type: string };
 export type ExploreResult = {
   table: string;
@@ -128,6 +133,7 @@ export const api = {
   explore: (t: string, params: Record<string, string>) =>
     get<ExploreResult>(`/explore/${t}?${new URLSearchParams(params).toString()}`),
   buildCohort: (text: string) => post<CohortResult>("/cohort/build", { text }),
+  patientTimeline: (id: string | number) => get<PatientTimeline>(`/patient/${id}/timeline`),
   scorecard: () => get<Scorecard>("/quality/scorecard"),
   fixes: () => get<{ fixes: Fix[]; note: string }>("/quality/fixes"),
   runEval: () => get<EvalResult>("/eval/run"),

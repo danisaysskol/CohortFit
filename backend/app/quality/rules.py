@@ -113,9 +113,73 @@ def check_duplicates(db: Database) -> list[Finding]:
                     f"{dups} duplicate (subject_id, hadm_id, seq_num) keys", dups, kind)]
 
 
+def check_comments_hidden(db: Database) -> list[Finding]:
+    # Lab rows with no numeric value but a real result trapped in the free-text comments
+    # (the documented MIMIC pattern, e.g. viral-load "DETECTED"). ___ = de-identified.
+    r = db.query(
+        "SELECT count(*) AS n, count(DISTINCT itemid) AS items FROM labevents "
+        "WHERE valuenum IS NULL AND comments IS NOT NULL "
+        "AND comments <> '___' AND trim(comments) <> ''"
+    )[0]
+    n = int(r["n"] or 0)
+    if n == 0:
+        return []
+    return [Finding("completeness", "amber", "labevents",
+                    f"{n} lab rows across {int(r['items'])} itemids have a NULL numeric value but a "
+                    f"result trapped in the free-text comments — the value is in the wrong field",
+                    n, "data_error", "valuenum NULL + comments")]
+
+
+def check_storetime(db: Database) -> list[Finding]:
+    r = db.query(
+        "SELECT count(*) AS n FROM labevents "
+        "WHERE storetime IS NOT NULL AND charttime IS NOT NULL AND storetime < charttime"
+    )[0]
+    n = int(r["n"] or 0)
+    if n == 0:
+        return []
+    return [Finding("temporal", "amber", "labevents",
+                    f"{n} lab rows have storetime earlier than charttime (a documented MIMIC quirk — "
+                    f"validation time can precede the charted time)", n, "caveat", "storetime < charttime")]
+
+
+def check_hr_completeness(db: Database) -> list[Finding]:
+    total = int(db.query("SELECT count(*) AS n FROM icustays")[0]["n"])
+    missing = int(db.query(
+        "SELECT count(*) AS n FROM icustays i WHERE NOT EXISTS "
+        "(SELECT 1 FROM chartevents c WHERE c.stay_id = i.stay_id AND c.itemid = 220045)"
+    )[0]["n"])
+    if missing == 0:
+        return [Finding("completeness", "green", "icustays",
+                        f"all {total} ICU stays have a heart-rate measurement (MIMIC expects ≥99%)",
+                        0, "real_finding", "per-stay HR completeness")]
+    sev = "amber" if missing / total > 0.01 else "green"
+    kind = "data_error" if missing / total > 0.01 else "caveat"
+    return [Finding("completeness", sev, "icustays",
+                    f"{missing}/{total} ICU stays have no heart-rate (220045) measurement "
+                    f"(MIMIC expects ≥99% to have one)", missing, kind, "per-stay HR completeness")]
+
+
+def check_near_duplicates(db: Database) -> list[Finding]:
+    r = db.query(
+        "SELECT count(*) AS groups, coalesce(sum(c - 1), 0) AS extra FROM "
+        "(SELECT subject_id, stay_id, itemid, charttime, count(*) AS c FROM chartevents "
+        "GROUP BY 1,2,3,4 HAVING count(*) > 1)"
+    )[0]
+    groups = int(r["groups"] or 0)
+    if groups == 0:
+        return []
+    return [Finding("duplicates", "amber", "chartevents",
+                    f"{groups} (patient, stay, itemid, charttime) groups have >1 chartevents row "
+                    f"({int(r['extra'])} extra) — potential duplicates or legitimate re-measurements "
+                    f"(review, don't auto-delete)", groups, "data_error", "near-duplicate")]
+
+
 def all_findings(db: Database) -> list[Finding]:
     return (check_plausibility(db) + check_units(db) + check_temporal(db)
-            + check_completeness(db) + check_duplicates(db))
+            + check_completeness(db) + check_duplicates(db)
+            + check_comments_hidden(db) + check_storetime(db)
+            + check_hr_completeness(db) + check_near_duplicates(db))
 
 
 def propose_fixes(db: Database) -> dict[str, Any]:

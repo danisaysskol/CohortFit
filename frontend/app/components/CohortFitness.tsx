@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api, CohortScorecard, Finding, FindingRows } from "../lib/api";
 import { Verdict, DimTile, SeverityBar, Sev } from "./charts";
+import { CoverageByTable } from "./CoverageByTable";
 import { Icon } from "./Icon";
 
 const SEV_RANK: Record<Sev, number> = { green: 0, amber: 1, red: 2 };
@@ -72,6 +73,8 @@ export function CohortFitness({ subjectIds }: { subjectIds: number[] }) {
             onClick={() => setDimFilter((v) => (v === d.dimension ? null : d.dimension))} />
         ))}
       </div>
+
+      <div style={{ marginTop: 14 }}><CoverageByTable findings={sc.findings} /></div>
 
       <section className="panel" style={{ marginTop: 14 }}>
         <div className="panel-h">

@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-08 — The cohort → data-fitness → measurements loop is live. Built cohort-scoped quality + a measurement explorer on the backend, implemented and evaluated three UI approaches (A toggle / B workspace / C explore-first) against pre-set criteria, and synthesized to the **Workspace** (B): build a cohort on Cohorts, then a CTA opens a one-screen workspace showing that cohort's fitness scorecard and its measurement coverage/units/coding. Verified end-to-end; 30 backend tests pass. Next: human deliverables (demo, slides, submission)._
+_Last updated: 2026-08-09 — Re-architected to a cohort-centric workspace: the Cohorts page now holds an editable cohort + four lenses (Patients · Query · Data fitness · Measurements), so you build, judge, and explore one cohort in one place without page-hopping. Added reproducibility export (#1) and issue-coverage-by-table (#4); the Data-fitness page is now whole-dataset only. Cohort-view latency was fixed at the root (materialised DuckDB tables, 23s→0.3s) and the Evaluation claims are scoped honestly. 30 backend tests pass. Next: human deliverables (demo, slides, submission)._
 
 ---
 
@@ -132,6 +132,12 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Cohort-view latency fixed at the root** — the loader registered CSVs as DuckDB *views* (re-parsed on every query); materialising them into in-memory tables dropped cohort/quality **23s→0.27s** and cohort/measurements **9.9s→0.36s** (cached repeats ~10ms). Also replaced a correlated NOT EXISTS with an anti-join and cached each cohort's scoped findings/measurements.
 - [x] **Navbar merged & focused** — Workspace merged into **Data fitness** (one page with a Whole-dataset ↔ This-cohort toggle + the cohort's measurements); nav is now **Cohorts (first) · Data fitness · Schema · Evaluation · About** (5 tabs). Cohorts CTA lands directly on the cohort scope.
 - [x] **Evaluation honesty** — a prominent scope banner states the perfect scores cover **one check (temporal integrity)**, not all five dimensions; the other four are evidenced by real findings, not injection. Prevents the P/R 1.00 tiles reading as a whole-system claim.
+
+**Done (cohort-centric workspace + reproducibility export + coverage-by-table):**
+- [x] **Unified Cohort workspace** — the Cohorts page is now the single home for a cohort: a sticky **editable** input (build/edit/rebuild in place, "Update cohort") + four lenses on the same cohort — **Patients · Query · Data fitness · Measurements** (timeline as a drawer). No more bouncing to another page to see or edit the cohort. The **Data fitness** page is now whole-dataset only.
+- [x] **#1 Reproducibility export** — the Query lens has "Export recipe": downloads the cohort's IR + SQL + subject_ids as JSON (re-runnable → same set). Serves the Track-2 reproducibility metric.
+- [x] **#4 Issue coverage by table** — a compact per-table risk view (`CoverageByTable`), shown in both the cohort Data-fitness lens and the whole-dataset Data-fitness page.
+- [x] Removed dead code (old cross-link CTA, cohort-banner, readActiveCohort). (Left #2 CSV export and #3 leakage/index-time per user's call.)
 
 **Next:**
 - [ ] Human deliverables (demo video, slides, submission, CVs).

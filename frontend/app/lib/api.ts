@@ -119,21 +119,6 @@ export type Measurements = {
   vitals: Vital[]; labs: LabMeasure[]; coding: Coding; scoped: boolean;
 };
 
-// The cohort the user last built (persisted by the Cohorts page). Read by the
-// scoped Quality / Measurements views so they judge *this* cohort, not the dataset.
-export const ACTIVE_COHORT_KEY = "cohortfit:last-cohort";
-export type ActiveCohort = { text: string; subject_ids: number[]; n: number };
-export function readActiveCohort(): ActiveCohort | null {
-  try {
-    const raw = localStorage.getItem(ACTIVE_COHORT_KEY);
-    if (!raw) return null;
-    const { text, res } = JSON.parse(raw);
-    const ids = (res?.subject_ids ?? []).map((s: string | number) => Number(s));
-    if (!ids.length) return null;
-    return { text: text ?? "your cohort", subject_ids: ids, n: ids.length };
-  } catch { return null; }
-}
-
 export type AggStat = { mean: number; std: number; min: number; max: number };
 export type EvalResult = {
   seeds: number[];

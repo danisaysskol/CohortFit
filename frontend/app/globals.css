@@ -100,20 +100,16 @@ main{padding:22px 0 64px}
 .mlab-row:first-child{border-top:0}
 .mlab-name{font-size:12.5px;color:var(--ink)}
 .mlab-meta{font-size:10.5px;color:var(--muted);white-space:nowrap}
-/* cross-link from a built cohort into the workspace loop */
-.wslink{display:flex;align-items:center;gap:11px;margin-top:16px;padding:14px 18px;border-radius:var(--rc);
-  background:var(--accent);color:var(--accent-ink);box-shadow:var(--elev-1);font-size:14px;font-weight:600;
-  transition:transform .12s ease,box-shadow .12s ease,filter .12s ease}
-.wslink:hover{transform:translateY(-1px);box-shadow:var(--elev-2);filter:brightness(1.06)}
-.wslink b{color:var(--accent-ink)}
-.wslink svg{flex:0 0 auto}
-/* cohort banner — the active cohort a scoped view is judging */
-.cohort-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 15px;border-radius:var(--rc);
-  background:color-mix(in srgb,var(--accent) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 22%,var(--line));
-  box-shadow:var(--elev-1);margin-bottom:16px}
-.cohort-banner .cb-n{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
-.cohort-banner .cb-q{font-size:13.5px;color:var(--ink-strong);font-weight:600}
-.cohort-banner .cb-none{font-size:13px;color:var(--muted)}
+/* the cohort workspace lens switcher */
+.lens-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0}
+/* issue coverage by table */
+.cbt{display:flex;flex-direction:column;gap:9px}
+.cbt-row{display:grid;grid-template-columns:150px 1fr 32px;gap:10px;align-items:center}
+.cbt-name{font-size:11.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cbt-bar{height:9px;border-radius:999px;background:color-mix(in srgb,var(--line) 75%,var(--surface));overflow:hidden}
+.cbt-fill{display:block;height:100%;border-radius:999px;transition:width .4s cubic-bezier(.22,.61,.36,1)}
+.cbt-fill.red{background:var(--danger)} .cbt-fill.amber{background:var(--warn)} .cbt-fill.green{background:var(--ok)}
+.cbt-n{font-size:11.5px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
 /* compact narrative strip: context -> problem -> method -> result */
 .explain{margin-bottom:16px;overflow:hidden}
 .explain-grid{display:grid}

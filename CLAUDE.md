@@ -85,7 +85,7 @@ patient-care-track-2/
 │   ├── app/
 │   │   ├── about/page.tsx · cohorts/{page.tsx, StepTrace.tsx, Timeline.tsx} · evaluation/page.tsx
 │   │   ├── quality/{page.tsx, FixLedger.tsx} · schema/{page.tsx, Erd.tsx}
-│   │   ├── components/               # reusable: Icon, DataTable, FilterBar, Nav, useTableExplorer, charts, Explain, CohortFitness, Measurements
+│   │   ├── components/               # reusable: Icon, DataTable, FilterBar, Nav, useTableExplorer, charts, Explain, CohortFitness, Measurements, CoverageByTable
 │   │   ├── lib/api.ts · globals.css · layout.tsx · page.tsx
 │   ├── public/fonts/                 # self-hosted Hanken Grotesk + IBM Plex Mono
 │   ├── Dockerfile · package.json · tsconfig.json · next.config.mjs · .dockerignore · .gitignore

@@ -89,7 +89,9 @@ export function CohortFitness({ subjectIds }: { subjectIds: number[] }) {
               const active = drillId === f.id;
               return (
                 <div className={"flag" + (f.drillable ? " flag-click" : "") + (active ? " flag-on" : "")}
-                  key={i} onClick={() => openDrill(f)} title={f.drillable ? "Show the offending rows" : undefined}>
+                  key={i} onClick={() => openDrill(f)}
+                  {...(f.drillable ? { role: "button", tabIndex: 0, onKeyDown: (e: { key: string; preventDefault: () => void }) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDrill(f); } } } : {})}
+                  title={f.drillable ? "Show the offending rows" : undefined}>
                   <span className={"sq " + f.severity} />
                   <span>
                     <div className="t1">{f.detail}</div>

@@ -57,6 +57,14 @@ export default function CohortsPage() {
     api.patientTimeline(id).then(setTl).catch(() => {}).finally(() => setTlLoading(null));
   }
 
+  // Make a clickable row operable by keyboard (Enter / Space).
+  const rowKey = (fn: () => void) => (e: { key: string; preventDefault: () => void }) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); }
+  };
+  const emptyLens = (msg: string) => (
+    <section className="panel"><div className="panel-b"><div className="empty-lens">{msg}</div></div></section>
+  );
+
   useEffect(() => { if (tl) tlRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, [tl]);
 
   // Load the cohort's measurements lazily, the first time that lens is opened.
@@ -230,6 +238,10 @@ export default function CohortsPage() {
             <section className="panel">
               <div className="panel-h"><span className="lbl lbl-i"><Icon name="users" size={13} /> Matched patients</span><span className="lbl">select a row for its timeline</span></div>
               <div className="panel-b">
+                {patients.length === 0 ? (
+                  <div className="empty-lens">No patients matched this description. Try broadening it, then <b>Update cohort</b>.</div>
+                ) : (
+                <>
                 <div className="tablewrap" style={{ maxHeight: 440, overflowY: "auto" }}>
                   <table className="gt">
                     <thead><tr><th>subject_id</th><th>sex</th><th className="num">age</th><th className="num">ICU stays</th><th className="num">days in ICU</th><th className="num">admissions</th><th>outcome</th><th></th></tr></thead>
@@ -237,7 +249,9 @@ export default function CohortsPage() {
                       {shown.map((p, i) => {
                         const active = tl?.subject_id === Number(p.subject_id);
                         return (
-                          <tr key={i} className={"row-click" + (active ? " row-on" : "")} onClick={() => openTimeline(String(p.subject_id))} title="View patient timeline">
+                          <tr key={i} className={"row-click" + (active ? " row-on" : "")} onClick={() => openTimeline(String(p.subject_id))}
+                              role="button" tabIndex={0} onKeyDown={rowKey(() => openTimeline(String(p.subject_id)))}
+                              aria-label={`View timeline for patient ${p.subject_id}`} title="View patient timeline">
                             <td className="mono">
                               {tlLoading === String(p.subject_id) ? <span className="spin" style={{ verticalAlign: -1 }} /> : <Icon name="activity" size={11} style={{ color: "var(--accent)", verticalAlign: -1, marginRight: 5 }} />}
                               {String(p.subject_id)}
@@ -261,6 +275,8 @@ export default function CohortsPage() {
                   <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setShowAll((v) => !v)}>
                     <Icon name="chevron" size={13} /> {showAll ? "Show fewer" : `Show all ${patients.length}`}
                   </button>
+                )}
+                </>
                 )}
               </div>
             </section>
@@ -288,9 +304,13 @@ export default function CohortsPage() {
             </section>
           )}
 
-          {lens === "fitness" && <CohortFitness subjectIds={sids} />}
+          {lens === "fitness" && (sids.length
+            ? <CohortFitness subjectIds={sids} />
+            : emptyLens("This cohort has no patients, so there is nothing to assess."))}
 
-          {lens === "measurements" && (meas ? <Measurements data={meas} /> : <div className="loading">Summarising this cohort&rsquo;s measurements…</div>)}
+          {lens === "measurements" && (!sids.length
+            ? emptyLens("This cohort has no patients, so there are no measurements to explore.")
+            : meas ? <Measurements data={meas} /> : <div className="loading">Summarising this cohort&rsquo;s measurements…</div>)}
         </>
       )}
 

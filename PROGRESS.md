@@ -139,6 +139,12 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **#4 Issue coverage by table** — a compact per-table risk view (`CoverageByTable`), shown in both the cohort Data-fitness lens and the whole-dataset Data-fitness page.
 - [x] Removed dead code (old cross-link CTA, cohort-banner, readActiveCohort). (Left #2 CSV export and #3 leakage/index-time per user's call.)
 
+**Done (non-functional hardening sweep):**
+- [x] **Empty request rejected** — build/update button disabled unless the input has non-blank text; Enter/build no-op on blank; query trimmed; input capped at 300; backend `/cohort/build` + `/cohort/stream` short-circuit a blank request to a clarify.
+- [x] **Empty-cohort bug fixed** — a cohort matching 0 patients passed `subject_ids=[]`, which the backend reads as *whole dataset*, so it silently showed dataset fitness. The Fitness/Measurements/Patients lenses now show an explicit empty state when the cohort has no patients (no dataset fallback).
+- [x] **Keyboard accessibility** — clickable patient rows and drillable finding flags are now `role="button"` + `tabIndex=0` + Enter/Space handlers + `aria-label`s (verified: rows expose as labelled buttons in the a11y tree). Schema explorer already had loading/empty states + sortable header buttons.
+- [x] Confirmed existing guards hold: localStorage reads/writes wrapped in try/catch (private mode / corrupt data safe); Export-recipe guarded; per-page backend-down error banners present.
+
 **Next:**
 - [ ] Human deliverables (demo video, slides, submission, CVs).
 

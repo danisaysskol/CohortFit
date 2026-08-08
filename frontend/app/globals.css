@@ -102,6 +102,8 @@ main{padding:22px 0 64px}
 .mlab-meta{font-size:10.5px;color:var(--muted);white-space:nowrap}
 /* the cohort workspace lens switcher */
 .lens-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0}
+.empty-lens{padding:30px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.5}
+.empty-lens b{color:var(--ink-strong)}
 /* issue coverage by table */
 .cbt{display:flex;flex-direction:column;gap:9px}
 .cbt-row{display:grid;grid-template-columns:150px 1fr 32px;gap:10px;align-items:center}

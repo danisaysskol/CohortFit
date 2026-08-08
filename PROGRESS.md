@@ -80,8 +80,15 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Re-ran the 46-case suite through OpenAI** → `docs/test-cases/{results.json,RESULTS.md}` refreshed: **43 pass / 2 partial / 1 fail** (was 21/13/12), `method=openai`, counts CSV-verified. Fixed the two issues it surfaced (storetime check now scans chartevents=54,144 and always surfaces; "high blood pressure" → clarify).
 - [x] **Clickable ERD** — click a table box → column dropdown (name+type); also loads that table in the explorer.
 
+**Done (UI-clarity + reliability):**
+- [x] **Quality & Evaluation redesigned as dashboards** — Quality: overall verdict + headline stats + 5 dimension tiles + severity-distribution chart + ranked findings. Evaluation: metric tiles with plain-English meanings + CohortFit-vs-baseline bar chart + confusion matrix. Reusable chart primitives in `components/charts.tsx`.
+- [x] **Formal, professional copy** across all pages.
+- [x] **Schema map PK/FK awareness** — ERD edges labeled with the join column; column popover badges PK/FK; explorer chips show PK/FK → reference.
+- [x] **Concurrency bug fixed (demo-safety)** — DuckDB connection isn't thread-safe; concurrent requests corrupted results. Now a fresh cursor per query; verified under 8 concurrent calls.
+- [x] Removed the Batch-API idea (not feasible for a hackathon).
+
 **Next:**
-- [ ] **UI-clarity sweep** — redesign `/quality` and `/evaluation` as understandable dashboards (charts/diagrams a judge grasps in seconds); consistent focus/empty/loading states; formal, professional copy throughout.
+- [ ] Continue polish / any specific asks; human deliverables (demo video, slides, submission, CVs).
 
 **Human-only:**
 - [ ] Demo video + slides (3-min script in `TENTATIVE_AGILE_PLAN.md`), Sofstica portal submission, CVs.

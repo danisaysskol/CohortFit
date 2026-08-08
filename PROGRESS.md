@@ -31,7 +31,7 @@ The eight commitments (self-check on each feature): 1) honest quantified eval (p
 - **Product plan drafted:** `TENTATIVE_AGILE_PLAN.md` (use cases, Does/Never, rubric mapping, eval harness, demo arc, build order + MVP cut line).
 - **claude-in-chrome verified:** end-to-end (tab context → navigate → screenshot) works — ready for UI testing.
 - **R&D doc expanded:** added a from-scratch explainer (§0, zero-context reader) and **real sample rows** from every key table.
-- **OpenAI pricing confirmed by user** (sol/terra/luna, incl. cached-input + cache-write lines). Cost-features deep-dive (caching mechanics, reasoning effort, Batch/flex) — research in progress.
+- **OpenAI pricing confirmed by user** (terra/luna; sol never used — too expensive). Cost-features: prompt caching + `reasoning_effort=low`.
 - **Decisions locked:** see decision log below.
 
 ## 🔧 Course-correction (2026-08-08, after testing + real API key)
@@ -80,9 +80,8 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Re-ran the 46-case suite through OpenAI** → `docs/test-cases/{results.json,RESULTS.md}` refreshed: **43 pass / 2 partial / 1 fail** (was 21/13/12), `method=openai`, counts CSV-verified. Fixed the two issues it surfaced (storetime check now scans chartevents=54,144 and always surfaces; "high blood pressure" → clarify).
 - [x] **Clickable ERD** — click a table box → column dropdown (name+type); also loads that table in the explorer.
 
-**Next / optional:**
-- [ ] Optional: `backend/scripts/batch_eval.py` implementing the **Batch API** offline path (async, 50% off) — the documented sync(live)/async(offline) split, made real.
-- [ ] Broader UI-clarity sweep + more `TENTATIVE_AGILE_PLAN.md` use-cases if gaps surface.
+**Next:**
+- [ ] **UI-clarity sweep** — redesign `/quality` and `/evaluation` as understandable dashboards (charts/diagrams a judge grasps in seconds); consistent focus/empty/loading states; formal, professional copy throughout.
 
 **Human-only:**
 - [ ] Demo video + slides (3-min script in `TENTATIVE_AGILE_PLAN.md`), Sofstica portal submission, CVs.

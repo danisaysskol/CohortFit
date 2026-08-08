@@ -37,21 +37,21 @@ export default function AboutPage() {
       </div>
 
       <section className="panel" style={{ marginTop: 18 }}>
-        <div className="panel-h"><span className="lbl">How CohortFit beats the dumb version</span></div>
+        <div className="panel-h"><span className="lbl">Improvement over a fixed-rule baseline</span></div>
         <div className="panel-b">
           <div className="tablewrap">
             <table className="gt">
-              <thead><tr><th>The dumb version</th><th>CohortFit</th></tr></thead>
+              <thead><tr><th>Fixed-rule baseline</th><th>CohortFit</th></tr></thead>
               <tbody>
-                <tr><td className="muted">Fixed thresholds, breaks on anything unusual</td><td>Adapts — uses reference ranges and context (gated on <span className="mono">param_type</span>)</td></tr>
-                <tr><td className="muted">Flags everything equally</td><td><b>Ranks</b> flags so the reviewer sees the worst first</td></tr>
-                <tr><td className="muted">Can&apos;t tell a real finding from a data error</td><td>Separates a genuine extreme value from a typo</td></tr>
-                <tr><td className="muted">Silent, no explanation</td><td>Every flag has a plain-English reason and a source pointer</td></tr>
-                <tr><td className="muted">Reviewer wades through everything</td><td>Reports <b>reviewer time saved</b> per validated issue</td></tr>
+                <tr><td className="muted">Fixed thresholds; fails on anything unusual</td><td>Adapts using reference ranges and context (gated on <span className="mono">param_type</span>)</td></tr>
+                <tr><td className="muted">Flags every candidate equally</td><td>Ranks findings so the most severe are reviewed first</td></tr>
+                <tr><td className="muted">Cannot distinguish a genuine finding from a data error</td><td>Separates a genuine extreme value from a recording error</td></tr>
+                <tr><td className="muted">Provides no explanation</td><td>Attaches a plain-language reason and a source pointer to every finding</td></tr>
+                <tr><td className="muted">Requires the reviewer to inspect everything</td><td>Reports estimated review time saved per validated issue</td></tr>
               </tbody>
             </table>
           </div>
-          <p className="note">Quantified on the Evaluation page: on the injected-error benchmark, the dumb fixed rule reaches ~0.07 precision (it flags almost everything) while CohortFit holds precision at 1.0.</p>
+          <p className="note">Quantified on the Detection Performance page: on the injected-error benchmark, the fixed-rule baseline reaches a precision of approximately 0.07 (it flags almost everything), whereas CohortFit maintains a precision of 1.00.</p>
         </div>
       </section>
 

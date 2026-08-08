@@ -56,7 +56,7 @@ export default function CohortsPage() {
       <div className="page-h">
         <div>
           <h1>Cohort builder</h1>
-          <p>Describe a patient group in plain English. CohortFit shows the query, who is included, and who is excluded — with a provenance trail. It abstains when the data can&apos;t answer.</p>
+          <p>Specify a patient cohort in natural language. CohortFit generates a transparent query, presents the inclusion and exclusion logic as a provenance trail, and abstains when the data cannot support the request.</p>
         </div>
       </div>
 
@@ -95,7 +95,7 @@ export default function CohortsPage() {
               return (
                 <div className="abstain">
                   <span className="k">{label}</span> — {res.abstain_reason}
-                  <div className="note">This is by design: when a request is out of scope, ambiguous, or unsupported, CohortFit says so instead of inventing an answer.</div>
+                  <div className="note">By design, when a request is out of scope, ambiguous, or unsupported, CohortFit declines and explains why rather than returning an unsupported answer.</div>
                 </div>
               );
             })()}
@@ -113,10 +113,10 @@ export default function CohortsPage() {
                     </div>
                   ))}
                 </div>
-                <p className="note"><b>{res.n}</b> patients match · every count is measured from the demo, not estimated · confidence {res.confidence}.</p>
+                <p className="note"><b>{res.n}</b> patients match. Counts are computed directly from the dataset. Confidence {res.confidence}.</p>
                 {res.n === 0 && (
                   <div className="abstain" style={{ marginTop: 10 }}>
-                    <span className="k">Valid empty result</span> — the query ran correctly and matched 0 patients. That&apos;s an answer, not an error (e.g. the demo is an adult population).
+                    <span className="k">Empty result</span> — the query executed correctly and matched no patients. This is a valid outcome, not an error (for example, the demo cohort is an adult population).
                   </div>
                 )}
               </>
@@ -143,7 +143,7 @@ export default function CohortsPage() {
             )}
             <div className="ai">
               <span className="b">AI</span>
-              <span>The recipe (IR) is proposed by the model from the schema and your text; our compiler turns it into the SQL above. The model does not write executable SQL. Stored IR + SQL + data-hash make the result reproducible.</span>
+              <span>The intermediate representation is proposed by the model from the schema and your description; a deterministic compiler translates it into the SQL shown. The model does not write executable SQL. The stored representation, SQL, and data hash make each result reproducible.</span>
             </div>
           </div>
         </section>

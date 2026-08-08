@@ -51,7 +51,16 @@ class Database:
         return dict(self._tables)
 
     def query(self, sql: str, params: list[Any] | None = None) -> list[dict[str, Any]]:
-        """Run SQL and return rows as dicts. Params are bound (never string-formatted)."""
-        cur = self.con.execute(sql, params or [])
-        cols = [c[0] for c in cur.description]
-        return [dict(zip(cols, row)) for row in cur.fetchall()]
+        """Run SQL and return rows as dicts. Params are bound (never string-formatted).
+
+        Uses a fresh cursor per query: a DuckDB connection is NOT thread-safe, but
+        `.cursor()` yields an independent connection over the same in-memory database,
+        so concurrent requests (FastAPI's threadpool) don't corrupt each other's results.
+        """
+        cur = self.con.cursor()
+        try:
+            cur.execute(sql, params or [])
+            cols = [c[0] for c in cur.description]
+            return [dict(zip(cols, row)) for row in cur.fetchall()]
+        finally:
+            cur.close()

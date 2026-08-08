@@ -266,7 +266,7 @@ The LLM **never** writes executable SQL. It emits a constrained **intermediate r
 DuckDB is embedded, columnar, SQL-native, and deterministic — the natural compile target for the IR, and the query is showable to researchers. Ingest CSVs → a local DuckDB/Parquet store once, then query. pandas for last-mile shaping.
 - Sources: codecut.ai (pandas vs polars vs duckdb), digitalocean DuckDB+pandas.
 
-### D6. Cost-effective config — caching, reasoning effort, Batch (confirmed pricing)
+### D6. Cost-effective config — caching, reasoning effort (confirmed pricing)
 User-confirmed GPT-5.6 pricing per 1M tokens: **sol** $5 in / $0.50 cached / $6.25 cache-write / $30 out · **terra** $2 / $0.20 / $2.50 / $12 · **luna** $0.20 / $0.02 / $0.25 / $1.20.
 
 **Prompt caching (automatic/implicit).** Cache-eligible at **≥1,024 tokens**; matched on a **hash of the leading prefix**; **30-min TTL** for GPT-5.6. New this generation: the **first** caching of a prefix bills those tokens as a **cache-write at 1.25× input** (the $6.25/$2.50/$0.25 line); every later call in the window reads at the cheap cached rate. → **Order every prompt [system + schema/DDL + few-shots]** (byte-identical, constant) **then [aggregate summaries + NL text]** (variable, last). Route with a stable `prompt_cache_key` (e.g. `cohortfit:nl2ir:v1`). Verify via `usage.prompt_tokens_details.cached_tokens` / `cache_write_tokens`.
@@ -279,20 +279,13 @@ User-confirmed GPT-5.6 pricing per 1M tokens: **sol** $5 in / $0.50 cached / $6.
 |---|---|---|---|---|---|
 | NL → strict-JSON IR (online) | `gpt-5.6-terra` | `low` | 0 | ~700–1000 | ~$0.006–0.010 |
 | Flag-explanation blurb (online) | `gpt-5.6-luna` | `minimal` + `verbosity:low` | 0.3 | ~150–200 | ~$0.0003 |
-| Eval harness (offline, bulk) | `gpt-5.6-luna` via **Batch API** (50% off, ≤24h) | `minimal` | 0.3 | ~150–200 | ~$0.00015 |
-| Hard NL→IR fallback (rare) | `gpt-5.6-sol` | `medium` | 0 | ~1000 | ~$0.03–0.05 |
 
 **Structured outputs discipline:** strict `json_schema` (`strict:true`, `additionalProperties:false`, all props `required`); handle the `refusal` branch and `incomplete` (truncated-JSON) status; size `max_output_tokens` to cover reasoning + the largest real IR.
-**Verify before locking:** exact callable model IDs (`gpt-5.6-terra` vs bare `gpt-5.6`+tier), the 1.25× cache-write multiplier, the 30-min-only TTL (add a keep-warm ping if idle gaps > 30m), and the effort floors.
-- Sources: OpenAI docs — prompt-caching, reasoning, structured-outputs, deployment-checklist, batch; Simon Willison GPT-5.6 (2026-07-09). Full write-up available from the R&D research pass.
+**Verify before locking:** exact callable model IDs (`gpt-5.6-terra` vs bare `gpt-5.6`+tier), the 1.25× cache-write multiplier, and the 30-min-only TTL (add a keep-warm ping if idle gaps > 30m).
+- Sources: OpenAI docs — prompt-caching, reasoning, structured-outputs; Simon Willison GPT-5.6 (2026-07-09).
 
-### D7. Implementation status + sync vs async (confirmed against current OpenAI docs via Context7)
-**Live and working.** The cohort builder calls `client.beta.chat.completions.parse(model="gpt-5.6-terra", reasoning_effort="low", response_format=CohortIR)` — **no `temperature`** (gpt-5.6 reasoning models reject a custom temperature; that mismatch was the only bug — determinism comes from the deterministic IR→SQL compiler + stored IR). Verified `method=openai` end-to-end. Never the `sol` tier.
-
-**Sync vs async — the deliberate split:**
-- **Synchronous** (`/v1/chat/completions` parse) for the **live cohort builder** — the researcher is waiting, so it must return now. This is the only interactive LLM path.
-- **Asynchronous / Batch API** for the **offline eval + test-suite** — not latency-sensitive, so the right tool is the Batch API: write a JSONL of `/v1/chat/completions` requests → `files.create(purpose="batch")` → `batches.create(endpoint="/v1/chat/completions", completion_window="24h")` → poll → download the output file → compile each returned IR locally. ~50% cheaper, ideal for bulk re-runs. (Ref: OpenAI Batch guide.) For fast iteration we run the suite synchronously and **cache** every response to `docs/test-cases/results.json` so we never re-call to reproduce.
-- **Caching:** the constant prefix (system prompt + itemid reference + schema) is a stable head, so automatic prompt-caching bills it cheaply across calls.
+### D7. Implementation status (confirmed against current OpenAI docs via Context7)
+**Live and working.** The cohort builder calls `client.beta.chat.completions.parse(model="gpt-5.6-terra", reasoning_effort="low", response_format=CohortIR)` — **no `temperature`** (gpt-5.6 reasoning models reject a custom temperature; that mismatch was the only bug — determinism comes from the deterministic IR→SQL compiler + stored IR). Verified `method=openai` end-to-end. Never the `sol` tier. Every response is cached to `docs/test-cases/results.json` so evaluation results reproduce without re-calling the API. Prompt caching bills the constant prefix (system prompt + itemid reference + schema) cheaply across calls.
 
 ---
 

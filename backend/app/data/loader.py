@@ -1,9 +1,11 @@
 """DuckDB access layer.
 
-We register one SQL view per CSV (no import step) so queries run directly over the
-frozen demo files. DuckDB sniffs types (timestamps, doubles, blanks -> NULL), which is
-exactly what the quality rules need. This class is the ONLY place that touches the engine,
-keeping the rest of the app decoupled from DuckDB specifics.
+We materialise one in-memory table per CSV at startup (read once) rather than a view
+over the file. A view re-reads and re-parses the whole CSV on *every* query, which made
+cohort-scoped scans of the 669k-row chartevents file take seconds each; a materialised
+table turns those into fast columnar scans. DuckDB still sniffs types (timestamps,
+doubles, blanks -> NULL), exactly what the quality rules need. This class is the ONLY
+place that touches the engine, keeping the rest of the app decoupled from DuckDB.
 """
 from __future__ import annotations
 
@@ -18,7 +20,7 @@ MODULES = ("hosp", "icu")
 
 
 class Database:
-    """Read-only DuckDB session with a view per demo table."""
+    """Read-only DuckDB session with an in-memory table per demo CSV."""
 
     def __init__(self, data_dir: Path | None = None) -> None:
         self.data_dir = Path(data_dir or settings.mimic_data_dir)
@@ -29,9 +31,9 @@ class Database:
             )
         self.con = duckdb.connect(database=":memory:")
         self._tables: dict[str, str] = {}
-        self._register_views()
+        self._load_tables()
 
-    def _register_views(self) -> None:
+    def _load_tables(self) -> None:
         for module in MODULES:
             module_dir = self.data_dir / module
             if not module_dir.exists():
@@ -39,9 +41,10 @@ class Database:
             for csv in sorted(module_dir.glob("*.csv")):
                 name = csv.stem
                 path_lit = str(csv).replace("'", "''")
-                # sample_size=-1 => scan the whole file so types are inferred correctly
+                # Materialise into an in-memory table (read once). sample_size=-1 scans the
+                # whole file so types are inferred correctly.
                 self.con.execute(
-                    f"CREATE OR REPLACE VIEW {name} AS "
+                    f"CREATE OR REPLACE TABLE {name} AS "
                     f"SELECT * FROM read_csv_auto('{path_lit}', sample_size=-1)"
                 )
                 self._tables[name] = module

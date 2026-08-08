@@ -215,9 +215,11 @@ def check_hr_completeness(db: Database, subject_ids: list[int] | None = None) ->
     if total == 0:
         return [Finding("completeness", "green", "icustays",
                         "no ICU stays for this cohort", 0, "caveat", "per-stay HR completeness")]
+    # Anti-join (NOT IN a one-pass subquery) instead of a correlated NOT EXISTS — the
+    # correlated form was O(stays x chartevents) and dominated the cohort-scoped latency.
+    have_hr = "SELECT stay_id FROM chartevents WHERE itemid = 220045 AND stay_id IS NOT NULL"
     missing = int(db.query(
-        "SELECT count(*) AS n FROM icustays i WHERE NOT EXISTS "
-        "(SELECT 1 FROM chartevents c WHERE c.stay_id = i.stay_id AND c.itemid = 220045)"
+        f"SELECT count(*) AS n FROM icustays i WHERE i.stay_id NOT IN ({have_hr})"
         f"{_scope(subject_ids, 'i.subject_id')}"
     )[0]["n"])
     if missing == 0:
@@ -231,9 +233,8 @@ def check_hr_completeness(db: Database, subject_ids: list[int] | None = None) ->
                     f"(MIMIC expects ≥99% to have one)", missing, kind, "per-stay HR completeness",
                     "completeness:hr",
                     "SELECT i.subject_id, i.stay_id, i.first_careunit, i.intime, i.outtime "
-                    "FROM icustays i WHERE NOT EXISTS (SELECT 1 FROM chartevents c "
-                    f"WHERE c.stay_id = i.stay_id AND c.itemid = 220045){_scope(subject_ids, 'i.subject_id')} "
-                    "ORDER BY i.subject_id")]
+                    f"FROM icustays i WHERE i.stay_id NOT IN ({have_hr})"
+                    f"{_scope(subject_ids, 'i.subject_id')} ORDER BY i.subject_id")]
 
 
 def check_near_duplicates(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:

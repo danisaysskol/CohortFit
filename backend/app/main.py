@@ -199,21 +199,38 @@ def get_scorecard() -> dict[str, Any]:
     return {**_scorecard_cache, "safety": SAFETY}
 
 
+# A cohort's scoped findings/measurements are deterministic, so compute once per cohort
+# and reuse across the scorecard, its drill-ins, and repeat visits (the scoped scan over
+# chartevents is the slow part — this keeps every call after the first instant).
+_cohort_findings: dict[tuple[int, ...], list[quality.Finding]] = {}
+_cohort_measure: dict[tuple[int, ...], dict[str, Any]] = {}
+
+
+def _cohort_key(ids: list[int]) -> tuple[int, ...]:
+    return tuple(sorted(set(int(i) for i in ids)))
+
+
+def _findings_for(ids: list[int]) -> list[quality.Finding]:
+    key = _cohort_key(ids)
+    if key not in _cohort_findings:
+        _cohort_findings[key] = quality.all_findings(get_db(), subject_ids=list(key) or None)
+    return _cohort_findings[key]
+
+
 @app.post("/cohort/quality")
 def cohort_quality(req: CohortScope) -> dict[str, Any]:
     """The data-fitness scorecard restricted to one cohort's patients — so a judge sees
     whether *their* cohort is fit to trust, not just the whole dataset."""
-    ids = req.subject_ids or None
-    return {**quality.scorecard(get_db(), subject_ids=ids),
-            "n_patients": len(req.subject_ids), "scoped": bool(ids), "safety": SAFETY}
+    findings = _findings_for(req.subject_ids)
+    return {**quality.scorecard(get_db(), findings=findings),
+            "n_patients": len(req.subject_ids), "scoped": bool(req.subject_ids), "safety": SAFETY}
 
 
 @app.post("/cohort/quality/rows")
 def cohort_quality_rows(req: CohortDrill) -> dict[str, Any]:
-    """Offending rows for one flag, restricted to the cohort (recomputed so the SQL and
-    the rows both carry the cohort filter)."""
-    ids = req.subject_ids or None
-    findings = quality.all_findings(get_db(), subject_ids=ids)
+    """Offending rows for one flag, restricted to the cohort. Reuses the cohort's cached
+    findings so the SQL and rows both carry the cohort filter without recomputing."""
+    findings = _findings_for(req.subject_ids)
     res = quality.find_offending_rows(get_db(), findings, req.finding_id, min(req.limit, 200))
     if res is None:
         raise HTTPException(status_code=404, detail=f"no offending rows for finding: {req.finding_id}")
@@ -224,9 +241,10 @@ def cohort_quality_rows(req: CohortDrill) -> dict[str, Any]:
 def cohort_measurements(req: CohortScope) -> dict[str, Any]:
     """Measurement coverage, unit variation, value range, and diagnosis coding for a
     cohort (Track-2 point 3). Describes the data; never edits it."""
-    ids = req.subject_ids or None
-    return {**measure.cohort_measurements(get_db(), subject_ids=ids),
-            "scoped": bool(ids), "safety": SAFETY}
+    key = _cohort_key(req.subject_ids)
+    if key not in _cohort_measure:
+        _cohort_measure[key] = measure.cohort_measurements(get_db(), subject_ids=list(key) or None)
+    return {**_cohort_measure[key], "scoped": bool(req.subject_ids), "safety": SAFETY}
 
 
 @app.get("/quality/finding/{finding_id}/rows")

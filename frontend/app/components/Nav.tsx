@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Icon, IconName } from "./Icon";
 
-const LINKS = [
-  { href: "/schema", label: "Schema" },
-  { href: "/cohorts", label: "Cohorts" },
-  { href: "/quality", label: "Quality" },
-  { href: "/evaluation", label: "Evaluation" },
-  { href: "/about", label: "About" },
+const LINKS: { href: string; label: string; icon: IconName }[] = [
+  { href: "/schema", label: "Schema", icon: "sitemap" },
+  { href: "/cohorts", label: "Cohorts", icon: "users" },
+  { href: "/quality", label: "Quality", icon: "shield" },
+  { href: "/evaluation", label: "Evaluation", icon: "chart" },
+  { href: "/about", label: "About", icon: "info" },
 ];
 
 export function Nav() {
@@ -19,6 +20,7 @@ export function Nav() {
         const active = path === l.href || (l.href !== "/" && path.startsWith(l.href));
         return (
           <Link key={l.href} href={l.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>
+            <Icon name={l.icon} size={13} />
             {l.label}
           </Link>
         );

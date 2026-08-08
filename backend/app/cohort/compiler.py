@@ -146,6 +146,20 @@ def compile_ir(db: Database, ir: CohortIR) -> dict[str, Any]:
     where_all = " AND ".join(cum) if cum else "TRUE"
     sql = f"SELECT DISTINCT p.subject_id FROM patients p WHERE {where_all} ORDER BY p.subject_id"
     ids = [str(r["subject_id"]) for r in db.query(sql)]
+
+    # Patient-level detail for the matched cohort so the UI can show people, not just ids.
+    patients: list[dict[str, Any]] = []
+    if ids:
+        id_list = ",".join(ids)  # numeric subject_ids from our own query — safe
+        patients = db.query(
+            "SELECT p.subject_id, p.gender, p.anchor_age AS age, "
+            "(SELECT count(*) FROM icustays i WHERE i.subject_id = p.subject_id) AS icu_stays, "
+            "(SELECT round(coalesce(sum(los), 0), 1) FROM icustays i WHERE i.subject_id = p.subject_id) AS total_los, "
+            "(SELECT count(*) FROM admissions a WHERE a.subject_id = p.subject_id) AS admissions, "
+            "(SELECT max(hospital_expire_flag) FROM admissions a WHERE a.subject_id = p.subject_id) AS died "
+            f"FROM patients p WHERE p.subject_id IN ({id_list}) ORDER BY p.subject_id LIMIT 500"
+        )
+
     data_hash = hashlib.sha256(
         (sql + "|" + json.dumps(ir.model_dump(), sort_keys=True)).encode()
     ).hexdigest()[:12]
@@ -153,6 +167,7 @@ def compile_ir(db: Database, ir: CohortIR) -> dict[str, Any]:
         "sql": sql,
         "funnel": funnel,
         "subject_ids": ids,
+        "patients": patients,
         "n": len(ids),
         "answerable": ir.answerable,
         "confidence": ir.confidence,

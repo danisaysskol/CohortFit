@@ -48,6 +48,7 @@ export type CohortResult = {
   sql?: string;
   funnel?: FunnelStep[];
   subject_ids?: string[];
+  patients?: Record<string, unknown>[];
   n?: number;
   answerable: boolean;
   abstain_reason?: string;

@@ -59,7 +59,9 @@ main{padding:20px 0 60px}
 .panel-h .lbl{font-size:11px;color:var(--muted);letter-spacing:.1em}
 .panel-b{padding:14px}
 .grid2{display:grid;grid-template-columns:1.15fr 1fr;gap:18px}
+.grid2>*{min-width:0}          /* prevents a wide <pre>/table from forcing the column (and page) wider */
 @media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.panel{min-width:0}
 
 /* buttons + inputs */
 .btn{border:0;background:var(--accent);color:var(--accent-ink);border-radius:var(--rk);
@@ -88,9 +90,10 @@ main{padding:20px 0 60px}
 .ledger .lr.total .crit{font-weight:700;font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase}
 .ledger .lr.total .n{color:var(--accent);font-size:16px}
 
-/* code */
-pre{margin:0;overflow-x:auto;padding:13px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--rk)}
-code{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--ink);white-space:pre}
+/* code — wrap long lines so a query never forces a page-wide horizontal scrollbar */
+pre{margin:0;max-width:100%;padding:13px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--rk)}
+code{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--ink);
+  white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;display:block}
 .codetabs{display:flex;gap:2px}
 .codetabs button{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);
   font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:4px 10px;border-radius:2px;cursor:pointer}

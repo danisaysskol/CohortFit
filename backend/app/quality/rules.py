@@ -169,13 +169,35 @@ def propose_fixes(db: Database) -> dict[str, Any]:
     }
 
 
+KIND_ORDER = {"data_error": 2, "caveat": 1, "real_finding": 0}
+# Assumed minutes a reviewer spends locating + judging one issue class by hand. Stated,
+# not measured — used only to express "reviewer time saved", never as a hard claim.
+ASSUMED_MINUTES_PER_ISSUE = 3
+
+
 def scorecard(db: Database) -> dict[str, Any]:
     findings = all_findings(db)
+    # Rank worst-first so a reviewer sees the most severe, highest-volume errors first
+    # (beats a dumb checker that flags everything equally).
+    findings.sort(key=lambda f: (SEV_ORDER[f.severity], KIND_ORDER.get(f.kind, 0), f.count), reverse=True)
+
     dim_sev = {d: "green" for d in DIMENSIONS}
     for f in findings:
         if SEV_ORDER[f.severity] > SEV_ORDER[dim_sev[f.dimension]]:
             dim_sev[f.dimension] = f.severity
+
+    issues = sum(1 for f in findings if f.kind == "data_error")
+    summary = {
+        "issues_found": issues,
+        "findings_total": len(findings),
+        "assumed_minutes_per_issue": ASSUMED_MINUTES_PER_ISSUE,
+        "reviewer_minutes_saved_estimate": issues * ASSUMED_MINUTES_PER_ISSUE,
+        "note": "Flags are ranked worst-first, each pre-separated (data error vs real finding) "
+                "and explained with a source pointer. Time-saved is an estimate at the stated "
+                "per-issue assumption, not a measured value.",
+    }
     return {
         "dimensions": [{"dimension": d, "severity": dim_sev[d]} for d in DIMENSIONS],
         "findings": [f.dict() for f in findings],
+        "summary": summary,
     }

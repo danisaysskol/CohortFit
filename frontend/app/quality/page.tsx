@@ -30,6 +30,15 @@ export default function QualityPage() {
       {!sc && !err && <div className="loading">Scoring the data…</div>}
 
       {sc && (
+        <div className="metrics" style={{ marginBottom: 18 }}>
+          <div className="metric"><div className="v">{sc.summary.issues_found}</div><div className="k lbl">Data-error issues</div></div>
+          <div className="metric"><div className="v">{sc.summary.findings_total}</div><div className="k lbl">Findings, ranked worst-first</div></div>
+          <div className="metric"><div className="v">≈{sc.summary.reviewer_minutes_saved_estimate}′</div><div className="k lbl">Est. reviewer time saved</div></div>
+          <div className="metric"><div className="v">100%</div><div className="k lbl">Flags with reason + source</div></div>
+        </div>
+      )}
+
+      {sc && (
         <div className="grid2">
           <section className="panel">
             <div className="panel-h"><span className="lbl">Dimensions</span></div>

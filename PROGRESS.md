@@ -34,10 +34,17 @@ The eight commitments (self-check on each feature): 1) honest quantified eval (p
 - **OpenAI pricing confirmed by user** (sol/terra/luna, incl. cached-input + cache-write lines). Cost-features deep-dive (caching mechanics, reasoning effort, Batch/flex) — research in progress.
 - **Decisions locked:** see decision log below.
 
+## 🔧 Course-correction (2026-08-08, after testing + real API key)
+
+Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two real gaps surfaced and are fixed, several remain):
+- **OpenAI was never actually being called.** No key was configured, so `/cohort/build` silently used the keyword fallback the whole time. I implemented the OpenAI path but failed to *verify it ran*. **Fixed:** with the key in `.env`, the only bug was `temperature=0` (gpt-5.6 reasoning models only allow the default) → removed it (+`reasoning_effort=low`); now `method=openai` verified live (demo phrase → the 9 gold ids; a fake drug name → OpenAI *abstains*).
+- **The `software-testing` agent (46 cases logged in `docs/test-cases/`) found real correctness bugs** in the keyword parser: a **number-grab** ("potassium over 5.5" → age≥5 → all 100) and **silent partial-parsing** (confident over-inclusive cohorts). **Fixed:** the parser now detects lab/vital thresholds (numbers no longer mis-read as age), parses gender + under-N + diagnosis, and **refuses / abstains / clarifies** for out-of-scope, ambiguous, negation, aggregation, temporal, and cross-hospital queries instead of lying. Disposition is surfaced in the UI.
+- **`.env` audit** (user asked): no real `.env` was ever deleted — it was never committed/pushed, is gitignored, and the only `.env` I'd touched was a one-line throwaway (`test`) created+removed in a single gitignore-verification command. The user's key is intact and safe.
+
 ## 🔄 Current
 
-- **MVP complete and verified.** `docker compose up` → FastAPI (`:8000`) + Next.js (`:3000`); all 6 pages (Schema, Cohorts, Quality, Evaluation, About + fix-ledger) verified live in claude-in-chrome (`docs/ui-screenshots/app-*.jpg`); 14 backend tests pass; every page served < 200ms (warmed caches).
-- All buildable/verifiable agile tasks are done. What remains is **human-only** (record demo video, slides, portal submission, CVs) and **optional polish** (see below).
+- **Working full stack, now OpenAI-driven + honest.** `docker compose up` → FastAPI (`:8000`) + Next.js (`:3000`); 6 pages verified; 15 backend tests pass; pages < 200ms. Additions since MVP: flag **ranking** (worst-first), **reviewer-time-saved**, eval **baseline + multi-seed uncertainty**, disposition-aware UI, SQL-tab **wrap fix**.
+- **Still genuinely pending** (see below) — the Schema **ERD + free data explorer** you asked for is NOT built yet (current Schema page only samples rows), plus missing DQ checks, an OpenAI-path test re-run, a UI-clarity pass, and the dumb-vs-tool table.
 
 ## ✅ Past — build (done + verified)
 
@@ -59,10 +66,21 @@ The eight commitments (self-check on each feature): 1) honest quantified eval (p
 - **`docs/SAFETY_STATEMENT.md`** — intended/prohibited use, data lineage, licence-aware minimization, failure modes, human-review boundary.
 - **README polished** — quick start (`docker compose up`), architecture, verified screenshots, ≤1000-char pitch, doc index.
 
-## ⏳ Pending
+## ⏳ Pending (refreshed 2026-08-08)
 
-- [ ] Human deliverables only: **demo video + slides** (3-min script already in `TENTATIVE_AGILE_PLAN.md`), Sofstica portal submission, CVs.
-- [ ] Optional polish: extend the injected-error harness to more dimensions (near-duplicate, unit-normalization); OpenAI-path live test with a real key; ER-diagram view on the Schema page.
+**High priority (user-requested / correctness):**
+- [ ] **Schema page = ERD + free data explorer.** Replace the sample-only view with (a) an ER diagram of table relationships, and (b) a data explorer where a researcher applies column filters + search + pagination (needs a safe backend `/explore/{table}` with whitelisted columns + parameterized filters).
+- [ ] **Re-run the 46-case suite with OpenAI active** and refresh `docs/test-cases/results.json` + `RESULTS.md` (current log is the keyword-fallback path). Cache the OpenAI responses so we don't re-call.
+- [ ] **Extend the compiler to match OpenAI's reach** (or make OpenAI emit only supported kinds): OpenAI may propose criteria the compiler can't compile → currently errors to "clarify". Decide: add negation/aggregation/temporal-join kinds, or constrain the schema.
+- [ ] **Missing DQ checks** (beat the dumb version harder): `storetime < charttime`; results hidden in `comments` with null `valuenum` (HIV itemid 51652); per-ICU-stay heart-rate completeness (MIMIC's own ≥99% rule); near-duplicate measurement rows.
+
+**Polish / evidence:**
+- [ ] **UI-clarity pass** — visual hierarchy, borders, clear focused/unfocused distinction, user-centric copy (a full critique + fixes, beyond the SQL-scroll fix already done).
+- [ ] **Dumb-vs-tool comparison** (the reviewer's table) → add to `docs/EVALUATION_REPORT.md` and the About page; the pieces (ranking, reviewer-time-saved, error-vs-finding, reasons+source, baseline) are built — document them as the explicit contrast.
+- [ ] Update `docs/EVALUATION_REPORT.md` with the multi-seed baseline numbers + the OpenAI-path note.
+
+**Human-only:**
+- [ ] Demo video + slides (3-min script in `TENTATIVE_AGILE_PLAN.md`), Sofstica portal submission, CVs.
 
 ## 🖼️ UI screenshots
 Latest UI screenshots live in `docs/ui-screenshots/`. **Update them whenever the UI changes** (test in claude-in-chrome, overwrite the "latest" set).

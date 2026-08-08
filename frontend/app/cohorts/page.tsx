@@ -90,12 +90,15 @@ export default function CohortsPage() {
 
             {err && <div className="abstain"><span className="k">Error</span> — {err}. Is the backend running on :8000?</div>}
 
-            {res && !res.answerable && (
-              <div className="abstain">
-                <span className="k">Abstained</span> — {res.abstain_reason}
-                <div className="note">This is by design: when the structured record can&apos;t support a request, CohortFit says so instead of inventing an answer.</div>
-              </div>
-            )}
+            {res && !res.answerable && (() => {
+              const label = { refuse: "Refused", clarify: "Needs clarification", abstain: "Abstained" }[res.disposition ?? "abstain"] ?? "Abstained";
+              return (
+                <div className="abstain">
+                  <span className="k">{label}</span> — {res.abstain_reason}
+                  <div className="note">This is by design: when a request is out of scope, ambiguous, or unsupported, CohortFit says so instead of inventing an answer.</div>
+                </div>
+              );
+            })()}
 
             {res && res.answerable && res.funnel && (
               <>
@@ -111,6 +114,11 @@ export default function CohortsPage() {
                   ))}
                 </div>
                 <p className="note"><b>{res.n}</b> patients match · every count is measured from the demo, not estimated · confidence {res.confidence}.</p>
+                {res.n === 0 && (
+                  <div className="abstain" style={{ marginTop: 10 }}>
+                    <span className="k">Valid empty result</span> — the query ran correctly and matched 0 patients. That&apos;s an answer, not an error (e.g. the demo is an adult population).
+                  </div>
+                )}
               </>
             )}
           </div>

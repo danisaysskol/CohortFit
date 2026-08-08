@@ -61,18 +61,19 @@ def _predicate(c: Criterion) -> tuple[str, str]:
             f"p.subject_id IN (SELECT subject_id FROM prescriptions WHERE lower(drug) LIKE lower('%{v}%'))",
             "prescriptions.drug",
         )
-    if k == "lab_threshold":
+    if k in ("lab_threshold", "vital_threshold"):
+        source_table = "labevents" if k == "lab_threshold" else "chartevents"
         try:
             itemid = int(str(c.field))
         except (TypeError, ValueError):
-            raise CompileError("lab_threshold requires field=<itemid>")
+            raise CompileError(f"{k} requires field=<itemid>")
         op = c.op or ">"
         if op not in ALLOWED_OPS:
             raise CompileError(f"unsupported op: {op}")
         return (
-            f"p.subject_id IN (SELECT subject_id FROM labevents "
+            f"p.subject_id IN (SELECT subject_id FROM {source_table} "
             f"WHERE itemid = {itemid} AND valuenum {op} {float(c.value)})",
-            f"labevents.itemid={itemid}",
+            f"{source_table}.itemid={itemid}",
         )
     raise CompileError(f"unknown criterion kind: {k}")
 

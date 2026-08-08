@@ -19,7 +19,7 @@ from .cohort import nl
 from .cohort.compiler import CompileError, compile_ir
 from .data import schema as schema_mod
 from .data.loader import Database
-from .eval.inject import run_temporal_eval
+from .eval.inject import run_eval
 from .quality import rules as quality
 
 app = FastAPI(title="CohortFit API", version=__version__)
@@ -87,14 +87,16 @@ def get_table(table: str, limit: int = 25) -> dict[str, Any]:
 def build_cohort(req: BuildRequest) -> dict[str, Any]:
     ir, method = nl.to_ir(req.text)
     if not ir.answerable:
-        return {"answerable": False, "abstain_reason": ir.abstain_reason,
-                "method": method, "ir": ir.model_dump(), "safety": SAFETY}
+        return {"answerable": False, "disposition": ir.disposition,
+                "abstain_reason": ir.abstain_reason, "method": method,
+                "ir": ir.model_dump(), "safety": SAFETY}
     try:
         result = compile_ir(get_db(), ir)
     except CompileError as e:
-        return {"answerable": False, "abstain_reason": str(e), "method": method,
-                "ir": ir.model_dump(), "safety": SAFETY}
-    return {"method": method, "ir": ir.model_dump(), **result, "safety": SAFETY}
+        return {"answerable": False, "disposition": "clarify", "abstain_reason": str(e),
+                "method": method, "ir": ir.model_dump(), "safety": SAFETY}
+    return {"method": method, "disposition": "cohort", "ir": ir.model_dump(),
+            **result, "safety": SAFETY}
 
 
 @app.get("/quality/scorecard")
@@ -114,7 +116,5 @@ def get_fixes() -> dict[str, Any]:
 
 
 @app.get("/eval/run")
-def get_eval(n_inject: int = 20, seed: int = 42) -> dict[str, Any]:
-    return {"results": [run_temporal_eval(get_db(), n_inject=n_inject, seed=seed)],
-            "note": "Synthetic errors injected into a copy only; not real clinical performance.",
-            "safety": SAFETY}
+def get_eval(n_inject: int = 20) -> dict[str, Any]:
+    return {**run_eval(get_db(), n_inject=n_inject), "safety": SAFETY}

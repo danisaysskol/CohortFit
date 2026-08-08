@@ -29,8 +29,10 @@ export type TableInfo = {
   timestamps: string[];
 };
 export type FunnelStep = { criterion: string; source: string; remaining: number; delta: number | null };
+export type Disposition = "cohort" | "clarify" | "refuse" | "abstain";
 export type CohortResult = {
   method: string;
+  disposition?: Disposition;
   ir: unknown;
   sql?: string;
   funnel?: FunnelStep[];
@@ -49,12 +51,24 @@ export type Finding = {
   kind: "data_error" | "real_finding" | "caveat";
   ref: string;
 };
+export type ScoreSummary = {
+  issues_found: number;
+  findings_total: number;
+  assumed_minutes_per_issue: number;
+  reviewer_minutes_saved_estimate: number;
+  note: string;
+};
 export type Scorecard = {
   dimensions: { dimension: string; severity: "red" | "amber" | "green" }[];
   findings: Finding[];
+  summary: ScoreSummary;
 };
+export type AggStat = { mean: number; std: number; min: number; max: number };
 export type EvalResult = {
-  results: Record<string, number | string>[];
+  seeds: number[];
+  runs: Record<string, number | string>[];
+  aggregate: Record<"precision" | "recall" | "f1" | "false_positive_rate", AggStat>;
+  baseline: { strategy: string; precision: number; recall: number; false_positive_rate: number };
   note: string;
 };
 

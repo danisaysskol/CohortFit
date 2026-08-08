@@ -11,49 +11,71 @@ type Edge = { from: string; to: string; col: string };
 export type ColumnInfo = { name: string; type: string };
 export type TableKeys = { pk: string[]; fk: { col: string; ref: string }[] };
 
-const VW = 648;
-const VH = 512;
-const W = 152;
+const VW = 780;
+const VH = 640;
+const W = 150;
 const H = 40;
 
+// Star layout: patients → admissions → icustays down the centre; hospital events fan
+// out from admissions, ICU events from icustays, dictionaries at the edges.
 const BOXES: Box[] = [
-  { id: "patients", label: "patients", x: 24, y: 30, kind: "spine" },
-  { id: "admissions", label: "admissions", x: 24, y: 130, kind: "spine" },
-  { id: "icustays", label: "icustays", x: 24, y: 300, kind: "spine" },
-  { id: "diagnoses_icd", label: "diagnoses_icd", x: 250, y: 20, kind: "fact" },
-  { id: "labevents", label: "labevents", x: 250, y: 80, kind: "fact" },
-  { id: "prescriptions", label: "prescriptions", x: 250, y: 140, kind: "fact" },
-  { id: "emar", label: "emar", x: 250, y: 200, kind: "fact" },
-  { id: "transfers", label: "transfers", x: 250, y: 260, kind: "fact" },
-  { id: "chartevents", label: "chartevents", x: 250, y: 330, kind: "fact" },
-  { id: "inputevents", label: "inputevents", x: 250, y: 390, kind: "fact" },
-  { id: "outputevents", label: "outputevents", x: 250, y: 450, kind: "fact" },
-  { id: "d_icd_diagnoses", label: "d_icd_diagnoses", x: 480, y: 20, kind: "dict" },
-  { id: "d_labitems", label: "d_labitems", x: 480, y: 80, kind: "dict" },
-  { id: "d_items", label: "d_items", x: 480, y: 360, kind: "dict" },
+  { id: "patients", label: "patients", x: 315, y: 24, kind: "spine" },
+  { id: "admissions", label: "admissions", x: 315, y: 220, kind: "spine" },
+  { id: "icustays", label: "icustays", x: 315, y: 416, kind: "spine" },
+  // hospital events — left of admissions
+  { id: "diagnoses_icd", label: "diagnoses_icd", x: 30, y: 150, kind: "fact" },
+  { id: "prescriptions", label: "prescriptions", x: 30, y: 220, kind: "fact" },
+  { id: "transfers", label: "transfers", x: 30, y: 290, kind: "fact" },
+  // hospital events — right of admissions
+  { id: "labevents", label: "labevents", x: 600, y: 150, kind: "fact" },
+  { id: "emar", label: "emar", x: 600, y: 220, kind: "fact" },
+  { id: "microbiologyevents", label: "microbiologyevents", x: 600, y: 290, kind: "fact" },
+  // ICU events — around icustays
+  { id: "chartevents", label: "chartevents", x: 30, y: 384, kind: "fact" },
+  { id: "inputevents", label: "inputevents", x: 30, y: 454, kind: "fact" },
+  { id: "outputevents", label: "outputevents", x: 600, y: 384, kind: "fact" },
+  { id: "procedureevents", label: "procedureevents", x: 600, y: 454, kind: "fact" },
+  // dictionaries — edges
+  { id: "d_icd_diagnoses", label: "d_icd_diagnoses", x: 30, y: 80, kind: "dict" },
+  { id: "d_labitems", label: "d_labitems", x: 600, y: 80, kind: "dict" },
+  { id: "d_items", label: "d_items", x: 315, y: 566, kind: "dict" },
 ];
 
 const EDGES: Edge[] = [
   { from: "patients", to: "admissions", col: "subject_id" },
   { from: "admissions", to: "icustays", col: "hadm_id" },
   { from: "admissions", to: "diagnoses_icd", col: "hadm_id" },
-  { from: "admissions", to: "labevents", col: "hadm_id" },
   { from: "admissions", to: "prescriptions", col: "hadm_id" },
-  { from: "admissions", to: "emar", col: "hadm_id" },
   { from: "admissions", to: "transfers", col: "hadm_id" },
+  { from: "admissions", to: "labevents", col: "hadm_id" },
+  { from: "admissions", to: "emar", col: "hadm_id" },
+  { from: "admissions", to: "microbiologyevents", col: "hadm_id" },
   { from: "icustays", to: "chartevents", col: "stay_id" },
   { from: "icustays", to: "inputevents", col: "stay_id" },
   { from: "icustays", to: "outputevents", col: "stay_id" },
+  { from: "icustays", to: "procedureevents", col: "stay_id" },
   { from: "diagnoses_icd", to: "d_icd_diagnoses", col: "icd_code" },
   { from: "labevents", to: "d_labitems", col: "itemid" },
   { from: "chartevents", to: "d_items", col: "itemid" },
+  { from: "inputevents", to: "d_items", col: "itemid" },
+  { from: "outputevents", to: "d_items", col: "itemid" },
+  { from: "procedureevents", to: "d_items", col: "itemid" },
 ];
 
 const byId = (id: string) => BOXES.find((b) => b.id === id)!;
 
+// Connect the nearest edges based on the dominant direction between box centres.
 function edgePath(a: Box, b: Box) {
-  if (Math.abs(a.x - b.x) < 8) return { x1: a.x + W / 2, y1: a.y + H, x2: b.x + W / 2, y2: b.y };
-  return { x1: a.x + W, y1: a.y + H / 2, x2: b.x, y2: b.y + H / 2 };
+  const acx = a.x + W / 2, acy = a.y + H / 2, bcx = b.x + W / 2, bcy = b.y + H / 2;
+  const dx = bcx - acx, dy = bcy - acy;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    return dx > 0
+      ? { x1: a.x + W, y1: acy, x2: b.x, y2: bcy }
+      : { x1: a.x, y1: acy, x2: b.x + W, y2: bcy };
+  }
+  return dy > 0
+    ? { x1: acx, y1: a.y + H, x2: bcx, y2: b.y }
+    : { x1: acx, y1: a.y, x2: bcx, y2: b.y + H };
 }
 
 export function Erd({
@@ -75,10 +97,13 @@ export function Erd({
   const fkMap = new Map(keys.fk.map((f) => [f.col, f.ref]));
 
   // Popover placed by percentage of the viewBox so it tracks the responsive SVG.
-  const popStyle = openBox
+  // Right-half boxes open the popover leftward so it never overflows.
+  const onRight = !!openBox && openBox.x + W / 2 > VW / 2;
+  const popStyle: React.CSSProperties | undefined = openBox
     ? {
-        left: `${((openBox.x + W + 6) / VW) * 100}%`,
+        left: onRight ? `${((openBox.x - 6) / VW) * 100}%` : `${((openBox.x + W + 6) / VW) * 100}%`,
         top: `${(openBox.y / VH) * 100}%`,
+        transform: onRight ? "translateX(-100%)" : undefined,
       }
     : undefined;
 

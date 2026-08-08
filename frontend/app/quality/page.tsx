@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { api, Scorecard } from "../lib/api";
+import { api, Scorecard, Finding, FindingRows } from "../lib/api";
 import { Verdict, StatTile, DimTile, SeverityBar, Sev } from "../components/charts";
+import { Icon } from "../components/Icon";
 import { FixLedger } from "./FixLedger";
 
 const KIND_PILL: Record<string, string> = { data_error: "err", real_finding: "find", caveat: "caveat" };
@@ -12,10 +13,20 @@ const SEV_RANK: Record<Sev, number> = { green: 0, amber: 1, red: 2 };
 export default function QualityPage() {
   const [sc, setSc] = useState<Scorecard | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [drill, setDrill] = useState<FindingRows | null>(null);
+  const [drillId, setDrillId] = useState<string | null>(null);
+  const [drillLoading, setDrillLoading] = useState(false);
 
   useEffect(() => {
     api.scorecard().then(setSc).catch((e) => setErr(String(e)));
   }, []);
+
+  function openDrill(f: Finding) {
+    if (!f.drillable) return;
+    if (drillId === f.id) { setDrill(null); setDrillId(null); return; }  // toggle off
+    setDrillId(f.id); setDrill(null); setDrillLoading(true);
+    api.findingRows(f.id).then(setDrill).catch(() => {}).finally(() => setDrillLoading(false));
+  }
 
   const derived = useMemo(() => {
     if (!sc) return null;
@@ -81,20 +92,66 @@ export default function QualityPage() {
               <div className="panel-h"><span className="lbl">Findings, ranked</span></div>
               <div className="panel-b" style={{ maxHeight: 360, overflow: "auto" }}>
                 <div className="flags">
-                  {sc.findings.map((f, i) => (
-                    <div className="flag" key={i}>
-                      <span className={"sq " + f.severity} />
-                      <span>
-                        <div className="t1">{f.detail}</div>
-                        <div className="t2">{f.table}{f.ref ? " · " + f.ref : ""}</div>
-                      </span>
-                      <span className={"pill " + KIND_PILL[f.kind]}>{KIND_LABEL[f.kind]}</span>
-                    </div>
-                  ))}
+                  {sc.findings.map((f, i) => {
+                    const active = drillId === f.id;
+                    return (
+                      <div className={"flag" + (f.drillable ? " flag-click" : "") + (active ? " flag-on" : "")}
+                           key={i} onClick={() => openDrill(f)}
+                           title={f.drillable ? "Show the offending rows" : undefined}>
+                        <span className={"sq " + f.severity} />
+                        <span>
+                          <div className="t1">{f.detail}</div>
+                          <div className="t2">{f.table}{f.ref ? " · " + f.ref : ""}</div>
+                        </span>
+                        <span className={"pill " + KIND_PILL[f.kind]}>{KIND_LABEL[f.kind]}</span>
+                        {f.drillable && (
+                          drillLoading && active
+                            ? <span className="spin" style={{ marginLeft: 8 }} />
+                            : <Icon name={active ? "chevron" : "search"} size={12}
+                                    style={{ marginLeft: 8, color: "var(--accent)", flex: "0 0 auto" }} />
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </section>
           </div>
+
+          {drill && (
+            <section className="panel" style={{ marginTop: 18 }}>
+              <div className="panel-h">
+                <span className="lbl lbl-i"><Icon name="search" size={13} /> Offending rows</span>
+                <button className="btn btn-ghost" onClick={() => { setDrill(null); setDrillId(null); }}>
+                  <Icon name="x" size={12} /> Close
+                </button>
+              </div>
+              <div className="panel-b">
+                <div className="t1" style={{ marginBottom: 4 }}>{drill.finding.detail}</div>
+                <div className="t2" style={{ marginBottom: 12 }}>
+                  {drill.finding.table}{drill.ref ? " · " + drill.ref : ""} — showing {drill.shown.toLocaleString()} of {drill.total.toLocaleString()}
+                </div>
+                <pre><code>{drill.sql}</code></pre>
+                <div style={{ overflowX: "auto", marginTop: 12 }}>
+                  <table className="drill-tbl">
+                    <thead>
+                      <tr>{drill.columns.map((c) => <th key={c}>{c}</th>)}</tr>
+                    </thead>
+                    <tbody>
+                      {drill.rows.map((r, i) => (
+                        <tr key={i}>
+                          {drill.columns.map((c) => (
+                            <td key={c}>{r[c] === null ? <span className="null">null</span> : String(r[c])}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="note">These are real rows in the demo dataset, returned by the query above. Source data is never modified — the flag points here so a reviewer can judge it directly.</p>
+              </div>
+            </section>
+          )}
 
           <FixLedger />
         </>

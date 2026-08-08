@@ -32,4 +32,23 @@ def test_build_cohort():
 def test_scorecard_endpoint():
     r = client.get("/quality/scorecard")
     assert r.status_code == 200
-    assert r.json()["dimensions"]
+    findings = r.json()["findings"]
+    assert findings
+    assert all("id" in f and "drillable" in f for f in findings)
+
+
+def test_finding_rows_endpoint():
+    r = client.get("/quality/finding/plausibility:220052/rows", params={"limit": 5})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["rows"] and body["shown"] == len(body["rows"]) <= 5
+    assert "SELECT" in body["sql"]
+    # unknown / clean findings 404 rather than returning an empty table
+    assert client.get("/quality/finding/nope/rows").status_code == 404
+
+
+def test_patient_timeline_endpoint():
+    r = client.get("/patient/10006580/timeline")
+    assert r.status_code == 200
+    assert r.json()["events"]
+    assert client.get("/patient/999999999/timeline").status_code == 404

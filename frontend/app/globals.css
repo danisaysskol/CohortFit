@@ -246,8 +246,11 @@ code{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--ink);
 .dotr{color:var(--danger)} .dota{color:var(--warn)} .dotg{color:var(--ok)}
 
 .flags{border:1px solid var(--line);border-radius:var(--rk);overflow:hidden;margin-top:14px}
-.flag{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
+.flag{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
 .flag:first-child{border-top:0}
+.flag-click{cursor:pointer;transition:background .12s ease}
+.flag-click:hover{background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.flag-on{background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
 .flag .sq{width:8px;height:8px;border-radius:1px;flex:0 0 auto}
 .sq.red{background:var(--danger)} .sq.amber{background:var(--warn)} .sq.green{background:var(--ok)}
 .flag .t1{font-size:12.5px}
@@ -256,6 +259,16 @@ code{font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--ink);
 .pill.err{color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line))}
 .pill.find{color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 35%,var(--line))}
 .pill.caveat{color:var(--muted);border:1px solid var(--line-strong)}
+
+/* finding drill-in table */
+.drill-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.drill-tbl th{position:sticky;top:0;background:var(--surface-2);text-align:left;padding:7px 10px;
+  border-bottom:1px solid var(--line-strong);color:var(--muted);font-weight:600;white-space:nowrap;
+  text-transform:none;letter-spacing:0}
+.drill-tbl td{padding:6px 10px;border-bottom:1px solid var(--line);color:var(--ink);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.drill-tbl tbody tr:hover td{background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.drill-tbl .null{color:var(--faint);font-style:italic}
 
 /* metrics */
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}

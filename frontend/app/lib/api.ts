@@ -67,6 +67,18 @@ export type Finding = {
   count: number;
   kind: "data_error" | "real_finding" | "caveat";
   ref: string;
+  id: string;
+  drillable: boolean;
+};
+export type FindingRows = {
+  finding: Finding;
+  ref: string;
+  sql: string;
+  columns: string[];
+  rows: Record<string, unknown>[];
+  total: number;
+  shown: number;
+  limit: number;
 };
 export type ScoreSummary = {
   issues_found: number;
@@ -135,6 +147,7 @@ export const api = {
   buildCohort: (text: string) => post<CohortResult>("/cohort/build", { text }),
   patientTimeline: (id: string | number) => get<PatientTimeline>(`/patient/${id}/timeline`),
   scorecard: () => get<Scorecard>("/quality/scorecard"),
+  findingRows: (id: string, limit = 50) => get<FindingRows>(`/quality/finding/${encodeURIComponent(id)}/rows?limit=${limit}`),
   fixes: () => get<{ fixes: Fix[]; note: string }>("/quality/fixes"),
   runEval: () => get<EvalResult>("/eval/run"),
 };

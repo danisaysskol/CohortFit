@@ -69,3 +69,26 @@ def test_patient_timeline(db):
 def test_patient_timeline_unknown_subject(db):
     with pytest.raises(KeyError):
         timeline_mod.patient_timeline(db, 999999999)
+
+
+def test_finding_drill_in(db):
+    findings = quality.all_findings(db)
+    # the implausible arterial-BP-mean finding must exist and drill to its real rows
+    bp = next(f for f in findings if f.id == "plausibility:220052")
+    res = quality.find_offending_rows(db, findings, bp.id, limit=50)
+    assert res is not None
+    assert res["total"] == bp.count and res["shown"] == min(bp.count, 50)
+    assert res["shown"] == len(res["rows"]) and res["columns"]
+    # every returned row is genuinely out of the plausible range
+    for r in res["rows"]:
+        assert r["valuenum"] < 0 or r["valuenum"] > 300
+
+
+def test_finding_drill_in_none_for_clean_or_unknown(db):
+    findings = quality.all_findings(db)
+    # a green/zero-count finding has nothing to show
+    clean = next(f for f in findings if f.id == "duplicates:dx")
+    assert clean.count == 0
+    assert quality.find_offending_rows(db, findings, clean.id) is None
+    # an unknown id resolves to nothing
+    assert quality.find_offending_rows(db, findings, "does-not-exist") is None

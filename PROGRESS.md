@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-08 — Patient Timeline shipped (click a matched patient → time-ordered event journey with source provenance), verified in-browser. Finding drill-in is next._
+_Last updated: 2026-08-08 — Two interactivity features shipped and verified in-browser: Patient Timeline (click a matched patient → time-ordered event journey with provenance) and Finding drill-in (click a quality flag → the actual offending rows + the SQL that found them). 30 backend tests pass._
 
 ---
 
@@ -96,8 +96,11 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 **Done (Track-1 supporting feature — patient journey):**
 - [x] **Patient Timeline** — click any matched patient in the Cohorts table → a time-ordered journey of that patient's real events (admissions, ICU in/out, transfers, procedures, death) with each event linked to its **source table + id**, plus a header (gender/age, lab/med/event counts) and their **diagnoses** (provenance for why they matched the cohort). Backend `/patient/{subject_id}/timeline` (`backend/app/data/timeline.py`); frontend `frontend/app/cohorts/Timeline.tsx`. Verified in-browser (subject 10006580: F/63, 12 events, diabetes + insulin diagnoses shown). Dates are shifted (MIMIC de-identification) so the panel states the calendar is not real but event **order** is. The instructions allow supporting features from another track; this is the Track-1 "patient journey" view, and it doubles as row-level provenance for a cohort match.
 
+**Done (Quality drill-in — a flag is never taken on trust):**
+- [x] **Finding drill-in** — click any data-quality flag on the Quality page → a panel shows the **actual offending rows** in the demo dataset, the **exact SQL** that found them, and a "showing N of TOTAL" count. E.g. clicking "ABP mean (220052)" reveals subject 10020944 with an arterial BP mean of 801 mmHg (down to −23). Each finding carries a stable `id`, a `drillable` flag, and its own `sample_sql`; green/zero-count checks aren't drillable. Backend `/quality/finding/{id}/rows` (`quality.find_offending_rows`, capped, read-only, source never modified); frontend renders it inline on `quality/page.tsx`. Verified in-browser + covered by tests (30 pass). This makes the honesty pitch tangible: every claimed error traces to a real, inspectable row.
+
 **Next:**
-- [ ] **Finding drill-in** (Quality page) — click a data-quality flag → see the actual offending rows.
+- [ ] The larger exploration: make Track-2 points 2 (data-quality judging) & 3 (measurement explorer) as interactive/user-centric as point 1 — try 3 paths against pre-set criteria, pick the best, implement.
 - [ ] Continue polish / any specific asks; human deliverables (demo video, slides, submission, CVs).
 
 **Human-only:**

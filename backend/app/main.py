@@ -48,14 +48,16 @@ def get_db() -> Database:
 _scorecard_cache: dict[str, Any] | None = None
 _schema_cache: dict[str, Any] | None = None
 _fixes_cache: dict[str, Any] | None = None
+_findings_cache: list[quality.Finding] | None = None
 
 
 @app.on_event("startup")
 def _warm() -> None:
-    global _scorecard_cache, _schema_cache, _fixes_cache
+    global _scorecard_cache, _schema_cache, _fixes_cache, _findings_cache
     db = get_db()
     _schema_cache = {"tables": schema_mod.describe(db)}
-    _scorecard_cache = quality.scorecard(db)
+    _findings_cache = quality.all_findings(db)
+    _scorecard_cache = quality.scorecard(db, _findings_cache)
     _fixes_cache = quality.propose_fixes(db)
 
 
@@ -184,6 +186,18 @@ def get_scorecard() -> dict[str, Any]:
     if _scorecard_cache is None:
         _scorecard_cache = quality.scorecard(get_db())
     return {**_scorecard_cache, "safety": SAFETY}
+
+
+@app.get("/quality/finding/{finding_id}/rows")
+def get_finding_rows(finding_id: str, limit: int = 50) -> dict[str, Any]:
+    """The actual rows behind one data-quality flag — so a finding is never taken on trust."""
+    global _findings_cache
+    if _findings_cache is None:
+        _findings_cache = quality.all_findings(get_db())
+    res = quality.find_offending_rows(get_db(), _findings_cache, finding_id, min(limit, 200))
+    if res is None:
+        raise HTTPException(status_code=404, detail=f"no offending rows for finding: {finding_id}")
+    return {**res, "safety": SAFETY}
 
 
 @app.get("/quality/fixes")

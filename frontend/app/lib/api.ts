@@ -2,10 +2,20 @@
 // runs locally and in Docker. The browser calls the host-mapped backend port.
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
+// The demo dataset is frozen, so every GET is deterministic. We cache responses
+// in sessionStorage keyed by path, making repeat visits to a page instant (no
+// refetch) — the network round-trip happens once per browser session.
 async function get<T>(path: string): Promise<T> {
+  const key = `cf:${path}`;
+  try {
+    const hit = sessionStorage.getItem(key);
+    if (hit) return JSON.parse(hit) as T;
+  } catch { /* sessionStorage unavailable (SSR / private mode) — fall through */ }
   const r = await fetch(`${BASE}${path}`, { cache: "no-store" });
   if (!r.ok) throw new Error(`${path} → ${r.status}`);
-  return r.json();
+  const data = (await r.json()) as T;
+  try { sessionStorage.setItem(key, JSON.stringify(data)); } catch { /* quota/unavailable */ }
+  return data;
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {

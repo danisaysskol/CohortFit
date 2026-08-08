@@ -106,8 +106,11 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Motion with purpose** — opening a timeline or a finding drill-in smooth-scrolls the result into view (kills the "scroll so much" problem) + a short pop-in; `prefers-reduced-motion` honoured.
 - [x] **Design doc renamed** `FRONTEND_DESIGN_SYSTEM.md` → `TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`, rewritten with the Apple+Material philosophy, new tokens, elevation, motion, discoverability. References updated across CLAUDE.md/README/globals.css.
 
+**Done (page-switch latency — fixed at the root):**
+- [x] **Production build** — root cause was the Next.js **dev server compiling each route on first visit** (multi-second). The Docker frontend now does `next build` + `output:standalone` + `next start` (multi-stage Dockerfile; source bind-mount removed). Measured page loads dropped to **20–210ms cold, ~20ms warm** (was multiple seconds). Nav uses `next/link`, so prod prefetches routes on hover/viewport. **Dev-loop note:** after editing frontend code, rebuild: `docker compose up -d --build frontend`.
+- [x] **Client-side caching** — the demo dataset is frozen, so every GET is deterministic; API responses are cached in `sessionStorage` keyed by path (instant repeat visits, one round-trip per session).
+
 **Next:**
-- [ ] **Page-switch latency** — root-cause the slow navigation (Turbopack dev per-route compile) and fix for good (production build for the demo, `<Link>` prefetch, client-side cache of API responses).
 - [ ] **Quality & Evaluation context** — each page should tell the context, the problem, the steps taken, and the results (per docs), not just the numbers.
 - [ ] **Critique report** — a complete assessment of the app's attention/interactivity: what's good, what lags, what to improve, what to remove.
 - [ ] The larger exploration: make Track-2 points 2 (data-quality judging) & 3 (measurement explorer) as interactive/user-centric as point 1 — try 3 paths against pre-set criteria, pick the best, implement.

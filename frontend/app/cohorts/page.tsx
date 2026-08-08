@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { api, streamCohort, CohortResult, PatientTimeline } from "../lib/api";
+import { api, streamCohort, CohortResult, PatientTimeline, FunnelStep } from "../lib/api";
 import { Icon } from "../components/Icon";
 import { StepTrace, Step } from "./StepTrace";
 import { Timeline } from "./Timeline";
@@ -28,7 +28,7 @@ export default function CohortsPage() {
   const [text, setText] = useState(EXAMPLES[0].t);
   const [res, setRes] = useState<CohortResult | null>(null);
   const [steps, setSteps] = useState<Step[]>(PLAN);
-  const [live, setLive] = useState<CohortResult["funnel"]>([]);
+  const [live, setLive] = useState<FunnelStep[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [tab, setTab] = useState<"ir" | "sql">("ir");
@@ -115,7 +115,7 @@ export default function CohortsPage() {
   const shown = showAll ? patients : patients.slice(0, 10);
   const funnel = live.length ? live : res?.funnel ?? [];
   const dispLabel = res && !res.answerable
-    ? ({ refuse: "Request declined", clarify: "Needs clarification", abstain: "Cannot answer" }[res.disposition ?? "abstain"] ?? "Cannot answer")
+    ? (({ refuse: "Request declined", clarify: "Needs clarification", abstain: "Cannot answer" } as Record<string, string>)[res.disposition ?? "abstain"] ?? "Cannot answer")
     : "";
 
   return (

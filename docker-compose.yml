@@ -20,15 +20,9 @@ services:
     image: cohortfit-frontend
     ports:
       - "3000:3000"
-    environment:
-      # The browser (on the host) calls the host-mapped backend port.
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
-      # Windows Docker bind mounts don't emit inotify events, so enable polling
-      # so Next.js hot-reload actually fires on host edits (no manual restart).
-      WATCHPACK_POLLING: "true"
-    # Mount source for hot-reload in dev; keep the image's node_modules.
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    # Production build: routes are pre-compiled in the image, so navigation is
+    # instant. The backend URL is inlined at build time (see the Dockerfile).
+    # No source bind-mount — after editing frontend code, rebuild the image:
+    #   docker compose up -d --build frontend
     depends_on:
       - backend

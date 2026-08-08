@@ -3,6 +3,10 @@
 Each check returns Findings that point at a table/ref and classify themselves as
 `data_error`, `real_finding`, or `caveat` — the real-finding-vs-data-error
 discipline the brief demands. Nothing here mutates source data.
+
+Every check optionally accepts a cohort's `subject_ids`: passing them restricts the
+same rule to that cohort (so a judge sees the fitness of *their* cohort, not just the
+whole demo). Omitting them assesses the entire dataset, exactly as before.
 """
 from __future__ import annotations
 
@@ -14,6 +18,16 @@ from .ranges import VITAL_RANGES
 
 SEV_ORDER = {"green": 0, "amber": 1, "red": 2}
 DIMENSIONS = ["plausibility", "units", "temporal", "completeness", "duplicates"]
+
+
+def _scope(subject_ids: list[int] | None, col: str = "subject_id") -> str:
+    """Return an AND-clause restricting to a cohort's patients, or '' for the whole dataset.
+
+    Ids come from our own compiler (validated ints), so inlining them is safe here.
+    """
+    if not subject_ids:
+        return ""
+    return f" AND {col} IN ({','.join(str(int(s)) for s in subject_ids)})"
 
 
 @dataclass
@@ -35,17 +49,19 @@ class Finding:
         return d
 
 
-def check_plausibility(db: Database) -> list[Finding]:
+def check_plausibility(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
     # Single pass over chartevents, joined to a small in-query bounds table.
     # (Per-itemid loops were 11x full scans of 669k rows — far too slow for a live demo.)
     values = ", ".join(f"({iid}, {lo}, {hi})" for iid, (lo, hi, _, _) in VITAL_RANGES.items())
+    scope = _scope(subject_ids, "c.subject_id")
+    where = f"WHERE 1=1{scope} " if scope else ""
     rows = db.query(
         f"WITH bounds(itemid, lo, hi) AS (VALUES {values}) "
         "SELECT c.itemid AS itemid, "
         "count(*) FILTER (WHERE c.valuenum IS NOT NULL) AS n, "
         "count(*) FILTER (WHERE c.valuenum < b.lo OR c.valuenum > b.hi) AS bad, "
         "min(c.valuenum) AS mn, max(c.valuenum) AS mx "
-        "FROM chartevents c JOIN bounds b ON c.itemid = b.itemid "
+        f"FROM chartevents c JOIN bounds b ON c.itemid = b.itemid {where}"
         "GROUP BY c.itemid"
     )
     out: list[Finding] = []
@@ -62,24 +78,26 @@ def check_plausibility(db: Database) -> list[Finding]:
             bad, "data_error", f"itemid {iid}", f"plausibility:{iid}",
             "SELECT subject_id, stay_id, charttime, valuenum, valueuom "
             f"FROM chartevents WHERE itemid = {iid} AND valuenum IS NOT NULL "
-            f"AND (valuenum < {lo} OR valuenum > {hi}) ORDER BY abs(valuenum) DESC",
+            f"AND (valuenum < {lo} OR valuenum > {hi}){_scope(subject_ids)} ORDER BY abs(valuenum) DESC",
         ))
     return out
 
 
-def check_temporal(db: Database) -> list[Finding]:
+def check_temporal(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
     out: list[Finding] = []
-    bad = int(db.query("SELECT count(*) AS n FROM admissions WHERE admittime >= dischtime")[0]["n"])
+    bad = int(db.query(
+        f"SELECT count(*) AS n FROM admissions WHERE admittime >= dischtime{_scope(subject_ids)}"
+    )[0]["n"])
     if bad:
         out.append(Finding("temporal", "amber", "admissions",
                            f"{bad} admissions with admittime >= dischtime", bad, "data_error",
                            "admittime vs dischtime", "temporal:admit-order",
                            "SELECT subject_id, hadm_id, admittime, dischtime, admission_type "
-                           "FROM admissions WHERE admittime >= dischtime ORDER BY subject_id"))
+                           f"FROM admissions WHERE admittime >= dischtime{_scope(subject_ids)} ORDER BY subject_id"))
     off = int(db.query(
         "SELECT count(*) AS n FROM labevents l JOIN admissions a USING (hadm_id) "
         "WHERE l.hadm_id IS NOT NULL AND l.charttime IS NOT NULL "
-        "AND (l.charttime < a.admittime OR l.charttime > a.dischtime)"
+        f"AND (l.charttime < a.admittime OR l.charttime > a.dischtime){_scope(subject_ids, 'l.subject_id')}"
     )[0]["n"])
     if off:
         out.append(Finding("temporal", "amber", "labevents",
@@ -89,16 +107,16 @@ def check_temporal(db: Database) -> list[Finding]:
                            "SELECT l.subject_id, l.hadm_id, l.itemid, l.charttime, "
                            "a.admittime, a.dischtime FROM labevents l JOIN admissions a USING (hadm_id) "
                            "WHERE l.hadm_id IS NOT NULL AND l.charttime IS NOT NULL "
-                           "AND (l.charttime < a.admittime OR l.charttime > a.dischtime) "
+                           f"AND (l.charttime < a.admittime OR l.charttime > a.dischtime){_scope(subject_ids, 'l.subject_id')} "
                            "ORDER BY l.subject_id"))
     return out
 
 
-def check_units(db: Database) -> list[Finding]:
+def check_units(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
     rows = db.query(
         "SELECT itemid, count(DISTINCT valueuom) AS u, "
         "string_agg(DISTINCT valueuom, ', ') AS uoms, count(*) AS n "
-        "FROM labevents WHERE valueuom IS NOT NULL "
+        f"FROM labevents WHERE valueuom IS NOT NULL{_scope(subject_ids)} "
         "GROUP BY itemid HAVING count(DISTINCT valueuom) > 1 "
         "ORDER BY n DESC LIMIT 10"
     )
@@ -107,46 +125,54 @@ def check_units(db: Database) -> list[Finding]:
                 f"itemid {r['itemid']} recorded in {r['u']} units ({r['uoms']}) across {r['n']} rows",
                 int(r["n"]), "data_error", f"itemid {r['itemid']}", f"units:{int(r['itemid'])}",
                 "SELECT subject_id, hadm_id, charttime, valuenum, valueuom FROM labevents "
-                f"WHERE itemid = {int(r['itemid'])} AND valueuom IS NOT NULL "
+                f"WHERE itemid = {int(r['itemid'])} AND valueuom IS NOT NULL{_scope(subject_ids)} "
                 "ORDER BY valueuom, charttime")
         for r in rows
     ]
 
 
-def check_completeness(db: Database) -> list[Finding]:
-    r = db.query("SELECT count(*) AS n, count(*) FILTER (WHERE hadm_id IS NULL) AS miss FROM labevents")[0]
+def check_completeness(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
+    r = db.query(
+        "SELECT count(*) AS n, count(*) FILTER (WHERE hadm_id IS NULL) AS miss "
+        f"FROM labevents WHERE 1=1{_scope(subject_ids)}"
+    )[0]
     n, miss = int(r["n"]), int(r["miss"])
-    pct = round(100 * miss / n, 1) if n else 0.0
+    if n == 0:
+        return [Finding("completeness", "green", "labevents",
+                        "no lab events for this cohort", 0, "caveat", "hadm_id")]
+    pct = round(100 * miss / n, 1)
     sev = "amber" if pct > 10 else "green"
     return [Finding("completeness", sev, "labevents",
                     f"labevents.hadm_id missing on {miss}/{n} rows ({pct}%) — outpatient labs; "
                     f"a caveat, not a defect", miss, "caveat", "hadm_id", "completeness:hadm-null",
                     "SELECT subject_id, itemid, charttime, valuenum, valueuom FROM labevents "
-                    "WHERE hadm_id IS NULL ORDER BY subject_id")]
+                    f"WHERE hadm_id IS NULL{_scope(subject_ids)} ORDER BY subject_id")]
 
 
-def check_duplicates(db: Database) -> list[Finding]:
+def check_duplicates(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
+    scope = _scope(subject_ids)
+    where = f"WHERE 1=1{scope} " if scope else ""
     dups = int(db.query(
         "SELECT count(*) AS d FROM (SELECT subject_id, hadm_id, seq_num "
-        "FROM diagnoses_icd GROUP BY 1,2,3 HAVING count(*) > 1)"
+        f"FROM diagnoses_icd {where}GROUP BY 1,2,3 HAVING count(*) > 1)"
     )[0]["d"])
     sev = "green" if dups == 0 else "red"
     kind = "real_finding" if dups == 0 else "data_error"
     sql = ("" if dups == 0 else
            "SELECT subject_id, hadm_id, seq_num, count(*) AS rows FROM diagnoses_icd "
-           "GROUP BY 1,2,3 HAVING count(*) > 1 ORDER BY count(*) DESC")
+           f"{where}GROUP BY 1,2,3 HAVING count(*) > 1 ORDER BY count(*) DESC")
     return [Finding("duplicates", sev, "diagnoses_icd",
                     f"{dups} duplicate (subject_id, hadm_id, seq_num) keys", dups, kind,
                     "primary key", "duplicates:dx", sql)]
 
 
-def check_comments_hidden(db: Database) -> list[Finding]:
+def check_comments_hidden(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
     # Lab rows with no numeric value but a real result trapped in the free-text comments
     # (the documented MIMIC pattern, e.g. viral-load "DETECTED"). ___ = de-identified.
     r = db.query(
         "SELECT count(*) AS n, count(DISTINCT itemid) AS items FROM labevents "
         "WHERE valuenum IS NULL AND comments IS NOT NULL "
-        "AND comments <> '___' AND trim(comments) <> ''"
+        f"AND comments <> '___' AND trim(comments) <> ''{_scope(subject_ids)}"
     )[0]
     n = int(r["n"] or 0)
     if n == 0:
@@ -157,15 +183,15 @@ def check_comments_hidden(db: Database) -> list[Finding]:
                     n, "data_error", "valuenum NULL + comments", "completeness:comments",
                     "SELECT subject_id, hadm_id, itemid, charttime, comments FROM labevents "
                     "WHERE valuenum IS NULL AND comments IS NOT NULL AND comments <> '___' "
-                    "AND trim(comments) <> '' ORDER BY itemid")]
+                    f"AND trim(comments) <> ''{_scope(subject_ids)} ORDER BY itemid")]
 
 
-def check_storetime(db: Database) -> list[Finding]:
+def check_storetime(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
     out: list[Finding] = []
     for table in ("chartevents", "labevents"):
         n = int(db.query(
             f"SELECT count(*) AS n FROM {table} "
-            "WHERE storetime IS NOT NULL AND charttime IS NOT NULL AND storetime < charttime"
+            f"WHERE storetime IS NOT NULL AND charttime IS NOT NULL AND storetime < charttime{_scope(subject_ids)}"
         )[0]["n"])
         if n:
             out.append(Finding("temporal", "amber", table,
@@ -174,7 +200,7 @@ def check_storetime(db: Database) -> list[Finding]:
                                n, "caveat", "storetime < charttime", f"temporal:storetime-{table}",
                                f"SELECT subject_id, itemid, charttime, storetime FROM {table} "
                                "WHERE storetime IS NOT NULL AND charttime IS NOT NULL "
-                               "AND storetime < charttime ORDER BY subject_id"))
+                               f"AND storetime < charttime{_scope(subject_ids)} ORDER BY subject_id"))
     if not out:  # always surface the check so a clean pass is visible, not silently absent
         out.append(Finding("temporal", "green", "chartevents",
                            "0 rows with storetime earlier than charttime", 0, "real_finding",
@@ -182,11 +208,17 @@ def check_storetime(db: Database) -> list[Finding]:
     return out
 
 
-def check_hr_completeness(db: Database) -> list[Finding]:
-    total = int(db.query("SELECT count(*) AS n FROM icustays")[0]["n"])
+def check_hr_completeness(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
+    total = int(db.query(
+        f"SELECT count(*) AS n FROM icustays i WHERE 1=1{_scope(subject_ids, 'i.subject_id')}"
+    )[0]["n"])
+    if total == 0:
+        return [Finding("completeness", "green", "icustays",
+                        "no ICU stays for this cohort", 0, "caveat", "per-stay HR completeness")]
     missing = int(db.query(
         "SELECT count(*) AS n FROM icustays i WHERE NOT EXISTS "
         "(SELECT 1 FROM chartevents c WHERE c.stay_id = i.stay_id AND c.itemid = 220045)"
+        f"{_scope(subject_ids, 'i.subject_id')}"
     )[0]["n"])
     if missing == 0:
         return [Finding("completeness", "green", "icustays",
@@ -200,14 +232,17 @@ def check_hr_completeness(db: Database) -> list[Finding]:
                     "completeness:hr",
                     "SELECT i.subject_id, i.stay_id, i.first_careunit, i.intime, i.outtime "
                     "FROM icustays i WHERE NOT EXISTS (SELECT 1 FROM chartevents c "
-                    "WHERE c.stay_id = i.stay_id AND c.itemid = 220045) ORDER BY i.subject_id")]
+                    f"WHERE c.stay_id = i.stay_id AND c.itemid = 220045){_scope(subject_ids, 'i.subject_id')} "
+                    "ORDER BY i.subject_id")]
 
 
-def check_near_duplicates(db: Database) -> list[Finding]:
+def check_near_duplicates(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
+    scope = _scope(subject_ids)
+    where = f"WHERE 1=1{scope} " if scope else ""
     r = db.query(
         "SELECT count(*) AS groups, coalesce(sum(c - 1), 0) AS extra FROM "
         "(SELECT subject_id, stay_id, itemid, charttime, count(*) AS c FROM chartevents "
-        "GROUP BY 1,2,3,4 HAVING count(*) > 1)"
+        f"{where}GROUP BY 1,2,3,4 HAVING count(*) > 1)"
     )[0]
     groups = int(r["groups"] or 0)
     if groups == 0:
@@ -218,14 +253,15 @@ def check_near_duplicates(db: Database) -> list[Finding]:
                     f"(review, don't auto-delete)", groups, "data_error", "near-duplicate",
                     "duplicates:near",
                     "SELECT subject_id, stay_id, itemid, charttime, count(*) AS rows FROM chartevents "
-                    "GROUP BY 1,2,3,4 HAVING count(*) > 1 ORDER BY count(*) DESC")]
+                    f"{where}GROUP BY 1,2,3,4 HAVING count(*) > 1 ORDER BY count(*) DESC")]
 
 
-def all_findings(db: Database) -> list[Finding]:
-    return (check_plausibility(db) + check_units(db) + check_temporal(db)
-            + check_completeness(db) + check_duplicates(db)
-            + check_comments_hidden(db) + check_storetime(db)
-            + check_hr_completeness(db) + check_near_duplicates(db))
+def all_findings(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
+    s = subject_ids
+    return (check_plausibility(db, s) + check_units(db, s) + check_temporal(db, s)
+            + check_completeness(db, s) + check_duplicates(db, s)
+            + check_comments_hidden(db, s) + check_storetime(db, s)
+            + check_hr_completeness(db, s) + check_near_duplicates(db, s))
 
 
 def find_offending_rows(db: Database, findings: list[Finding], finding_id: str,
@@ -310,9 +346,10 @@ KIND_ORDER = {"data_error": 2, "caveat": 1, "real_finding": 0}
 ASSUMED_MINUTES_PER_ISSUE = 3
 
 
-def scorecard(db: Database, findings: list[Finding] | None = None) -> dict[str, Any]:
+def scorecard(db: Database, findings: list[Finding] | None = None,
+              subject_ids: list[int] | None = None) -> dict[str, Any]:
     if findings is None:
-        findings = all_findings(db)
+        findings = all_findings(db, subject_ids)
     # Rank worst-first so a reviewer sees the most severe, highest-volume errors first
     # (beats a dumb checker that flags everything equally).
     findings.sort(key=lambda f: (SEV_ORDER[f.severity], KIND_ORDER.get(f.kind, 0), f.count), reverse=True)

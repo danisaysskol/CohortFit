@@ -24,9 +24,7 @@ CohortFit now reads as a shipped, design-led product rather than a hackathon dem
 2. **The three capabilities don't form the loop the product promises.** The thesis is "build a cohort → judge *its* data quality → explore *its* measurements." Today the pages are siloed: the Quality scorecard assesses the *whole* dataset, not the cohort you just built, and there's no link from a cohort to its fitness or its measurements. The strongest single improvement would be cohort-scoped quality + measurement views, cross-linked.
 3. **Evaluation is the least interactive page.** It's a static report: four tiles, a bar chart, a confusion matrix, and a per-seed table whose rows are identical (one check, deterministic). A judge can't *do* anything. It also over-promises breadth (one temporal check) — honest, but thin.
 4. **The measurement/coding-pattern explorer (Track-2 point 3) barely exists.** Schema explorer shows raw rows and keys, but there's no view of measurement *coverage*, unit *variation*, or coding *patterns* as an interactive lens — the exact thing point 3 asks for.
-5. **The Cohorts "Live steps" panel earns less than its footprint.** With the production build the steps often complete near-instantly, so the trace flashes. It's a nice touch during a slow LLM call but takes a full column; consider making it collapse to a one-line status once complete.
-6. **Dimension tiles on Quality are display-only.** Five prominent tiles (Plausibility/Units/…) look clickable but aren't — a missed, cheap interaction (click a dimension → filter the findings list).
-7. **Responsive/mobile is unverified.** Everything is validated at desktop width; the grids have breakpoints but no one has looked at a narrow viewport, and judges sometimes review on tablets.
+5. **Dimension tiles on Quality are display-only.** Five prominent tiles (Plausibility/Units/…) look clickable but aren't — a missed, cheap interaction (click a dimension → filter the findings list).
 
 ## 4. What to improve (prioritized)
 
@@ -37,10 +35,8 @@ CohortFit now reads as a shipped, design-led product rather than a hackathon dem
 **P2 — deepen existing interactions.**
 - Make the five **dimension tiles clickable** to filter the findings list (cheap, obvious win).
 - In the **finding drill-in**, let a row link through to that patient/stay (reuse the timeline), tying the two flagship interactions together.
-- Collapse the **Live steps** panel to a compact status line once a build completes.
 
 **P3 — polish.**
-- Verify and fix **narrow-viewport** layouts.
 - Add a subtle **count-up or highlight** on the headline numbers when a page loads, to draw the eye (motion with purpose, used sparingly).
 - Consider a light **cross-page breadcrumb** of the current cohort so the app feels like one workflow, not five pages.
 

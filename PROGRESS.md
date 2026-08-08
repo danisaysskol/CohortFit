@@ -87,6 +87,12 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Concurrency bug fixed (demo-safety)** — DuckDB connection isn't thread-safe; concurrent requests corrupted results. Now a fresh cursor per query; verified under 8 concurrent calls.
 - [x] Removed the Batch-API idea (not feasible for a hackathon).
 
+**Done (brought the UI to life — Confident + high contrast):**
+- [x] **Reusable icon set** (`Icon.tsx`) used across nav, buttons, tiles, findings, ERD.
+- [x] **Visual energy** — filled accent buttons with hover-lift + press, input focus glow, tinted panel headers (contrast), coloured headline numbers, spinner, warm second accent, transitions.
+- [x] **Cohorts** — auto-focused hero input; **patient results table** (gender/age/ICU stays/LOS/admissions/death), not just subject_ids.
+- [x] **Schema map = star layout** — patients/admissions/icustays centred, all FK edges attached + labelled; PK/FK badges; clickable tables → column dropdown.
+
 **Next:**
 - [ ] Continue polish / any specific asks; human deliverables (demo video, slides, submission, CVs).
 

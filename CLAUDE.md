@@ -79,7 +79,7 @@ patient-care-track-2/
 │   ├── test-cases/                   # test suite + reusable result logs
 │   │   ├── RESULTS.md · results.json · cohortfit-test-suite.json · sample-test-cases.json
 │   ├── ui-screenshots/               # latest UI screenshots (refresh on UI change)
-│   ├── EVALUATION_REPORT.md · SAFETY_STATEMENT.md · TRACK2_REQUIREMENTS.md · SUBMISSION.md · SLIDE_PROMPT.md
+│   ├── EVALUATION_REPORT.md · SAFETY_STATEMENT.md · TRACK2_REQUIREMENTS.md · SUBMISSION.md · SLIDE_PROMPT.md · PITCH_SCRIPT.md
 │   ├── RESEARCH_AND_EXPLORATION.md
 ├── frontend/                         # Next.js 14 (Lab Ledger design system)
 │   ├── app/
@@ -92,6 +92,7 @@ patient-care-track-2/
 ├── hackathon-instructions/           # the two source PDFs
 ├── .env.example · .gitattributes · .gitignore
 ├── CLAUDE.md · README.md · PROGRESS.md · TENTATIVE_AGILE_PLAN.md · TENTATIVE_FRONTEND_DESIGN_SYSTEM.md
+├── CohortFit_pitch_deck.pptx        # final 8-slide pitch deck (screenshots embedded + speaker notes)
 └── docker-compose.yml
 ```
 

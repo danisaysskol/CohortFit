@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-09 — Re-architected to a cohort-centric workspace: the Cohorts page now holds an editable cohort + four lenses (Patients · Query · Data fitness · Measurements), so you build, judge, and explore one cohort in one place without page-hopping. Added reproducibility export (#1) and issue-coverage-by-table (#4); the Data-fitness page is now whole-dataset only. Cohort-view latency was fixed at the root (materialised DuckDB tables, 23s→0.3s) and the Evaluation claims are scoped honestly. 30 backend tests pass. Next: human deliverables (demo, slides, submission)._
+_Last updated: 2026-08-09 — Project build is complete. Final polish shipped: modal drawers (focus-trap + ESC) for the timeline & drill-in, self-labelled dimension filters, a blackbox/whitebox/big-bang test pass (fixed a negative-limit 500; 32 tests pass), the 1000-char submission description, and the **finalized 8-slide pitch deck** (`CohortFit_pitch_deck.pptx`, screenshots embedded + speaker notes) with its 3-minute script (`docs/PITCH_SCRIPT.md`). All that remains is human-only: record the demo video, pick the portal theme, upload CVs, and submit._
 
 ---
 
@@ -145,8 +145,12 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **Keyboard accessibility** — clickable patient rows and drillable finding flags are now `role="button"` + `tabIndex=0` + Enter/Space handlers + `aria-label`s (verified: rows expose as labelled buttons in the a11y tree). Schema explorer already had loading/empty states + sortable header buttons.
 - [x] Confirmed existing guards hold: localStorage reads/writes wrapped in try/catch (private mode / corrupt data safe); Export-recipe guarded; per-page backend-down error banners present.
 
+**Done (pitch deck + script — finalized):**
+- [x] **`CohortFit_pitch_deck.pptx`** — final 8-slide deck (title · problem · what it does · how it works/AI · data quality · evaluation · safety+honest-failure · limitations/close). Generated from `docs/SLIDE_PROMPT.md`, then finalized: the three UI screenshots embedded in snug frames, stray-space typography fixed, reviewed slide-by-slide (design, content accuracy, honesty/safety, rubric coverage) via PowerPoint→PNG render. Matches the product palette; safety line on every slide.
+- [x] **`docs/PITCH_SCRIPT.md`** — the ~3-minute speaker script, also embedded in each slide's Notes pane.
+
 **Next:**
-- [ ] Human deliverables (demo video, slides, submission, CVs).
+- [ ] Human-only: record the demo video, select the portal theme, upload CVs, submit (see `docs/SUBMISSION.md`).
 
 **Human-only:**
 - [ ] Demo video + slides (3-min script in `TENTATIVE_AGILE_PLAN.md`), Sofstica portal submission, CVs.

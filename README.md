@@ -10,6 +10,8 @@ The pitch in one line: **honesty as a feature** — CohortFit's most valuable jo
 
 **App:** https://cohortfit.vercel.app
 
+The hosted demo runs the full **OpenAI (GPT‑5.6)** natural‑language path — no key needed to try it. (Running locally, the app works offline via a disclosed keyword fallback unless you set your own `OPENAI_API_KEY`; see [Quick start](#-quick-start).)
+
 Next.js frontend on Vercel; FastAPI + DuckDB backend on Heroku (container). Deidentified MIMIC-IV **Demo** data only.
 
 ---

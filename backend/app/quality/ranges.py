@@ -1,7 +1,7 @@
 """Plausibility bounds for numeric ICU vitals.
 
 itemid -> (low, high, label, unit). These mirror the bounds in MIT's
-mimic-code `concepts/measurement/vitalsign.sql` (cited in docs/RESEARCH_AND_EXPLORATION.md),
+mimic-code `concepts/measurement/vitalsign.sql` (cited in docs/RESEARCH.md),
 so our rules are citeable and non-arbitrary rather than invented thresholds.
 
 A value is implausible when valuenum < low or valuenum > high. Because these

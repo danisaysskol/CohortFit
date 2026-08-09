@@ -39,4 +39,4 @@ A research/education tool for clinical-data researchers, educators, and data tea
 CohortFit assists; it does not act. A human must review cohort definitions before any downstream use, must decide on any data correction (fixes are **proposed only** — reversible by construction, never applied by CohortFit, and never committed to source; the store is read-only and there is no server-side fix log), and must not use outputs for clinical decisions. No automated clinical action is possible.
 
 ## Licence & attribution
-Use of MIMIC-IV Demo v2.2 follows the PhysioNet licence and attribution terms. External code/reference (e.g. MIT `mimic-code` plausibility ranges) is cited in `docs/RESEARCH_AND_EXPLORATION.md`.
+Use of MIMIC-IV Demo v2.2 follows the PhysioNet licence and attribution terms. External code/reference (e.g. MIT `mimic-code` plausibility ranges) is cited in `docs/RESEARCH.md`.

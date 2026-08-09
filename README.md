@@ -14,22 +14,15 @@ Next.js frontend on Vercel; FastAPI + DuckDB backend on Heroku (container). Deid
 
 ---
 
-## 🌟 North Star — what 99.9% of teams won't do
+## ✨ Highlights
 
-Most participants will demo a happy-path feature. We are going for something judges rarely see: **a system whose every minute detail is deliberate, and whose behavior — not just its features — is engineered and evidenced.** This is what the human ↔ Claude-Code process (multi-agent research, systematic exploration, live browser testing, a bespoke design system) makes possible, and it's the bar we hold on every commit.
-
-Concretely, we commit to doing these — most teams will do none:
-
-1. **Honest, quantified evaluation.** We inject our own labeled errors into a *copy* of the data and report real **precision / recall / false-positive rate** per table and dimension — with uncertainty, not a single headline number. (Most teams show no metrics at all.)
-2. **Real-finding-vs-data-error discipline.** The plausibility rule is gated on `d_items.param_type` and reference ranges, so an extreme-but-real lab is *not* flagged as a typo. This is the exact strict rule Track 2 demands — and the hard part almost everyone gets wrong.
-3. **Abstention as a first-class feature.** We demo the **failure path**: when the data can't support a request, the tool says so and explains why, instead of inventing an answer.
-4. **Provenance to the exact row.** Every flag and every cohort member links back to its source table, column, id, and time — nothing is a black box.
-5. **Reproducibility by construction.** The IR→SQL compiler is deterministic; each build returns a `query_hash` (a digest of the compiled SQL + IR) and the cohort exports as a re-runnable "recipe" JSON — so a query reproduces exactly, even if the model drifts. (Nothing is persisted server-side; the store is read-only.)
-6. **Licence-aware data minimization.** We follow the PhysioNet licence and the brief's rule to *minimize data sent to external services*: the model receives only a schema-describing system prompt (a schema description + an itemid reference list) plus the user's text — no patient rows, no summary statistics, no DDL. We never dump the dataset to any service. (This is the requirement met deliberately, not an over-constraint that limits what the tool can do.)
-7. **System behavior over feature count.** We deliberately test and show how CohortFit handles **missing, ambiguous, duplicate, mis-timed, and out-of-scope** inputs — because a research tool is judged by how it behaves at the edges.
-8. **Craft in every detail.** Every number in our docs is *measured* and traceable; a from-scratch explainer for zero-context readers; a bespoke, consistent **design system** (not a template, not AI-slop); tracked UI screenshots; dead-code hygiene; disciplined commits. Nothing is left to "good enough."
-
-We maintain and grade ourselves against this North Star in [`PROGRESS.md`](PROGRESS.md). If a change doesn't move us toward it, we reconsider the change.
+- **Honest, quantified evaluation.** Labeled errors are injected into a *copy* of the data, and the engine's **precision / recall / false-positive rate** are reported per dimension with uncertainty (mean ± std across seeds), not a single headline number.
+- **Real-finding vs. data-error separation.** The plausibility check is gated on `d_items.param_type` and MIT reference ranges, so an extreme-but-genuine value is reported as a finding rather than a typo — the exact distinction Track 2 requires.
+- **Abstention as a first-class behavior.** When the data can't support a request, CohortFit declines and explains why instead of inventing an answer.
+- **Provenance to the exact row.** Every flag and every cohort member links back to its source table, column, id, and time.
+- **Reproducibility by construction.** The IR→SQL compiler is deterministic; each build returns a `query_hash` (a digest of the compiled SQL + IR) and the cohort exports as a re-runnable "recipe" JSON. Nothing is persisted server-side; the store is read-only.
+- **Licence-aware data minimization.** Following the PhysioNet licence, the model receives only a schema-describing prompt (a schema description + an itemid reference list) plus the user's text — no patient rows, no summary statistics, no DDL.
+- **Robust at the edges.** Missing, ambiguous, duplicate, mis-timed, and out-of-scope inputs are all handled and shown explicitly.
 
 ---
 
@@ -60,11 +53,11 @@ Plain English ──▶ OpenAI (or keyword fallback) ──▶ validated JSON IR
   (Lab Ledger)          (:8000)                      quality scorecard · reversible fixes · eval
 ```
 
-- **Frontend:** Next.js 14 (App Router), the *Lab Ledger* design system (`TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`), self-hosted fonts.
+- **Frontend:** Next.js 14 (App Router), the *Lab Ledger* design system (`docs/DESIGN_SYSTEM.md`), self-hosted fonts.
 - **Backend:** FastAPI + DuckDB over the frozen demo CSVs (read-only). The LLM emits a validated **IR**, never executable SQL; a deterministic compiler runs it.
 - **Reproducible:** the IR→SQL compiler is deterministic; each build returns a `query_hash` and the cohort exports as a re-runnable recipe JSON; the eval harness is seeded. (Nothing is persisted server-side — the store is read-only.)
 
-## 🖥️ The app (verified screenshots)
+## 🖥️ The app
 
 | Cohorts — builder + Provenance Ledger | Quality — scorecard + findings |
 |---|---|
@@ -80,12 +73,10 @@ Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledge
 
 ## 📚 Documentation
 
-- [`TENTATIVE_AGILE_PLAN.md`](TENTATIVE_AGILE_PLAN.md) — product plan, use cases, demo script.
-- [`docs/TRACK2_REQUIREMENTS.md`](docs/TRACK2_REQUIREMENTS.md) — the hackathon brief, extracted.
-- [`docs/RESEARCH_AND_EXPLORATION.md`](docs/RESEARCH_AND_EXPLORATION.md) — data map, evidence, model/method R&D (from-scratch explainer + real samples).
+- [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md) — the hackathon brief, extracted.
+- [`docs/RESEARCH.md`](docs/RESEARCH.md) — data map, evidence, model/method R&D (from-scratch explainer + real samples).
 - [`docs/EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) · [`docs/SAFETY_STATEMENT.md`](docs/SAFETY_STATEMENT.md) — required deliverables.
-- [`TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`](TENTATIVE_FRONTEND_DESIGN_SYSTEM.md) — the design system.
-- [`PROGRESS.md`](PROGRESS.md) — living status + decision log.
+- [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) — the design system.
 
 ---
 

@@ -1,7 +1,7 @@
 /* ===================== CohortFit — "Lab Ledger" design system =====================
    Warm-light only. Apple clarity + Material tactility (elevation, motion with purpose).
    High-contrast near-black ink. 9px radius ceiling. Tabular figures on data.
-   This file is the single source of truth referenced by TENTATIVE_FRONTEND_DESIGN_SYSTEM.md. */
+   This file is the single source of truth referenced by docs/DESIGN_SYSTEM.md. */
 
 @font-face{font-family:'Hanken Grotesk';font-weight:400;font-display:swap;src:url(/fonts/HankenGrotesk-400.woff2) format('woff2')}
 @font-face{font-family:'Hanken Grotesk';font-weight:500;font-display:swap;src:url(/fonts/HankenGrotesk-500.woff2) format('woff2')}

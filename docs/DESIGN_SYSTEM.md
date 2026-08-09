@@ -1,10 +1,10 @@
 # CohortFit — Frontend Design System ("Lab Ledger")
 
-> The single source of truth for the UI. Implemented in `frontend/app/globals.css`; every page uses these tokens and components. Warm-light only (no dark mode). This document is **tentative** — it evolves as we test the product with real judges' eyes.
+> The single source of truth for the UI. Implemented in `frontend/app/globals.css`; every page uses these tokens and components. Warm-light only (no dark mode).
 
 ## Philosophy — Apple clarity, Google Material tactility
 
-We keep Apple's restraint and typographic calm, and deliberately borrow three ideas from Google's **Material Design** so the interface is easier to grasp at a glance and rewards a judge who spends only seconds on each screen:
+We keep Apple's restraint and typographic calm, and borrow three ideas from Google's **Material Design** so the interface is easy to grasp at a glance:
 
 1. **Focus on the user.** Prioritise human needs. Every interaction is smooth, helpful, and respectful of the user's time and attention. A feature must *announce itself* — if something is clickable, the UI says so (an explicit call-to-action, a hint line, an active state), never a hidden affordance the user has to discover by accident.
 2. **Material as metaphor.** Ground the interface in physical, tactile qualities — surfaces, light, and shadow — to create spatial awareness and a natural hierarchy. Cards sit on a slightly deeper ground and lift with a soft elevation; the surface that answers a click (a timeline, a drill-in) lifts higher than the surfaces around it.
@@ -13,9 +13,9 @@ We keep Apple's restraint and typographic calm, and deliberately borrow three id
 ## Principles
 
 1. **Contrast first.** Headings and data are near-black (`--ink` / `--ink-strong`), not taupe. Secondary text is a genuinely darker muted, not a faint wash. Keywords are emphasised (weight, accent colour, or a highlighter wash) so the eye lands on what matters.
-2. **Tactile elevation.** Structure comes from *both* 1px rules **and** a small, disciplined shadow scale (`--elev-1` for resting cards, `--elev-2` for focus surfaces that open on a click). This is the Material influence; it replaces the earlier "hairlines, not shadows" rule.
+2. **Tactile elevation.** Structure comes from *both* 1px rules **and** a small, disciplined shadow scale (`--elev-1` for resting cards, `--elev-2` for focus surfaces that open on a click). This is the Material influence.
 3. **Generous scale.** Page titles are large (~31px/800). Headline numbers are large mono figures. Nothing important is small or low-contrast.
-4. **9px radius ceiling.** `cell 0 · control 6px · card 9px`. Never 16px+ rounded cards (an AI-slop tell).
+4. **9px radius ceiling.** `cell 0 · control 6px · card 9px`. Never 16px+ rounded cards.
 5. **Tabular figures on all data.** Every count/percentage/ID is monospaced with `font-variant-numeric: tabular-nums`.
 6. **Accent restraint.** The prussian accent marks interactive elements and one data highlight. Semantic colours (ok/warn/danger) encode state only, never decoration, and always pair with a label/icon (colour-blind safe).
 7. **Warm neutrals, chosen.** Greige paper, warm near-black ink — never pure `#000`/`#FFF`.
@@ -94,4 +94,4 @@ The cohort inclusion→exclusion funnel, rendered like a bank statement: columns
 
 ## Screenshots
 
-Current UI lives in `docs/ui-screenshots/`. Refresh via claude-in-chrome whenever the UI changes.
+Current UI lives in `docs/ui-screenshots/`. Refresh whenever the UI changes.

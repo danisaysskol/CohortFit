@@ -16,3 +16,11 @@ mimic.mit.edu-main.zip
 
 # Internal deploy runbook — kept local, not published to the public repo.
 DEPLOY.md
+
+# Internal working files — kept local, not published to the public (judge-facing) repo.
+CLAUDE.md
+PROGRESS.md
+TENTATIVE_AGILE_PLAN.md
+docs/PITCH_SCRIPT.md
+docs/SLIDE_PROMPT.md
+docs/SUBMISSION.md

@@ -2,7 +2,7 @@
 
 > This is our documented R&D: the measured data map, the data-quality opportunity catalogue (with **real observed values**), the documented-bug citations, and the model/method decisions with sources. It doubles as the seed for the required **Evaluation Report** and **Technical Summary**.
 >
-> **Provenance discipline:** every quantitative claim below is either (a) **measured** directly from `mimic-iv-clinical-database-demo-2.2/` on 2026-08-08, or (b) **cited** to a file path / URL. No invented numbers.
+> Every quantitative claim below is either (a) **measured** directly from `mimic-iv-clinical-database-demo-2.2/`, or (b) **cited** to a file path / URL.
 
 ---
 
@@ -62,7 +62,7 @@ Researcher types plain English
         ▼
   Data-quality rules score fitness (red/amber/green), each flag links to the real row
 ```
-Key safety property: as shipped, the AI sees only a **schema-describing system prompt (a schema description + an itemid reference list) plus the user's text** — no patient rows, no summary statistics, no DDL — the brief's *"minimize data sent to external services"* met deliberately (not an over-constraint), which respects the data licence and keeps things reproducible.
+Key safety property: as shipped, the AI sees only a **schema-describing system prompt (a schema description + an itemid reference list) plus the user's text** — no patient rows, no summary statistics, no DDL — satisfying the brief's *"minimize data sent to external services"*, which respects the data licence and keeps things reproducible.
 
 ---
 

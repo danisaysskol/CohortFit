@@ -138,7 +138,7 @@ Teams must also:
 
 ## 9. Sofstica submission requirements
 
-- **Submission portal + deadline:** Submit within the official window; the portal auto-closes at the deadline. **No late or incomplete submissions.** *(Exact date TBD — confirm and record in `PROGRESS.md`.)*
+- **Submission portal + deadline:** Submit within the official window; the portal auto-closes at the deadline. **No late or incomplete submissions.** *(Confirm the exact date on the official portal.)*
 - **Project Theme:** Select the correct hackathon theme from the dropdown (used during evaluation).
 - **Working Prototype (MVP):** Must include a **functional prototype** demonstrating the core solution. **UI mockups, wireframes, presentations, or incomplete implementations alone may be disqualified.**
 - **Project Description (max 1,000 characters):** Concise pitch covering: (1) **what you built**, (2) **the problem it addresses**, (3) **how it works**, (4) **what you'd improve/add with more time**.

@@ -1,13 +1,12 @@
 # CohortFit — Test Results
 
-**Run date:** 2026-08-08 · **Backend:** http://localhost:8000 · **Cases:** 46 (44 pass / 2 partial / 0 fail)
+**Cases:** 46 (44 pass · 2 partial · 0 fail)
 
-> ✅ **This run used the OpenAI path.** Every `/cohort/build` response carried `method: "openai"` (**gpt-5.6-terra**, structured outputs).
-> The previous run's "no OpenAI key configured / keyword-fallback" logs were **stale** and have been fully replaced.
+> ✅ This run used the OpenAI path (`method: "openai"`, **gpt-5.6-terra**, structured outputs).
 > All cohort counts were re-verified against the raw CSVs in `mimic-iv-clinical-database-demo-2.2/` using the Python `csv` module (no pandas).
-> Machine-readable cache: `results.json` (reuse it — do not re-call the API).
+> Machine-readable results: `results.json`.
 >
-> ⚠️ **LLM non-determinism:** counts and dispositions can vary slightly run-to-run. This report logs exactly what was observed on 2026-08-08. The numeric cohort counts (CF-01..24) were stable across re-queries; CF-31 produced two different *but equally safe* interpretations across runs (both `n=100`, data untouched).
+> ⚠️ **LLM non-determinism:** counts and dispositions can vary slightly run-to-run. The numeric cohort counts (CF-01..24) were stable across re-queries; CF-31 produced two different *but equally safe* interpretations across runs (both `n=100`, data untouched).
 
 ---
 
@@ -62,7 +61,7 @@ The two number-grabbing mis-parse bugs the old report called out (CF-15, CF-16) 
 ### CF-22 — "Patients with high blood pressure" — **PARTIAL** (top concern)
 - **Expected:** clarification (ask for a threshold and a BP source — ICU chart vs OMR vs diagnosis).
 - **Actual:** `disposition: cohort`, `n=64`, interpreted as a **hypertension ICD diagnosis** at confidence 0.90.
-- The model committed to one reasonable reading instead of clarifying. It is a defensible interpretation and it lowered its confidence to flag the ambiguity, but it did **not** ask as the spec wanted. This is the only case where the model returned a cohort where a clarification was expected — worth a prompt tweak if strict clarify-on-ambiguity behavior is desired.
+- The model committed to one reasonable reading instead of clarifying. It is a defensible interpretation and it lowered its confidence to flag the ambiguity, but it did **not** ask as the spec wanted. This is the only case where the model returned a cohort where a clarification was expected.
 
 ### CF-19 — "Average ICU length of stay for patients over 80" — **PARTIAL**
 - **Expected:** compute `mean(los)` over the ~16-patient cohort.
@@ -94,11 +93,10 @@ The two number-grabbing mis-parse bugs the old report called out (CF-15, CF-16) 
 - CF-17 returns **18 distinct patients**, which correspond to the **20 qualifying ICU stays** (two patients have >1 long stay). Correct at the patient granularity of the cohort entity.
 - CF-14's count (24) depends on the antibiotic dictionary; the app's SQL uses a 19-drug list and CSV-reproduces to exactly 24. A broader antibiotic list yields ~19.
 
-## Exit readiness
+## Summary
 
-- [x] All 34 cohort cases ran via the **OpenAI** path (`method: "openai"`, gpt-5.6-terra) — confirmed on every case.
-- [x] All 12 quality cases exercised (`/quality/scorecard`, `/quality/fixes`, `/eval/run`).
-- [x] Counts ground-checked against raw CSVs (no pandas); key counts CSV-verified.
-- [x] `results.json` (machine cache) and `RESULTS.md` (this report) refreshed to the OpenAI run.
-- [x] **QC-10** storetime<charttime check present on the scorecard (~54,144 rows, caveat) — implemented.
-- [ ] **CF-22** returns a cohort where a clarification was expected — 1 disposition disagreement to review.
+- All 34 cohort cases ran via the **OpenAI** path (`method: "openai"`, gpt-5.6-terra).
+- All 12 quality cases exercised (`/quality/scorecard`, `/quality/fixes`, `/eval/run`).
+- Counts ground-checked against raw CSVs (no pandas).
+- **QC-10** storetime<charttime check present on the scorecard (~54,144 rows, caveat).
+- The only clarification-vs-cohort disagreement is **CF-22** (documented above).

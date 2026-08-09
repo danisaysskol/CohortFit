@@ -8,8 +8,7 @@ The pitch in one line: **honesty as a feature** — CohortFit's most valuable jo
 
 ## 🔗 Live demo
 
-- **App (Vercel):** https://cohortfit.vercel.app
-- **API health (Heroku):** https://cohortfit-api-9b9e6bc79eaa.herokuapp.com/health
+**App:** https://cohortfit.vercel.app
 
 Next.js frontend on Vercel; FastAPI + DuckDB backend on Heroku (container). Deidentified MIMIC-IV **Demo** data only.
 

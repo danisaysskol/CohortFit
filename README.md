@@ -65,11 +65,17 @@ Plain English ──▶ OpenAI (or keyword fallback) ──▶ validated JSON IR
 | **Schema explorer** | **Evaluation — injected-error metrics** |
 | ![Schema](docs/ui-screenshots/app-schema.jpg) | ![Evaluation](docs/ui-screenshots/app-evaluation.jpg) |
 
-Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledger 100→44→44→9 + IR/SQL) · **Quality** (R/A/G scorecard, data-error-vs-finding, proposed reversible fixes) · **Evaluation** (precision/recall from self-injected errors) · **About/Safety**.
+Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledger, e.g. 100→41→9 + IR/SQL) · **Quality** (R/A/G scorecard, data-error-vs-finding, proposed reversible fixes) · **Evaluation** (precision/recall from self-injected errors) · **About/Safety**.
 
 ## 📝 Project description (submission pitch)
 
-> **CohortFit** turns a plain-English cohort description into a transparent, showable query — who's in, who's out, and why — then scores whether the data are fit to trust, telling real clinical findings from data errors. **Built:** a Next.js + FastAPI/DuckDB app over MIMIC-IV Demo (100 patients) with a Schema Explorer; a Cohort Builder whose *Provenance Ledger* shows the inclusion→exclusion funnel (100→44→44→9) plus the IR and SQL; a red/amber/green Data-Fitness Scorecard that separates data errors from real findings; reversible, rule-backed fixes (never mutating source); and an Evaluation page with real precision/recall from self-injected errors. **Problem:** researchers waste weeks before discovering data can't support a study. **How:** the LLM emits a validated IR (not SQL); our compiler runs it on DuckDB; every flag traces to a real row; it abstains when unsupported. **More time:** broaden NL coverage, harder data-quality dimensions, patient-grouped cross-validation.
+> CohortFit turns a plain-English patient-group description into a transparent, reproducible query and a data-fitness verdict, on the MIMIC-IV demo (100 ICU patients).
+>
+> **Built:** a Next.js + FastAPI/DuckDB app. The model emits a validated query plan (IR), never raw SQL; a deterministic compiler runs it and returns a `query_hash` for reproducibility. The Cohort Builder shows the exact inclusion/exclusion funnel with the IR and SQL. A red/amber/green Data-Fitness Scorecard flags plausibility, unit, temporal, completeness and duplicate issues, separates real clinical findings from data errors, and traces every flag to real rows. Fixes are reversible and rule-backed; source data is never modified. It abstains, clarifies, or refuses when a request can't be answered honestly.
+>
+> **Problem:** researchers can waste weeks before discovering their data can't support a study.
+>
+> **With more time:** broader natural-language coverage, more injected-error evaluation dimensions, and patient-grouped cross-validation.
 
 ## 📚 Documentation
 
@@ -80,15 +86,11 @@ Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledge
 
 ---
 
-## ⚠️ Required setup — do this before working on the project
+## 🛠️ Build, run & evaluate
 
-The official MIMIC code repository is **not** included in this repo (it is gitignored because it is large). You **must** download it and place it in the project root for this project to work:
+Everything needed is in this repo — **no extra downloads required.** `docker compose up --build` (see [Quick start](#-quick-start)) brings up the full stack against the **committed** MIMIC-IV Demo dataset. Configuration is optional: copy `.env.example` → `.env` to enable the OpenAI path, otherwise the app runs offline with a disclosed keyword fallback. Evaluate with the test suite (`docker compose run --rm backend pytest`) and the in-app **Evaluation** page, or just use the [live demo](#-live-demo).
 
-1. Download the repository from **https://github.com/MIT-LCP/mimic-code** (e.g. "Code → Download ZIP", which gives `mimic-code-main.zip`).
-2. **Extract the zip** into the project root — the code must be present in **folder format, not as a `.zip`**.
-3. Ensure the resulting directory is named exactly **`mimic-code-main/`** and sits at the project root.
-
-`mimic-code-main/` is a **cited reference** (its `vitalsign.sql` plausibility bounds inform our rules) and a project convention — keep it present for provenance. Note: the runnable app itself needs only **Docker + the demo data** (the bounds are already encoded in `backend/app/quality/ranges.py`), so the [Quick start](#-quick-start) works without opening the repo.
+**Optional reference:** the plausibility bounds are cited to MIT's [`mimic-code`](https://github.com/MIT-LCP/mimic-code) (`concepts/measurement/vitalsign.sql`). Those bounds are already encoded in `backend/app/quality/ranges.py`, so you do **not** need to download `mimic-code` to build, run, or evaluate — it's a citation, not a dependency.
 
 ## Data & repo layout
 
@@ -101,7 +103,7 @@ The **extracted** contents of `mimic-iv-clinical-database-demo-2.2.zip` (the MIM
 The downloaded source of the official MIMIC code repository: **https://github.com/MIT-LCP/mimic-code**.
 
 - This folder is **gitignored** (see `.gitignore`) — it is a large upstream repo and is not tracked here.
-- It **must** be present on disk to work with this project. Download/clone it from the URL above and place it here **in folder format** (extracted, not as a `.zip`). The directory name must be `mimic-code-main/`. See [Required setup](#️-required-setup--do-this-before-working-on-the-project) above.
+- **Not required to build, run, or evaluate the app** — the plausibility bounds it informs are already encoded in `backend/app/quality/ranges.py`. It is a cited reference; download it from the URL above only if you want to inspect the upstream SQL.
 
 ### `mimic-iv-docs/`
 The official MIMIC-IV **prose documentation**, copied into the project root so the docs are available without opening the source zip/site again.

@@ -1,0 +1,19 @@
+# Keeps the Heroku build context (repo root) lean: we only need backend/ code and
+# the demo dataset. Everything else is excluded so the image build is fast and small.
+# NOTE: this applies to the repo-root build context (Dockerfile.heroku) only; the
+# docker-compose backend build uses backend/ as its context and is unaffected.
+.git
+.github
+frontend
+mimic-code-main
+mimic-iv-docs
+docs
+hackathon-instructions
+*.zip
+*.md
+.env
+.env.*
+**/__pycache__
+**/.pytest_cache
+backend/tests
+backend/pytest.ini

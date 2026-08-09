@@ -13,3 +13,6 @@ mimic.mit.edu-main.zip
 .env.*.local
 
 .env
+
+# Internal deploy runbook — kept local, not published to the public repo.
+DEPLOY.md

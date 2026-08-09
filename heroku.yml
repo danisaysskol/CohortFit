@@ -1,0 +1,7 @@
+# Heroku container deploy for the CohortFit backend.
+# Once (per app):   heroku stack:set container --app <app>
+# Then a `git push heroku master` (or the GitHub Actions workflow) builds this
+# Dockerfile from the repo root and releases it as the `web` process.
+build:
+  docker:
+    web: Dockerfile.heroku

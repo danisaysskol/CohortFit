@@ -1,0 +1,63 @@
+name: backend-ci-cd
+
+# CI/CD for the FastAPI + DuckDB backend:
+#   1) run the test suite (must pass), then
+#   2) build the container and release it to Heroku.
+# Frontend CI/CD is handled automatically by Vercel's GitHub integration.
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   HEROKU_API_KEY    -> output of `heroku auth:token`
+#   HEROKU_APP_NAME   -> the Heroku app name you created
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "Dockerfile.heroku"
+      - "heroku.yml"
+      - "mimic-iv-clinical-database-demo-2.2/**"
+      - ".github/workflows/backend-deploy.yml"
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Run tests (keyword path; no API key needed)
+        working-directory: backend
+        env:
+          MIMIC_DATA_DIR: ${{ github.workspace }}/mimic-iv-clinical-database-demo-2.2
+        run: python -m pytest -q
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      HEROKU_APP: ${{ secrets.HEROKU_APP_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build, push, and release the container to Heroku
+        # Skipped (not failed) until HEROKU_APP_NAME / HEROKU_API_KEY secrets are set.
+        if: env.HEROKU_APP != ''
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          set -euo pipefail
+          echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
+          IMAGE="registry.heroku.com/$HEROKU_APP/web"
+          docker build -f Dockerfile.heroku -t "$IMAGE" .
+          docker push "$IMAGE"
+          # Release via the Heroku Platform API (no Heroku CLI needed on the runner).
+          IMAGE_ID=$(docker inspect "$IMAGE" --format '{{.Id}}')
+          curl -sf -X PATCH "https://api.heroku.com/apps/$HEROKU_APP/formation" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/vnd.heroku+json; version=3.docker-releases" \
+            -H "Authorization: Bearer $HEROKU_API_KEY" \
+            -d "{\"updates\":[{\"type\":\"web\",\"docker_image\":\"$IMAGE_ID\"}]}"

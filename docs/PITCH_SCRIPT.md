@@ -16,7 +16,7 @@
 
 ## Slide 4 — How it works — AI where it's necessary
 
-[~30s] The AI is used only where it's necessary. Your words become a validated JSON query — strict structured outputs with the real column names as enums, so the model can't hallucinate a column. A deterministic DuckDB compiler runs it; the model never writes executable SQL. Every claim traces back to a source row, and when the data can't support an answer it abstains. The provenance funnel shows 100 patients down to the 9 that match — every step visible.
+[~30s] The AI is used only where it's necessary. Your words become a validated JSON query with strict structured outputs, and a deterministic DuckDB compiler validates every field against the schema before running it — so the model never writes executable SQL, and a hallucinated column becomes a clarification, not a bad query. Every claim traces back to a source row, and when the data can't support an answer it abstains. The provenance funnel shows 100 patients down to the 9 that match — every step visible.
 
 ## Slide 5 — Data quality you can trust
 

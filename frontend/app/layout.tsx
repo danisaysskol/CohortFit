@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="safety" role="note">
             <span className="tick" aria-hidden="true" />
             <span>
-              <span className="k">Research &amp; educational prototype only.</span> {SAFETY}
+              <span className="k">Research and educational prototype only.</span> {SAFETY}
             </span>
           </div>
           <main>{children}</main>

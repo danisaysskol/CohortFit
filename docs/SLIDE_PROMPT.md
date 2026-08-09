@@ -52,7 +52,7 @@ Create a **downloadable PowerPoint (.pptx)** pitch deck for a hackathon project 
   reproducible query, then judges whether that cohort’s data are fit to trust — separating a
   real clinical finding from a data error. Pitch = **honesty as a feature**.
 - **How it works (AI is necessary, not decorative):** plain words → a **validated JSON query
-  (IR)** via OpenAI GPT-5.6 **strict Structured Outputs with column enums** → a **deterministic
+  (IR)** via OpenAI GPT-5.6 **strict Structured Outputs** (a deterministic compiler validates every field) → a **deterministic
   DuckDB compiler**. **The model never writes executable SQL.** Every patient-level claim
   traces back to a source row; the system **abstains** when the data can’t support an answer.
 - **Product (one cohort, one workspace):** build/edit a cohort in plain English, then four
@@ -106,7 +106,7 @@ Create a **downloadable PowerPoint (.pptx)** pitch deck for a hackathon project 
    out) → matched patients + timelines → data-fitness verdict → measurements. Embed
    `app-cohorts-workspace.jpg`.
 4. **How it works — AI where it’s necessary** — NL → validated JSON IR (strict structured
-   outputs, column enums) → deterministic DuckDB SQL; the model never writes SQL; every claim
+   outputs; compiler validates every field) → deterministic DuckDB SQL; the model never writes SQL; every claim
    traces to a source row; abstains when unsupported. A simple left-to-right pipeline diagram +
    embed `cohorts-patient-timeline.jpg` or a funnel visual. (Maps to the 25% “AI & Data
    Quality”.)

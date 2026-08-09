@@ -2,13 +2,13 @@
 
 ## Project description (≤ 1,000 characters)
 
-> Paste this into the portal's "Project Description" field. Current length: **996 / 1000**. Covers the four required points: what you built · the problem · how it works · what you'd improve.
+> Paste this into the portal's "Project Description" field. Current length: **999 / 1000**. Covers the four required points: what you built · the problem · how it works · what you'd improve.
 
 CohortFit (Track 2) turns a plain-English cohort description into a transparent, reproducible query, then judges whether that cohort's data are fit to trust.
 
 Problem: hospital data are rich but hard to use — before analysis a researcher must define a cohort AND judge whether its data support it, telling a real finding from a data error.
 
-How: plain words → a validated JSON query (OpenAI strict structured outputs with column enums; the model never writes SQL) → a deterministic DuckDB compiler. You get the inclusion/exclusion funnel, matched patients with event timelines, a red/amber/green fitness scorecard across five dimensions (every flag drillable to the real offending rows, classified data-error vs finding), and measurement coverage, unit variation and coding. Fixes are reversible and rule-backed; source data is never edited; it abstains when unsupported. Research/education only.
+How: plain words → a validated JSON query (OpenAI strict structured outputs; the model never writes SQL) → a deterministic DuckDB compiler that validates every field. You get the inclusion/exclusion funnel, matched patients with event timelines, a red/amber/green fitness scorecard across five dimensions (every flag drillable to the real offending rows, classified data-error vs finding), and measurement coverage, unit variation and coding. Fixes are reversible and rule-backed; source data is never edited; it abstains when unsupported. Research/education only.
 
 More time: harder-dimension evaluation, leakage/index-time guards, validation on a larger dataset.
 

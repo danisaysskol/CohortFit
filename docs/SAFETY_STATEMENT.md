@@ -17,7 +17,7 @@ A research/education tool for clinical-data researchers, educators, and data tea
 - Derived artifacts (cohort IR, compiled SQL, data-hash, quality findings, injected-error copies) are computed at request time and are clearly derived, never presented as source.
 
 ## Privacy handling (licence-aware minimization)
-- The brief requires *minimizing data sent to external services*. By default the LLM receives the **schema (column names) + the user's description + aggregate summaries** — not raw patient rows. Only the minimal patient-level detail a task genuinely needs is sent, and it is disclosed. The dataset is never dumped to any service.
+- The brief requires *minimizing data sent to external services*. In the cohort-build path the LLM receives only the **user's description + a schema-describing system prompt** — no patient rows and no data values (verified in `backend/app/cohort/nl.py`). Only the minimal patient-level detail a task genuinely needs would ever be sent, and it is disclosed. The dataset is never dumped to any service.
 - Without an `OPENAI_API_KEY`, the tool runs fully offline via a disclosed keyword fallback — no data leaves the machine at all.
 - Sample rows shown in the Schema Explorer are served to the **local UI only**.
 

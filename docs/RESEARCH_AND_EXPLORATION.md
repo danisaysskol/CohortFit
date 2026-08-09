@@ -245,7 +245,7 @@ The LLM **never** writes executable SQL. It emits a constrained **intermediate r
 
 ### D2. OpenAI Structured Outputs (`strict:true`)
 - Set `response_format` to `json_schema` with `strict:true`; output is guaranteed to conform. Requirements: `additionalProperties:false` on every object, every property in `required` (emulate optional via nullable unions), root must be an object. Safety refusals surface in a dedicated `refusal` field.
-- **Highest-leverage trick:** put **allowed table/column names as JSON-Schema `enum`s** → the model literally cannot emit a non-existent column.
+- **Considered trick:** put allowed table/column names as JSON-Schema `enum`s so the model cannot emit a non-existent column. *(As shipped, the IR constrains kinds/ops to enums but leaves `field`/`table` as free strings; the **deterministic compiler validates every field against the schema** and turns an ungroundable field into a `clarify` — so bad SQL never runs. Making the columns true enums is a small, listed follow-up.)*
 - Add required **`answerable` / `abstain_reason` / `confidence`** fields → explicit abstention instead of a fabricated query.
 - Docs: https://developers.openai.com/api/docs/guides/structured-outputs
 

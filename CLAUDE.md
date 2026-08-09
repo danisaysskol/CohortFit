@@ -21,7 +21,7 @@ Do not build or modify this project on a different model unless the user explici
 - **NEVER:** silently edits/deletes source data; gives medical/diagnostic/triage advice; claims clinical validity; hides AI-generated content; infers calendar dates (data are date-shifted); dumps patient-level data to external services — per the licence we **minimize** what's sent (schema + aggregates by default; only the minimal rows a task genuinely needs), disclose it, and never upload to a service whose terms disallow it.
 - **On every screen:** *Research and educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.*
 
-**Locked decisions:** Stack = **FastAPI + Next.js** (deploy to Vercel) · LLM = **OpenAI only** (strict Structured Outputs, column enums; GPT-5.6 Terra primary / Luna fallback / Sol escalate) · **NL → validated JSON IR → DuckDB SQL** (the LLM never writes executable SQL) · Ace card = **demo-verifiable only** (every flag traces to a real 100-patient row).
+**Locked decisions:** Stack = **FastAPI + Next.js** (deploy to Vercel) · LLM = **OpenAI only** (strict Structured Outputs into a validated IR — kinds/ops enum-constrained, fields validated by the deterministic compiler; GPT-5.6 Terra primary / Luna fallback / Sol escalate) · **NL → validated JSON IR → DuckDB SQL** (the LLM never writes executable SQL) · Ace card = **demo-verifiable only** (every flag traces to a real 100-patient row).
 
 **Process:** we work **scrum-style** — build one small feature, test it, verify against requirements + rubric (`docs/TRACK2_REQUIREMENTS.md`), update, then move on. Frontend is built **from the start**, not bolted on at the end.
 
@@ -79,7 +79,7 @@ patient-care-track-2/
 │   ├── test-cases/                   # test suite + reusable result logs
 │   │   ├── RESULTS.md · results.json · cohortfit-test-suite.json · sample-test-cases.json
 │   ├── ui-screenshots/               # latest UI screenshots (refresh on UI change)
-│   ├── EVALUATION_REPORT.md · SAFETY_STATEMENT.md · TRACK2_REQUIREMENTS.md · SUBMISSION.md · SLIDE_PROMPT.md · PITCH_SCRIPT.md
+│   ├── EVALUATION_REPORT.md · SAFETY_STATEMENT.md · TRACK2_REQUIREMENTS.md · SUBMISSION.md · SLIDE_PROMPT.md · PITCH_SCRIPT.md · EXTERNAL_AUDIT.md
 │   ├── RESEARCH_AND_EXPLORATION.md
 ├── frontend/                         # Next.js 14 (Lab Ledger design system)
 │   ├── app/

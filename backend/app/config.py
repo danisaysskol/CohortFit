@@ -27,7 +27,14 @@ class Settings(BaseSettings):
     openai_reasoning_effort: str = "low"            # bounded schema-mapping task
 
     # --- API ---
-    cors_allow_origins: list[str] = ["*"]  # dev default; tighten for any real deploy
+    # Comma-separated list of allowed origins ("*" = allow all). Kept as a plain string
+    # (not a JSON list) so it's set safely from any shell/platform env — e.g.
+    # CORS_ALLOW_ORIGINS=https://cohortfit.vercel.app  (dev default allows all).
+    cors_allow_origins: str = "*"
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]
 
 
 settings = Settings()

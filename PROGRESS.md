@@ -149,10 +149,9 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **`CohortFit_pitch_deck.pptx`** — final 8-slide deck (title · problem · what it does · how it works/AI · data quality · evaluation · safety+honest-failure · limitations/close). Generated from `docs/SLIDE_PROMPT.md`, then finalized: the three UI screenshots embedded in snug frames, stray-space typography fixed, reviewed slide-by-slide (design, content accuracy, honesty/safety, rubric coverage) via PowerPoint→PNG render. Matches the product palette; safety line on every slide.
 - [x] **`docs/PITCH_SCRIPT.md`** — the ~3-minute speaker script, also embedded in each slide's Notes pane.
 
-**Done (external audit + honesty corrections):**
-- [x] **`docs/EXTERNAL_AUDIT.md`** — independent, code-verified audit vs the requirements (rubric ~86–89/100; deliverables, §5 protocol, §6 metrics, §7 safety, §9 submission all checked). Verified: runs with one command, 32 tests pass, real data-minimization (no rows to the LLM), reversible fixes, honest eval + baseline.
-- [x] **Fixed the audit's factual findings:** F1 — the "column enums" guardrail was over-claimed (IR keeps `field`/`table` as free strings; the deterministic compiler validates them). Reworded across the deck, script, SUBMISSION blurb (999/1000), CLAUDE.md, SLIDE_PROMPT, RESEARCH. F3 — banner now verbatim ("Research **and** educational…"). F4 — dropped the inaccurate "aggregate summaries" wording in SAFETY_STATEMENT.
-- [ ] Open recommendations (not blocking): add a harder-dimension injection to the eval (F2); soften the "patient-grouped folds" code comment.
+**Done (honesty corrections from an internal audit pass):**
+- [x] A code-verified review confirmed the core claims (runs with one command, 32 tests pass, real data-minimization — no rows to the LLM, reversible fixes, honest eval + baseline) and surfaced three inaccuracies, now fixed: (F1) the "column enums" guardrail was over-claimed — the IR keeps `field`/`table` as free strings and the deterministic compiler validates them; reworded across the deck, script, SUBMISSION blurb (999/1000), CLAUDE.md, SLIDE_PROMPT, RESEARCH. (F3) banner is now verbatim ("Research **and** educational…"). (F4) dropped the inaccurate "aggregate summaries" wording in SAFETY_STATEMENT.
+- [ ] Optional (not blocking): add a harder-dimension injection to the eval; soften the "patient-grouped folds" comment in `eval/inject.py`.
 
 **Next:**
 - [ ] Human-only: record the demo video, select the portal theme, upload CVs, submit (see `docs/SUBMISSION.md`).

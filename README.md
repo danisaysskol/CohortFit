@@ -71,13 +71,7 @@ Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledge
 
 ## 📝 Project description (submission pitch)
 
-> CohortFit turns a plain-English patient-group description into a transparent, reproducible query and a data-fitness verdict, on the MIMIC-IV demo (100 ICU patients).
->
-> **Built:** a Next.js + FastAPI/DuckDB app. The model emits a validated query plan (IR), never raw SQL; a deterministic compiler runs it and returns a `query_hash` for reproducibility. The Cohort Builder shows the exact inclusion/exclusion funnel with the IR and SQL. A red/amber/green Data-Fitness Scorecard flags plausibility, unit, temporal, completeness and duplicate issues, separates real clinical findings from data errors, and traces every flag to real rows. Fixes are reversible and rule-backed; source data is never modified. It abstains, clarifies, or refuses when a request can't be answered honestly.
->
-> **Problem:** researchers can waste weeks before discovering their data can't support a study.
->
-> **With more time:** broader natural-language coverage, more injected-error evaluation dimensions, and patient-grouped cross-validation.
+> CohortFit turns a plain-English patient-group description into a transparent, reproducible query and a verdict on whether the data can be trusted, on the MIMIC-IV demo of 100 de-identified ICU patients. The language model never writes SQL but emits a validated query plan that a deterministic compiler runs, and every result carries a reproducibility hash. The app shows the inclusion and exclusion steps behind a cohort, grades the data across five quality dimensions, separates a genuine clinical finding from a recording error, and traces each flag to the real rows. Any fix it proposes is reversible and rule-backed, and it never changes the source data. When it cannot answer honestly, it explains why instead of inventing an answer. This matters because researchers often spend weeks preparing an analysis before finding the data cannot support it. With more time we would broaden language coverage, test more quality dimensions with injected errors, and add patient-grouped cross-validation.
 
 ## 📚 Documentation
 

@@ -21,6 +21,11 @@ A research/education tool for clinical-data researchers, educators, and data tea
 - Without an `OPENAI_API_KEY`, the tool runs fully offline via a disclosed keyword fallback — no data leaves the machine at all.
 - Sample rows shown in the Schema Explorer are served to the **local UI only**.
 
+## Deployment safeguards (hosted demo)
+- The cost-bearing endpoints (`/cohort/build`, `/cohort/stream`) and the compute-heavy `/eval/run` are **rate-limited per client IP** (configurable; default 30 requests/minute and 200/hour), returning HTTP 429 with a `Retry-After` header. This bounds OpenAI spend and protects the service from scripted abuse (`backend/app/ratelimit.py`).
+- CORS is restricted to the app's origin, and the browser reaches the backend only through a same-origin proxy, so the backend URL is not embedded in client code.
+- These are per-IP defenses suited to a demo; a production deployment would add a WAF/CDN layer to handle distributed abuse.
+
 ## AI transparency
 - AI-generated content (cohort recipe/IR, flag explanations) is visually marked (an "AI" block, distinct from source data).
 - The LLM never writes executable SQL; it emits a validated IR that our deterministic compiler turns into SQL. The IR and SQL are both shown.
@@ -34,6 +39,7 @@ A research/education tool for clinical-data researchers, educators, and data tea
 | Ambiguous data-quality case (e.g. mixed units) | Flag for **human review**, do not auto-correct. |
 | Extreme-but-real clinical value | Reported as a **finding**, not an error (gated on `param_type` + reference ranges). |
 | Backend unavailable | UI shows a clear error with recovery hint; no silent wrong answer. |
+| Excessive or automated requests | Rate-limited per IP (HTTP 429 + `Retry-After`); bounds OpenAI cost. |
 
 ## Human-review boundary
 CohortFit assists; it does not act. A human must review cohort definitions before any downstream use, must decide on any data correction (fixes are **proposed only** — reversible by construction, never applied by CohortFit, and never committed to source; the store is read-only and there is no server-side fix log), and must not use outputs for clinical decisions. No automated clinical action is possible.

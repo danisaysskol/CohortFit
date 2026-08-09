@@ -86,6 +86,8 @@ Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledge
 
 Everything needed is in this repo — **no extra downloads required.** `docker compose up --build` (see [Quick start](#-quick-start)) brings up the full stack against the **committed** MIMIC-IV Demo dataset. Configuration is optional: copy `.env.example` → `.env` to enable the OpenAI path, otherwise the app runs offline with a disclosed keyword fallback. Evaluate with the test suite (`docker compose run --rm backend pytest`) and the in-app **Evaluation** page, or just use the [live demo](#-live-demo).
 
+The hosted API is **rate-limited per IP** (configurable; default 30 requests/minute and 200/hour) and CORS-restricted, so the public demo can't be scripted to drain the OpenAI budget — see [`docs/SAFETY_STATEMENT.md`](docs/SAFETY_STATEMENT.md).
+
 **Optional reference:** the plausibility bounds are cited to MIT's [`mimic-code`](https://github.com/MIT-LCP/mimic-code) (`concepts/measurement/vitalsign.sql`). Those bounds are already encoded in `backend/app/quality/ranges.py`, so you do **not** need to download `mimic-code` to build, run, or evaluate — it's a citation, not a dependency.
 
 ## Data & repo layout

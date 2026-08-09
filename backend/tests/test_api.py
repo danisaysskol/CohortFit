@@ -68,6 +68,18 @@ def test_empty_cohort_build_is_clarify():
     assert r.json()["disposition"] == "clarify"
 
 
+def test_overlong_text_rejected_before_llm(monkeypatch):
+    # Bounds per-request input tokens: an over-long description is clarified by the
+    # guard (method="guard") without ever reaching the LLM path.
+    monkeypatch.setattr(settings, "max_cohort_text_chars", 50)
+    r = client.post("/cohort/build", json={"text": "x" * 200})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["answerable"] is False
+    assert body["disposition"] == "clarify"
+    assert body["method"] == "guard"
+
+
 def test_rate_limit_returns_429(monkeypatch):
     # Per-IP cap protects the OpenAI cost path. Use a distinct forwarded IP so this
     # test is isolated from the others, and a low limit so it trips quickly.

@@ -138,6 +138,11 @@ def build_cohort(req: BuildRequest) -> dict[str, Any]:
     if not req.text.strip():
         return {"answerable": False, "disposition": "clarify", "abstain_reason": _EMPTY_REASON,
                 "method": "guard", "ir": {}, "safety": SAFETY}
+    if len(req.text) > settings.max_cohort_text_chars:
+        return {"answerable": False, "disposition": "clarify",
+                "abstain_reason": f"Description too long (max {settings.max_cohort_text_chars} characters). "
+                                  "Please shorten it to a concise cohort description.",
+                "method": "guard", "ir": {}, "safety": SAFETY}
     ir, method = nl.to_ir(req.text)
     if not ir.answerable:
         logger.info("cohort/build: disposition=%s method=%s len=%d (not answerable)",
@@ -174,6 +179,15 @@ def stream_cohort(req: BuildRequest) -> StreamingResponse:
                         "label": "Needs clarification", "reason": _EMPTY_REASON})
             yield _sse({"step": "done", "result": {
                 "answerable": False, "disposition": "clarify", "abstain_reason": _EMPTY_REASON,
+                "method": "guard", "ir": {}, "safety": SAFETY}})
+            return
+        if len(req.text) > settings.max_cohort_text_chars:
+            reason = (f"Description too long (max {settings.max_cohort_text_chars} characters). "
+                      "Please shorten it to a concise cohort description.")
+            yield _sse({"step": "decision", "disposition": "clarify",
+                        "label": "Needs clarification", "reason": reason})
+            yield _sse({"step": "done", "result": {
+                "answerable": False, "disposition": "clarify", "abstain_reason": reason,
                 "method": "guard", "ir": {}, "safety": SAFETY}})
             return
         ir, method = nl.to_ir(req.text)

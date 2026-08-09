@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     # disable that window (e.g. both 0 for local dev).
     rate_limit_per_minute: int = 30
     rate_limit_per_hour: int = 200
+    # Max characters in a cohort description. Bounds per-request input tokens sent to the
+    # LLM — an over-long request is rejected (clarify) before any OpenAI call is made.
+    max_cohort_text_chars: int = 500
 
 
 settings = Settings()

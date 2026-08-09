@@ -22,7 +22,7 @@ A research/education tool for clinical-data researchers, educators, and data tea
 - Sample rows shown in the Schema Explorer are served to the **local UI only**.
 
 ## Deployment safeguards (hosted demo)
-- The cost-bearing endpoints (`/cohort/build`, `/cohort/stream`) and the compute-heavy `/eval/run` are **rate-limited per client IP** (configurable; default 30 requests/minute and 200/hour), returning HTTP 429 with a `Retry-After` header. This bounds OpenAI spend and protects the service from scripted abuse (`backend/app/ratelimit.py`).
+- The cost-bearing endpoints (`/cohort/build`, `/cohort/stream`) and the compute-heavy `/eval/run` are **rate-limited per client IP** (configurable; default 30 requests/minute and 200/hour), returning HTTP 429 with a `Retry-After` header. This bounds OpenAI spend and protects the service from scripted abuse (`backend/app/ratelimit.py`). Cohort descriptions are also **length-capped** (default 500 characters), so a single request can't send an oversized prompt — this bounds per-request input tokens, and over-long requests are rejected before any OpenAI call.
 - CORS is restricted to the app's origin, and the browser reaches the backend only through a same-origin proxy, so the backend URL is not embedded in client code.
 - These are per-IP defenses suited to a demo; a production deployment would add a WAF/CDN layer to handle distributed abuse.
 

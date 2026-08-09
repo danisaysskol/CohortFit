@@ -11,8 +11,11 @@ Clinical-data researchers/educators defining cohorts and judging data fitness. T
 | Query | Gold answer | Tool result | Match |
 |---|---|---|---|
 | "ICU patients over 65 who died in hospital" | 9 patients (subject_ids 10003400, 10005817, 10007818, 10010471, 10015931, 10017492, 10025463, 10026255, 10037861) | 9, identical set | ✅ exact |
-| "age ≥ 65" | 44 patients | 44 | ✅ |
-| Provenance funnel for the first query | 100 → 44 → 44 → 9 | 100 → 44 → 44 → 9 | ✅ |
+| "age ≥ 65" (inclusive) · "age > 65" (strict) | 44 · 41 | 44 · 41 | ✅ |
+| Provenance funnel, live OpenAI path ("over" = strict `> 65`) | 100 → 41 → 9 | 100 → 41 → 9 | ✅ |
+| Provenance funnel, deterministic keyword path ("over 65" = `≥ 65`) | 100 → 44 → 44 → 9 | 100 → 44 → 44 → 9 | ✅ (pytest gold) |
+
+> Both paths return the **same 9 patients**; they differ only on the age boundary. The live app and README use the OpenAI path, which reads "over 65" as strict `> 65` (41 before the mortality filter); the automated test forces the deterministic keyword path, which reads it as `≥ 65` (44). Both counts are CSV-verified.
 
 **Multi-table joins & temporal logic** (rubric §8 "joins and temporal logic are sound") — verified live via the OpenAI path (`method=openai`):
 

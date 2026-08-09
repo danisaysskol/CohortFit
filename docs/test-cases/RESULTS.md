@@ -70,7 +70,7 @@ The two number-grabbing mis-parse bugs the old report called out (CF-15, CF-16) 
 
 ### QC-10 — "storetime earlier than charttime" — **PASS** (now implemented)
 - **Expected:** a `storetime < charttime` finding on the scorecard.
-- **Actual:** **present.** The scorecard's `check_storetime` scans `chartevents`/`labevents` and fires on ~54,144 rows where `storetime < charttime`, surfaced under the temporal dimension as a **caveat** (a documented MIMIC recording pattern, not a defect). Earlier runs marked this absent; that was stale.
+- **Actual:** **present.** The scorecard's `check_storetime` scans `chartevents`/`labevents` and fires on ~54,144 rows where `storetime < charttime`, surfaced under the temporal dimension as a **caveat** (a documented MIMIC recording pattern, not a defect).
 - The task brief listed `storetime<charttime` among the newly added checks; it is now implemented and always surfaces (a green/zero row is emitted if it ever finds none). **Satisfied.**
 
 ---

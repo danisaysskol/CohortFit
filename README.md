@@ -6,6 +6,13 @@
 
 The pitch in one line: **honesty as a feature** — CohortFit's most valuable job is telling a researcher *when their analysis isn't possible*, before they waste weeks on unfit data.
 
+## 🔗 Live demo
+
+- **App (Vercel):** https://cohortfit.vercel.app
+- **API health (Heroku):** https://cohortfit-api-9b9e6bc79eaa.herokuapp.com/health
+
+Next.js frontend on Vercel; FastAPI + DuckDB backend on Heroku (container). Deidentified MIMIC-IV **Demo** data only.
+
 ---
 
 ## 🌟 North Star — what 99.9% of teams won't do

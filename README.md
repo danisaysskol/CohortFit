@@ -1,16 +1,18 @@
 # CohortFit
 
+### ▶️ Try the live app — no setup, no login → **https://cohortfit.vercel.app**
+
 > **Research and educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.**
 
 **CohortFit turns a plain-English cohort description into a transparent, showable query — who's in, who's out, and why — then scores whether the data are actually fit to trust, telling real clinical findings apart from data errors, and only ever suggesting fixes that are reversible and explained.** Built for the **Sofstica AI Hackathon 2026**, "AI for Smarter Patient Care", **Track 2 — Cohort & Data Quality Explorer**, on the MIT-LCP **MIMIC-IV Demo v2.2** dataset.
 
 The pitch in one line: **honesty as a feature** — CohortFit's most valuable job is telling a researcher *when their analysis isn't possible*, before they waste weeks on unfit data.
 
-## 🔗 Live demo
+**In plain terms.** A researcher types a group such as *"ICU patients over 65 who died in hospital."* CohortFit shows the exact filters it applied and precisely who matched, grades the quality of the underlying data on a red/amber/green scorecard, and — crucially — says *"I can't answer that"* when the data can't support the question, instead of guessing.
 
-**App:** https://cohortfit.vercel.app
+## 🔗 Live demo — https://cohortfit.vercel.app
 
-The hosted demo runs the full **OpenAI (GPT‑5.6)** natural‑language path — no key needed to try it. (Running locally, the app works offline via a disclosed keyword fallback unless you set your own `OPENAI_API_KEY`; see [Quick start](#-quick-start).)
+Nothing to install: the hosted demo runs the full **OpenAI (GPT‑5.6)** natural‑language path — no key needed to try it. (Running locally, the app works offline via a disclosed keyword fallback unless you set your own `OPENAI_API_KEY`; see [Quick start](#-quick-start).)
 
 Next.js frontend on Vercel; FastAPI + DuckDB backend on Heroku (container). Deidentified MIMIC-IV **Demo** data only.
 
@@ -46,6 +48,8 @@ docker compose run --rm backend pytest
 ```
 
 ## 🧭 How it works
+
+In short: you type a request; the AI turns it into a **checked query plan** (it never writes raw SQL); a deterministic engine runs that plan on the data; and the app shows you the query, the matching patients, and a data-quality report — every number traceable to a real row.
 
 ```
 Plain English ──▶ OpenAI (or keyword fallback) ──▶ validated JSON IR ──▶ compiler ──▶ DuckDB SQL
@@ -109,6 +113,9 @@ The official MIMIC-IV **prose documentation**, copied into the project root so t
 - Source: the `docs/iv/` folder inside `mimic.mit.edu-main.zip` — the downloaded repo of the MIMIC documentation website **https://github.com/MIT-LCP/mimic.mit.edu** (published at https://mimic.mit.edu/docs/iv/). This is the Jekyll source for the docs site.
 - Contents (66 markdown files): `about/` (changelog, concepts, schema-overview, whatsnew), `modules/` with per-table docs for `hosp/`, `icu/`, `ed/`, `cxr/`, `ecg/`, `note/`, and `tutorials/`. The `modules/hosp/*.md` and `modules/icu/*.md` files document every table present in `mimic-iv-clinical-database-demo-2.2/`.
 - This is a static copy of `docs/iv/`; re-copy it from a fresh `mimic.mit.edu-main.zip` if the docs are updated.
+
+<details>
+<summary><b>Repository file trees</b> — the committed demo dataset and the MIMIC docs copy (click to expand)</summary>
 
 ## Full tree of `mimic-iv-clinical-database-demo-2.2/`
 
@@ -235,3 +242,5 @@ mimic-iv-docs/
         ├── ieee_workshop.md
         └── index.md
 ```
+
+</details>

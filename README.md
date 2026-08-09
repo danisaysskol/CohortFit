@@ -10,6 +10,8 @@ The pitch in one line: **honesty as a feature** — CohortFit's most valuable jo
 
 **In plain terms.** A researcher types a group such as *"ICU patients over 65 who died in hospital."* CohortFit shows the exact filters it applied and precisely who matched, grades the quality of the underlying data on a red/amber/green scorecard, and — crucially — says *"I can't answer that"* when the data can't support the question, instead of guessing.
 
+**Team:** Muhammad Danish (malikmdanish000@gmail.com) · Soem (soemsk12@gmail.com)
+
 ## 🔗 Live demo — https://cohortfit.vercel.app
 
 Nothing to install: the hosted demo runs the full **OpenAI (GPT‑5.6)** natural‑language path — no key needed to try it. (Running locally, the app works offline via a disclosed keyword fallback unless you set your own `OPENAI_API_KEY`; see [Quick start](#-quick-start).)

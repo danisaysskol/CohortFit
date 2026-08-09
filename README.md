@@ -20,6 +20,27 @@ Next.js frontend on Vercel; FastAPI + DuckDB backend on Heroku (container). Deid
 
 ---
 
+## 🧪 Questions to try in the Cohort Builder
+
+Paste any of these into the Cohort Builder on the [live app](https://cohortfit.vercel.app) — each exercises a different capability, and the last two show CohortFit refusing to guess:
+
+| Ask this | What it shows |
+|---|---|
+| `ICU patients over 65 who died in hospital` | demographics + ICU stay + in-hospital mortality |
+| `female patients with a diabetes diagnosis` | gender + ICD diagnosis (handles ICD-9 and ICD-10) |
+| `patients who received norepinephrine` | medication filter |
+| `patients with potassium over 5.5` | lab-value threshold, matched by item id |
+| `ICU patients with a heart rate above 120` | charted ICU vital threshold |
+| `ICU stays longer than 7 days` | length-of-stay filter |
+| `patients who had a lab drawn before their ICU admission` | cross-table temporal join (labs ⋈ ICU stays) |
+| `patients readmitted within 30 days of discharge` | admissions self-join |
+| `ICU patients not on antibiotics` | exclusion / anti-join (shown as an "excluding" step) |
+| `which patients were admitted in winter` | **abstains** — dates are shifted, so season is unknowable |
+
+> Also try `show me the sick patients` (it **asks you to clarify**) and `which patient is most likely to die next` (it **refuses** — no prediction, no diagnosis). For any answerable query, open the **Query** tab to see the step-by-step funnel, the validated plan, and the SQL. Counts come from GPT‑5.6, so they can vary slightly run-to-run.
+
+---
+
 ## ✨ Highlights
 
 - **Honest, quantified evaluation.** Labeled errors are injected into a *copy* of the data, and the engine's **precision / recall / false-positive rate** are reported per dimension with uncertainty (mean ± std across seeds), not a single headline number.

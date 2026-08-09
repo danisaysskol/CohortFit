@@ -36,5 +36,11 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_allow_origins.split(",") if o.strip()]
 
+    # --- Rate limiting (per client IP; protects the OpenAI cost path on a public API) ---
+    # Caps requests to /cohort/build, /cohort/stream and /eval/run. Set a value to 0 to
+    # disable that window (e.g. both 0 for local dev).
+    rate_limit_per_minute: int = 30
+    rate_limit_per_hour: int = 200
+
 
 settings = Settings()

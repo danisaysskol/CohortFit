@@ -39,7 +39,7 @@ docker compose up --build
 
 `OPENAI_API_KEY` is **optional**: without it, the cohort builder uses a disclosed keyword fallback so everything works offline. To enable the OpenAI path, copy `.env.example` → `.env` and set your key.
 
-Run the backend tests (34, in Docker):
+Run the backend tests (35, in Docker):
 
 ```bash
 docker compose run --rm backend pytest

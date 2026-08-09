@@ -15,7 +15,7 @@ import logging
 from functools import lru_cache
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -24,6 +24,7 @@ from . import __version__
 from .config import settings
 from .cohort import nl
 from .cohort.compiler import CompileError, compile_ir, iter_compile
+from .ratelimit import rate_limit
 from .data import schema as schema_mod
 from .data import timeline as timeline_mod
 from .data.loader import Database
@@ -132,7 +133,7 @@ def explore_table(
 _EMPTY_REASON = "Please describe a patient group — the request was empty."
 
 
-@app.post("/cohort/build")
+@app.post("/cohort/build", dependencies=[Depends(rate_limit)])
 def build_cohort(req: BuildRequest) -> dict[str, Any]:
     if not req.text.strip():
         return {"answerable": False, "disposition": "clarify", "abstain_reason": _EMPTY_REASON,
@@ -163,7 +164,7 @@ def _sse(obj: dict[str, Any]) -> str:
     return f"data: {json.dumps(obj)}\n\n"
 
 
-@app.post("/cohort/stream")
+@app.post("/cohort/stream", dependencies=[Depends(rate_limit)])
 def stream_cohort(req: BuildRequest) -> StreamingResponse:
     """Server-sent stream of the real build steps, so the UI shows the work as it happens."""
     def gen() -> Any:
@@ -298,7 +299,7 @@ def get_fixes() -> dict[str, Any]:
     return {**_fixes_cache, "safety": SAFETY}
 
 
-@app.get("/eval/run")
+@app.get("/eval/run", dependencies=[Depends(rate_limit)])
 def get_eval(n_inject: int = 20) -> dict[str, Any]:
     result = run_eval(get_db(), n_inject=n_inject)
     logger.info("eval/run: n_inject=%d checks=%s overall_precision=%.3f",

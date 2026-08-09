@@ -1,6 +1,6 @@
 # Evaluation Report — CohortFit (Track 2)
 
-> Required deliverable. Every number here is reproducible from the running system (`docker compose up`, then the `/eval/run`, `/cohort/build`, `/quality/scorecard` endpoints) or from the test suite (`docker compose run --rm backend pytest`, 34 tests). Dataset: MIMIC-IV Clinical Database Demo v2.2 (100 patients). Because there are only 100 patients, results are **illustrative**, not evidence of clinical performance.
+> Required deliverable. Every number here is reproducible from the running system (`docker compose up`, then the `/eval/run`, `/cohort/build`, `/quality/scorecard` endpoints) or from the test suite (`docker compose run --rm backend pytest`, 35 tests). Dataset: MIMIC-IV Clinical Database Demo v2.2 (100 patients). Because there are only 100 patients, results are **illustrative**, not evidence of clinical performance.
 
 ## 1. Target user & tables used
 Clinical-data researchers/educators defining cohorts and judging data fitness. Tables used: `patients`, `admissions`, `icustays`, `diagnoses_icd` + `d_icd_diagnoses`, `prescriptions`, `labevents`, `chartevents`, `d_items`.

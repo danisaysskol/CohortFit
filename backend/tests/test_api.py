@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
+from app.config import settings
 from app.main import app
 
 client = TestClient(app)
@@ -65,3 +66,17 @@ def test_empty_cohort_build_is_clarify():
     r = client.post("/cohort/build", json={"text": "   "})
     assert r.status_code == 200 and r.json()["answerable"] is False
     assert r.json()["disposition"] == "clarify"
+
+
+def test_rate_limit_returns_429(monkeypatch):
+    # Per-IP cap protects the OpenAI cost path. Use a distinct forwarded IP so this
+    # test is isolated from the others, and a low limit so it trips quickly.
+    monkeypatch.setattr(settings, "rate_limit_per_minute", 2)
+    monkeypatch.setattr(settings, "rate_limit_per_hour", 1000)
+    headers = {"X-Forwarded-For": "203.0.113.7"}
+    body = {"text": "ICU patients over 65 who died in hospital"}
+    assert client.post("/cohort/build", json=body, headers=headers).status_code == 200
+    assert client.post("/cohort/build", json=body, headers=headers).status_code == 200
+    blocked = client.post("/cohort/build", json=body, headers=headers)
+    assert blocked.status_code == 429
+    assert "retry-after" in {k.lower() for k in blocked.headers}

@@ -65,7 +65,7 @@ export default function QualityPage() {
           <Explain items={[
             { k: "Context", icon: "database", t: <>Real ICU and hospital records (MIMIC-IV demo, <b>100 patients</b>), de-identified and date-shifted.</> },
             { k: "Problem", icon: "alert", t: <>Before trusting an analysis you must know if the data are fit — and tell a <b>genuine clinical extreme</b> from a <b>data error</b>.</> },
-            { k: "Method", icon: "filter", t: <>Rules across <b>five dimensions</b>, each gated on <span className="mono">d_items.param_type</span> so text items are not miscounted.</> },
+            { k: "Method", icon: "filter", t: <>Rules across <b>five dimensions</b>; the plausibility check is gated on <span className="mono">d_items.param_type</span> so text/checkbox items are never miscounted as out-of-range.</> },
             { k: "Result", icon: "check", t: <><b>{sc.summary.issues_found} data errors</b> + caveats, ranked worst-first, each traceable to real rows.</> },
           ]} />
 
@@ -95,8 +95,8 @@ export default function QualityPage() {
               <div className="panel-b">
                 <SeverityBar red={derived.counts.red} amber={derived.counts.amber} green={derived.counts.green} />
                 <div className="ai" style={{ marginTop: 16 }}>
-                  <span className="b">AI</span>
-                  <span>Rules are gated on <span className="mono">d_items.param_type</span> and reference ranges, so an extreme-but-genuine laboratory value is reported as a finding rather than an error. AI-generated explanations are kept visually distinct from source data.</span>
+                  <span className="b">RULE</span>
+                  <span>The plausibility check is gated on <span className="mono">d_items.param_type</span> and MIT reference ranges, so an extreme-but-genuine value is reported as a finding rather than an error. These flags are <b>rule-generated and deterministic</b> — the only AI-authored content in CohortFit is the plain-English cohort interpretation on the Cohorts page, labelled there.</span>
                 </div>
               </div>
             </section>

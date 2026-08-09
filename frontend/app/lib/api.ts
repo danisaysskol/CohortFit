@@ -5,8 +5,12 @@ const BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 // The demo dataset is frozen, so every GET is deterministic. We cache responses
 // in sessionStorage keyed by path, making repeat visits to a page instant (no
 // refetch) — the network round-trip happens once per browser session.
+// BUMP this whenever any endpoint's response shape changes, so a browser holding
+// a cached payload from a previous build never feeds an incompatible object to the
+// new page code (which caused the /eval/run client-side crash after the shape change).
+const CACHE_VERSION = "2";
 async function get<T>(path: string): Promise<T> {
-  const key = `cf:${path}`;
+  const key = `cf:${CACHE_VERSION}:${path}`;
   try {
     const hit = sessionStorage.getItem(key);
     if (hit) return JSON.parse(hit) as T;
@@ -114,17 +118,30 @@ export type LabMeasure = {
   min: number | null; max: number | null; mean: number | null;
 };
 export type Coding = { icd9: number; icd10: number; total: number; top: { code: string; version: number; title: string; n: number }[] };
+export type SubgroupCount = { key: string; n: number };
+export type Subgroups = { gender: SubgroupCount[]; age_bands: SubgroupCount[]; caveat: string };
 export type Measurements = {
   n_patients: number; n_stays: number; n_admissions: number;
-  vitals: Vital[]; labs: LabMeasure[]; coding: Coding; scoped: boolean;
+  vitals: Vital[]; labs: LabMeasure[]; coding: Coding; subgroups: Subgroups; scoped: boolean;
 };
 
 export type AggStat = { mean: number; std: number; min: number; max: number };
-export type EvalResult = {
+export type Metric = "precision" | "recall" | "f1" | "false_positive_rate";
+export type EvalBaseline = { strategy: string; precision: number; recall: number; false_positive_rate: number };
+export type EvalCheck = {
+  name: string;
+  dimension: string;
+  table: string;
+  check: string;
   seeds: number[];
   runs: Record<string, number | string>[];
-  aggregate: Record<"precision" | "recall" | "f1" | "false_positive_rate", AggStat>;
-  baseline: { strategy: string; precision: number; recall: number; false_positive_rate: number };
+  aggregate: Record<Metric, AggStat>;
+  baseline: EvalBaseline;
+};
+export type EvalResult = {
+  seeds: number[];
+  checks: EvalCheck[];
+  overall: Record<Metric, AggStat>;
   note: string;
 };
 

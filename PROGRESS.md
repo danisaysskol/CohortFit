@@ -6,7 +6,7 @@
 > **Key docs:** `TENTATIVE_AGILE_PLAN.md` (product plan) · `docs/TRACK2_REQUIREMENTS.md` (what's asked) · `docs/RESEARCH_AND_EXPLORATION.md` (evidence) · `CLAUDE.md` (repo layout & conventions).
 > **Repo:** https://github.com/danisaysskol/CohortFit
 
-_Last updated: 2026-08-09 — Project build is complete. Final polish shipped: modal drawers (focus-trap + ESC) for the timeline & drill-in, self-labelled dimension filters, a blackbox/whitebox/big-bang test pass (fixed a negative-limit 500; 32 tests pass), the 1000-char submission description, and the **finalized 8-slide pitch deck** (`CohortFit_pitch_deck.pptx`, screenshots embedded + speaker notes) with its 3-minute script (`docs/PITCH_SCRIPT.md`). All that remains is human-only: record the demo video, pick the portal theme, upload CVs, and submit._
+_Last updated: 2026-08-09 — Project build is complete. Final polish shipped: modal drawers (focus-trap + ESC) for the timeline & drill-in, self-labelled dimension filters, a blackbox/whitebox/big-bang test pass (fixed a negative-limit 500; 34 tests pass), the 1000-char submission description, and the **finalized 8-slide pitch deck** (`CohortFit_pitch_deck.pptx`, screenshots embedded + speaker notes) with its 3-minute script (`docs/PITCH_SCRIPT.md`). All that remains is human-only: record the demo video, pick the portal theme, upload CVs, and submit._
 
 ---
 
@@ -14,7 +14,7 @@ _Last updated: 2026-08-09 — Project build is complete. Final polish shipped: m
 
 **Goal:** do what 99.9% of teams won't — ship a system whose **every minute detail is deliberate** and whose **behavior, not just its features, is engineered and evidenced**. Judges should notice that nothing was left to "good enough." Full statement in [`README.md`](README.md#-north-star--what-999-of-teams-wont-do).
 
-The eight commitments (self-check on each feature): 1) honest quantified eval (precision/recall/FPR + uncertainty) · 2) real-finding-vs-data-error gating on `param_type` · 3) abstention demoed as a feature · 4) provenance to the exact row · 5) reproducibility (IR + SQL + data-hash) · 6) licence-aware data minimization (minimize + disclose what's sent externally; schema + aggregates by default) · 7) system behavior at the edges (missing/ambiguous/duplicate/mis-timed/out-of-scope) · 8) craft in every detail (measured numbers, bespoke non-AI-slop design, tracked screenshots, dead-code hygiene, clean commits).
+The eight commitments (self-check on each feature): 1) honest quantified eval (precision/recall/FPR + uncertainty) · 2) real-finding-vs-data-error gating on `param_type` · 3) abstention demoed as a feature · 4) provenance to the exact row · 5) reproducibility (deterministic compiler + returned `query_hash` + re-runnable recipe export) · 6) licence-aware data minimization (minimize + disclose what's sent externally; only a schema-describing system prompt + the user's text) · 7) system behavior at the edges (missing/ambiguous/duplicate/mis-timed/out-of-scope) · 8) craft in every detail (measured numbers, bespoke non-AI-slop design, tracked screenshots, dead-code hygiene, clean commits).
 
 > **Working rule:** if a change doesn't move us toward the North Star, reconsider it. Every PR/commit should be defensible as "a judge would notice the care here."
 
@@ -43,7 +43,7 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 
 ## 🔄 Current
 
-- **Working full stack, now OpenAI-driven + honest.** `docker compose up` → FastAPI (`:8000`) + Next.js (`:3000`); 6 pages verified; 15 backend tests pass; pages < 200ms. Additions since MVP: flag **ranking** (worst-first), **reviewer-time-saved**, eval **baseline + multi-seed uncertainty**, disposition-aware UI, SQL-tab **wrap fix**.
+- **Working full stack, now OpenAI-driven + honest.** `docker compose up` → FastAPI (`:8000`) + Next.js (`:3000`); 6 pages verified; 34 backend tests pass; pages < 200ms. Additions since MVP: flag **ranking** (worst-first), **reviewer-time-saved**, eval **baseline + multi-seed uncertainty**, disposition-aware UI, SQL-tab **wrap fix**.
 - **Still genuinely pending** (see below) — the Schema **ERD + free data explorer** you asked for is NOT built yet (current Schema page only samples rows), plus missing DQ checks, an OpenAI-path test re-run, a UI-clarity pass, and the dumb-vs-tool table.
 
 ## ✅ Past — build (done + verified)
@@ -53,15 +53,15 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - **M0 Data spine:** DuckDB view per CSV + schema introspection (`/schema`).
 - **M1 Eval harness:** self-seeded error injection (read-only CTE, concurrency-safe) → precision/recall/FPR (`/eval/run`; 20 injected → P/R 1.0, FPR 0).
 - **M2 Rule library:** plausibility (single-pass, MIT bounds), units, temporal, completeness, duplicates → R/A/G scorecard; findings tagged data_error/real_finding/caveat (`/quality/scorecard`, warmed + cached → 8ms).
-- **M3 Cohort IR layer:** plain-English → validated IR (OpenAI structured-output, keyword fallback offline) → DuckDB compiler with provenance funnel + data-hash (`/cohort/build`; demo phrase → 9 gold subject_ids, funnel 100→44→44→9).
+- **M3 Cohort IR layer:** plain-English → validated IR (OpenAI structured-output, keyword fallback offline) → DuckDB compiler with provenance funnel + a returned `query_hash` (`/cohort/build`; demo phrase → 9 gold subject_ids, funnel 100→44→44→9).
 - **Frontend pages:** Schema Explorer (list + search + sample + keys), Cohorts (builder + Provenance Ledger + IR/SQL), Quality (scorecard + findings), Evaluation (metrics), About/Safety. Safety banner on every page.
-- **Session/local store + sandboxed execution:** cohort session persists to localStorage (reload-safe); queries run deterministically over the fixed DuckDB store; IR + SQL + data-hash stored.
-- **Tests:** 14 pass in Docker (`docker compose run --rm backend pytest`) — data/quality/cohort/eval/api.
+- **Session/local store + sandboxed execution:** cohort session persists to localStorage (reload-safe); queries run deterministically over the fixed DuckDB store; each build returns a `query_hash` and the cohort exports as a re-runnable recipe (nothing persisted server-side; store is read-only).
+- **Tests:** 34 pass in Docker (`docker compose run --rm backend pytest`) — data/quality/cohort/eval/api.
 - **Two demo-reliability bugs found + fixed:** scorecard 17s → 8ms (single-pass + cache); eval temp-table concurrency race → read-only CTE.
 
 ## ✅ Past — evidence & submission (done)
 
-- **Reversible fix-ledger** built + verified (apply/undo, forward+reverse logged, source untouched).
+- **Reversible fix proposals** built + verified (each proposal carries a forward+reverse transform; nothing is applied — source untouched, no server-side fix log; the UI offers only a local browser-side review plan).
 - **`docs/EVALUATION_REPORT.md`** — cohort correctness (gold = 9), injected-error metrics (P/R 1.0, honest caveat), real findings, reproducibility, limitations.
 - **`docs/SAFETY_STATEMENT.md`** — intended/prohibited use, data lineage, licence-aware minimization, failure modes, human-review boundary.
 - **README polished** — quick start (`docker compose up`), architecture, verified screenshots, ≤1000-char pitch, doc index.
@@ -72,12 +72,12 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **OpenAI live & verified** — `method=openai` (gpt-5.6-terra, structured outputs, `reasoning_effort=low`, no temperature). Never the sol tier. Confirmed against current docs via Context7.
 - [x] **Multi-table joins / temporal / negation / LOS / readmission** (rubric "joins and temporal logic are sound") — IR `exclude` + kinds `los_threshold`/`lab_temporal`/`readmission`; compiler runs labevents⋈icustays temporal joins + admissions self-join. Verified live (NOT-antibiotics 24, LOS>7 18, lab-before-ICU 61, readmit≤30 26, diabetes 35, potassium>5.5 32).
 - [x] **Honest dispositions** — refuse / abstain / clarify (contradiction, seasonality, cross-hospital, prediction) surfaced in the UI.
-- [x] **Missing DQ checks added** — results-hidden-in-comments (9,469 rows/144 itemids — the documented MIMIC finding), storetime<charttime, per-stay HR completeness, near-duplicate. 14 findings now.
+- [x] **Missing DQ checks added** — results-hidden-in-comments (9,469 rows/144 itemids — the documented MIMIC finding), storetime<charttime (fires ~54,144 rows, caveat), per-stay HR completeness, near-duplicate. 15 findings now (11 data errors).
 - [x] **Schema ERD + reusable modern data explorer** — `DataTable`/`FilterBar`/`useTableExplorer` (removable type-aware filter chips, add-filter composer, sortable sticky table). Verified.
 - [x] **Dumb-vs-tool** table (About + EVALUATION_REPORT); eval **baseline + multi-seed uncertainty**; flag **ranking** + reviewer-time-saved.
 - [x] **CLAUDE.md project tree** + keep-updated instruction; Windows HMR polling fix.
 
-- [x] **Re-ran the 46-case suite through OpenAI** → `docs/test-cases/{results.json,RESULTS.md}` refreshed: **43 pass / 2 partial / 1 fail** (was 21/13/12), `method=openai`, counts CSV-verified. Fixed the two issues it surfaced (storetime check now scans chartevents=54,144 and always surfaces; "high blood pressure" → clarify).
+- [x] **Re-ran the 46-case suite through OpenAI** → `docs/test-cases/{results.json,RESULTS.md}` refreshed: **44 pass / 2 partial / 0 fail** (was 21/13/12), `method=openai`, counts CSV-verified. Fixed the two issues it surfaced (storetime check now scans chartevents ≈54,144 and always surfaces — QC-10 now passes; "high blood pressure" → clarify).
 - [x] **Clickable ERD** — click a table box → column dropdown (name+type); also loads that table in the explorer.
 
 **Done (UI-clarity + reliability):**
@@ -131,7 +131,7 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 **Done (perf + IA + honesty polish):**
 - [x] **Cohort-view latency fixed at the root** — the loader registered CSVs as DuckDB *views* (re-parsed on every query); materialising them into in-memory tables dropped cohort/quality **23s→0.27s** and cohort/measurements **9.9s→0.36s** (cached repeats ~10ms). Also replaced a correlated NOT EXISTS with an anti-join and cached each cohort's scoped findings/measurements.
 - [x] **Navbar merged & focused** — Workspace merged into **Data fitness** (one page with a Whole-dataset ↔ This-cohort toggle + the cohort's measurements); nav is now **Cohorts (first) · Data fitness · Schema · Evaluation · About** (5 tabs). Cohorts CTA lands directly on the cohort scope.
-- [x] **Evaluation honesty** — a prominent scope banner states the perfect scores cover **one check (temporal integrity)**, not all five dimensions; the other four are evidenced by real findings, not injection. Prevents the P/R 1.00 tiles reading as a whole-system claim.
+- [x] **Evaluation honesty** — a prominent scope banner states the perfect scores cover **two injectable checks (temporal integrity + unit consistency)**, not all five dimensions; the other three are evidenced by real findings, not injection. Prevents the P/R 1.00 tiles reading as a whole-system claim.
 
 **Done (cohort-centric workspace + reproducibility export + coverage-by-table):**
 - [x] **Unified Cohort workspace** — the Cohorts page is now the single home for a cohort: a sticky **editable** input (build/edit/rebuild in place, "Update cohort") + four lenses on the same cohort — **Patients · Query · Data fitness · Measurements** (timeline as a drawer). No more bouncing to another page to see or edit the cohort. The **Data fitness** page is now whole-dataset only.
@@ -150,8 +150,8 @@ Honest reconciliation vs. the plan/prompts (nothing architectural diverged; two 
 - [x] **`docs/PITCH_SCRIPT.md`** — the ~3-minute speaker script, also embedded in each slide's Notes pane.
 
 **Done (honesty corrections from an internal audit pass):**
-- [x] A code-verified review confirmed the core claims (runs with one command, 32 tests pass, real data-minimization — no rows to the LLM, reversible fixes, honest eval + baseline) and surfaced three inaccuracies, now fixed: (F1) the "column enums" guardrail was over-claimed — the IR keeps `field`/`table` as free strings and the deterministic compiler validates them; reworded across the deck, script, SUBMISSION blurb (999/1000), CLAUDE.md, SLIDE_PROMPT, RESEARCH. (F3) banner is now verbatim ("Research **and** educational…"). (F4) dropped the inaccurate "aggregate summaries" wording in SAFETY_STATEMENT.
-- [ ] Optional (not blocking): add a harder-dimension injection to the eval; soften the "patient-grouped folds" comment in `eval/inject.py`.
+- [x] A code-verified review confirmed the core claims (runs with one command, 34 tests pass, real data-minimization — no rows to the LLM, reversible fix proposals, honest eval + baseline) and surfaced three inaccuracies, now fixed: (F1) the "column enums" guardrail was over-claimed — the IR keeps `field`/`table` as free strings and the deterministic compiler validates them; reworded across the deck, script, SUBMISSION blurb (999/1000), CLAUDE.md, SLIDE_PROMPT, RESEARCH. (F3) banner is now verbatim ("Research **and** educational…"). (F4) dropped the inaccurate wording that implied summary statistics were sent to the LLM in SAFETY_STATEMENT.
+- [x] Added a second injectable eval dimension (**units** — a single-unit lab itemid with an injected wrong unit) alongside temporal; both P/R=1.00, FPR=0 across 5 seeds. Reworded the "patient-grouped folds"/leakage framing in `eval/inject.py` to match reality (deterministic rule over seeded injections; per-record injection prevents label leakage).
 
 **Next:**
 - [ ] Human-only: record the demo video, select the portal theme, upload CVs, submit (see `docs/SUBMISSION.md`).
@@ -172,8 +172,8 @@ Latest UI screenshots live in `docs/ui-screenshots/`. **Update them whenever the
 | 2026-08-08 | Design = Apple/Claude-like, **warm light mode only**, user-selected then documented in `TENTATIVE_FRONTEND_DESIGN_SYSTEM.md` | User-centric aesthetic; single source of truth for UI. |
 | 2026-08-08 | **Design v2:** blend Apple clarity with Google **Material** (focus on user, material as metaphor, motion with purpose) | Judges scan fast; higher contrast, larger type, tactile elevation, explicit affordances, and purposeful motion make features self-evident. |
 | 2026-08-08 | Stack = FastAPI + Next.js | Polished live-demo product; MVP cut line protects scope. |
-| 2026-08-08 | LLM = OpenAI only | Strict Structured Outputs + column enums; key in gitignored `.env`. |
+| 2026-08-08 | LLM = OpenAI only | Strict Structured Outputs: kinds/ops enum-constrained, `field`/`table` validated by the deterministic compiler; key in gitignored `.env`. |
 | 2026-08-08 | Ace card = demo-verifiable only | Honesty is the pitch; every flag traces to a real 100-patient row. |
 | 2026-08-08 | NL → JSON IR → DuckDB (LLM never writes SQL) | Transparent, safe, reproducible; IR is the showable inclusion/exclusion logic. |
-| 2026-08-08 | Relaxed "zero patient rows to LLM" → **minimize + disclose** | The brief only requires *minimizing* data sent externally, not zero rows; the strict rule over-constrained creativity. We keep schema+aggregates as default, allow minimal disclosed rows when a task needs them. |
+| 2026-08-08 | Relaxed "zero patient rows to LLM" → **minimize + disclose** | The brief only requires *minimizing* data sent externally, not zero rows; the strict rule over-constrained creativity. As shipped the payload is still only a schema-describing system prompt + the user's text (no patient rows); the policy allows minimal disclosed rows if a future task needs them. |
 | 2026-08-08 | Design direction = **Lab Ledger** (Hanken Grotesk + IBM Plex Mono, greige paper, prussian accent, Provenance Ledger signature; later evolved with Material tactility) | Kills the four AI-slop tells; reads as a shipped data product. Codified in `TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`. |

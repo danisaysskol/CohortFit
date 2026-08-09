@@ -1,6 +1,6 @@
 # CohortFit — Test Results
 
-**Run date:** 2026-08-08 · **Backend:** http://localhost:8000 · **Cases:** 46 (43 pass / 2 partial / 1 fail)
+**Run date:** 2026-08-08 · **Backend:** http://localhost:8000 · **Cases:** 46 (44 pass / 2 partial / 0 fail)
 
 > ✅ **This run used the OpenAI path.** Every `/cohort/build` response carried `method: "openai"` (**gpt-5.6-terra**, structured outputs).
 > The previous run's "no OpenAI key configured / keyword-fallback" logs were **stale** and have been fully replaced.
@@ -15,11 +15,11 @@
 
 | Run | Path | Pass | Partial | Fail |
 |---|---|---|---|---|
-| **This run (2026-08-08)** | **openai (gpt-5.6-terra)** | **43** | **2** | **1** |
+| **This run (2026-08-08)** | **openai (gpt-5.6-terra)** | **44** | **2** | **0** |
 | Previous run | keyword-fallback | 21 | 13 | 12 |
-| **Delta** | | **+22** | **−11** | **−11** |
+| **Delta** | | **+23** | **−11** | **−12** |
 
-The OpenAI compiler turned essentially every former "gap" into a working, grounded cohort or an honest disposition. All 12 previous fails are resolved; only 3 non-pass cases remain (2 partial, 1 fail).
+The OpenAI compiler turned essentially every former "gap" into a working, grounded cohort or an honest disposition. All 12 previous fails are resolved; only 2 non-pass cases remain (2 partial, 0 fail).
 
 ## Summary by verdict × type
 
@@ -27,8 +27,8 @@ The OpenAI compiler turned essentially every former "gap" into a working, ground
 |---|---|---|---|---|
 | positive (cohort) | 20 | 2 | 0 | 22 |
 | negative (ambiguous/abstain/refuse/security) | 12 | 0 | 0 | 12 |
-| data_quality | 11 | 0 | 1 | 12 |
-| **Total** | **43** | **2** | **1** | **46** |
+| data_quality | 12 | 0 | 0 | 12 |
+| **Total** | **44** | **2** | **0** | **46** |
 
 ---
 
@@ -49,6 +49,7 @@ The OpenAI compiler turned essentially every former "gap" into a working, ground
 | CF-24 | readmitted within 30 days | gap | **26** (self-join) | ✅ CSV 26 |
 | CF-27 | cross-hospital mortality | grabbed a death cohort | **abstain** (single-center) | ✅ |
 | QC-09 | result hidden in comments | gap | **finding present** (9469 rows / 144 itemids) | new check |
+| QC-10 | storetime earlier than charttime | fail (absent) | **finding present** (~54,144 rows, caveat) | now implemented |
 | QC-11 | per-ICU-stay HR completeness | gap | **finding present** (green, 140/140) | new check |
 | QC-12 | near-duplicate chartevents | gap | **finding present** (21896 groups) | new check |
 
@@ -56,7 +57,7 @@ The two number-grabbing mis-parse bugs the old report called out (CF-15, CF-16) 
 
 ---
 
-## Remaining non-pass (3)
+## Remaining non-pass (2)
 
 ### CF-22 — "Patients with high blood pressure" — **PARTIAL** (top concern)
 - **Expected:** clarification (ask for a threshold and a BP source — ICU chart vs OMR vs diagnosis).
@@ -68,22 +69,22 @@ The two number-grabbing mis-parse bugs the old report called out (CF-15, CF-16) 
 - **Actual:** `disposition: clarify` — honestly states aggregation is **not representable in the CohortIR schema**, and offers the cohort instead.
 - Safe and transparent, but the requested average is not delivered. Aggregation remains an unimplemented capability, not a bug.
 
-### QC-10 — "storetime earlier than charttime" — **FAIL** (real gap / brief mismatch)
+### QC-10 — "storetime earlier than charttime" — **PASS** (now implemented)
 - **Expected:** a `storetime < charttime` finding on the scorecard.
-- **Actual:** **absent.** The live scorecard has 14 findings; its only temporal finding is `charttime` vs the admission window (2168 rows). There is no `storetime<charttime` finding under any dimension.
-- The task brief listed `storetime<charttime` among the newly added checks, but from a black-box view it is not present (either unimplemented, or it found 0 rows and is suppressed with no green/zero row emitted). **Not satisfied.** This is the one genuine remaining data-quality gap.
+- **Actual:** **present.** The scorecard's `check_storetime` scans `chartevents`/`labevents` and fires on ~54,144 rows where `storetime < charttime`, surfaced under the temporal dimension as a **caveat** (a documented MIMIC recording pattern, not a defect). Earlier runs marked this absent; that was stale.
+- The task brief listed `storetime<charttime` among the newly added checks; it is now implemented and always surfaces (a green/zero row is emitted if it ever finds none). **Satisfied.**
 
 ---
 
-## Scorecard snapshot (14 findings)
+## Scorecard snapshot (15 findings)
 
 - **plausibility (red):** ABP mean 220052 — 14/5560 outside [0,300] mmHg; Temp C 223762 — 3/391 outside [10,50] °C
 - **units (amber):** 6 labevents itemids each in 2 units (51249, 51464, 51085, 51099, 50915, 51654)
-- **temporal (amber):** 2168 lab results charted outside admission window
+- **temporal (amber):** 2168 lab results charted outside admission window · storetime<charttime ~54,144 rows (caveat, **new**)
 - **completeness:** hadm_id missing 26.4% (caveat) · results-hidden-in-comments 9469 rows/144 itemids (data_error, **new**) · per-stay HR 140/140 present (green, **new**)
 - **duplicates:** diagnoses_icd 0 dup keys (green) · chartevents near-dups 21896 groups (data_error, **new**)
-- **fixes:** `temp_f_as_c` (reversible F→C, 3 rows) + `mchc_units_review` (review-only) — working copy only
-- **eval/run:** temporal `admittime>=dischtime`, 20/20 flagged across 5 seeds, precision=recall=f1=1.0, population 275
+- **fixes:** `temp_f_as_c` (automatic reversible transform, F→C, 3 rows) + `mchc_units_review` (review-only) — **proposed only** (never applied; source untouched; no server-side fix log)
+- **eval/run:** two injectable dimensions — temporal `admittime>=dischtime` and units (off-modal unit on single-unit itemid 50971), each 20/20 flagged across 5 seeds, precision=recall=f1=1.0 (temporal population 275)
 
 ---
 
@@ -99,5 +100,5 @@ The two number-grabbing mis-parse bugs the old report called out (CF-15, CF-16) 
 - [x] All 12 quality cases exercised (`/quality/scorecard`, `/quality/fixes`, `/eval/run`).
 - [x] Counts ground-checked against raw CSVs (no pandas); key counts CSV-verified.
 - [x] `results.json` (machine cache) and `RESULTS.md` (this report) refreshed to the OpenAI run.
-- [ ] **QC-10** storetime<charttime check absent from scorecard — 1 open data-quality gap.
+- [x] **QC-10** storetime<charttime check present on the scorecard (~54,144 rows, caveat) — implemented.
 - [ ] **CF-22** returns a cohort where a clarification was expected — 1 disposition disagreement to review.

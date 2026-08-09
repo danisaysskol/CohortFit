@@ -1,6 +1,6 @@
 # CohortFit
 
-> **Research & educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.**
+> **Research and educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.**
 
 **CohortFit turns a plain-English cohort description into a transparent, showable query — who's in, who's out, and why — then scores whether the data are actually fit to trust, telling real clinical findings apart from data errors, and only ever suggesting fixes that are reversible and explained.** Built for the **Sofstica AI Hackathon 2026**, "AI for Smarter Patient Care", **Track 2 — Cohort & Data Quality Explorer**, on the MIT-LCP **MIMIC-IV Demo v2.2** dataset.
 
@@ -15,11 +15,11 @@ Most participants will demo a happy-path feature. We are going for something jud
 Concretely, we commit to doing these — most teams will do none:
 
 1. **Honest, quantified evaluation.** We inject our own labeled errors into a *copy* of the data and report real **precision / recall / false-positive rate** per table and dimension — with uncertainty, not a single headline number. (Most teams show no metrics at all.)
-2. **Real-finding-vs-data-error discipline.** Every numeric rule is gated on `d_items.param_type` and reference ranges, so an extreme-but-real lab is *not* flagged as a typo. This is the exact strict rule Track 2 demands — and the hard part almost everyone gets wrong.
+2. **Real-finding-vs-data-error discipline.** The plausibility rule is gated on `d_items.param_type` and reference ranges, so an extreme-but-real lab is *not* flagged as a typo. This is the exact strict rule Track 2 demands — and the hard part almost everyone gets wrong.
 3. **Abstention as a first-class feature.** We demo the **failure path**: when the data can't support a request, the tool says so and explains why, instead of inventing an answer.
 4. **Provenance to the exact row.** Every flag and every cohort member links back to its source table, column, id, and time — nothing is a black box.
-5. **Reproducibility by construction.** We store the IR + compiled SQL + a data-hash; re-running the stored query reproduces results exactly, even if the model drifts.
-6. **Licence-aware data minimization.** We follow the PhysioNet licence and the brief's rule to *minimize data sent to external services*: by default the model receives schema and aggregate summaries, and only the minimal patient-level detail a task genuinely needs — always disclosed. We never dump the dataset to any service. (This is the requirement met deliberately, not an over-constraint that limits what the tool can do.)
+5. **Reproducibility by construction.** The IR→SQL compiler is deterministic; each build returns a `query_hash` (a digest of the compiled SQL + IR) and the cohort exports as a re-runnable "recipe" JSON — so a query reproduces exactly, even if the model drifts. (Nothing is persisted server-side; the store is read-only.)
+6. **Licence-aware data minimization.** We follow the PhysioNet licence and the brief's rule to *minimize data sent to external services*: the model receives only a schema-describing system prompt (a schema description + an itemid reference list) plus the user's text — no patient rows, no summary statistics, no DDL. We never dump the dataset to any service. (This is the requirement met deliberately, not an over-constraint that limits what the tool can do.)
 7. **System behavior over feature count.** We deliberately test and show how CohortFit handles **missing, ambiguous, duplicate, mis-timed, and out-of-scope** inputs — because a research tool is judged by how it behaves at the edges.
 8. **Craft in every detail.** Every number in our docs is *measured* and traceable; a from-scratch explainer for zero-context readers; a bespoke, consistent **design system** (not a template, not AI-slop); tracked UI screenshots; dead-code hygiene; disciplined commits. Nothing is left to "good enough."
 
@@ -38,7 +38,7 @@ docker compose up --build
 
 `OPENAI_API_KEY` is **optional**: without it, the cohort builder uses a disclosed keyword fallback so everything works offline. To enable the OpenAI path, copy `.env.example` → `.env` and set your key.
 
-Run the backend tests (14, in Docker):
+Run the backend tests (34, in Docker):
 
 ```bash
 docker compose run --rm backend pytest
@@ -50,13 +50,13 @@ docker compose run --rm backend pytest
 Plain English ──▶ OpenAI (or keyword fallback) ──▶ validated JSON IR ──▶ compiler ──▶ DuckDB SQL
    (browser)        (schema + text only)            (never raw SQL)      (deterministic)   │
                                                                                            ▼
-  Next.js UI ◀────────── FastAPI ◀───────────────── provenance funnel + subject_ids + data-hash
+  Next.js UI ◀────────── FastAPI ◀───────────────── provenance funnel + subject_ids + query_hash
   (Lab Ledger)          (:8000)                      quality scorecard · reversible fixes · eval
 ```
 
 - **Frontend:** Next.js 14 (App Router), the *Lab Ledger* design system (`TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`), self-hosted fonts.
 - **Backend:** FastAPI + DuckDB over the frozen demo CSVs (read-only). The LLM emits a validated **IR**, never executable SQL; a deterministic compiler runs it.
-- **Reproducible:** IR + compiled SQL + a data-hash are stored; the eval harness is seeded.
+- **Reproducible:** the IR→SQL compiler is deterministic; each build returns a `query_hash` and the cohort exports as a re-runnable recipe JSON; the eval harness is seeded. (Nothing is persisted server-side — the store is read-only.)
 
 ## 🖥️ The app (verified screenshots)
 
@@ -66,7 +66,7 @@ Plain English ──▶ OpenAI (or keyword fallback) ──▶ validated JSON IR
 | **Schema explorer** | **Evaluation — injected-error metrics** |
 | ![Schema](docs/ui-screenshots/app-schema.jpg) | ![Evaluation](docs/ui-screenshots/app-evaluation.jpg) |
 
-Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledger 100→44→44→9 + IR/SQL) · **Quality** (R/A/G scorecard, data-error-vs-finding, reversible fix-ledger) · **Evaluation** (precision/recall from self-injected errors) · **About/Safety**.
+Pages: **Schema** (tables, keys, sample) · **Cohorts** (NL → Provenance Ledger 100→44→44→9 + IR/SQL) · **Quality** (R/A/G scorecard, data-error-vs-finding, proposed reversible fixes) · **Evaluation** (precision/recall from self-injected errors) · **About/Safety**.
 
 ## 📝 Project description (submission pitch)
 

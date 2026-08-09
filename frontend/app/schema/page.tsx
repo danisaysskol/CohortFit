@@ -172,8 +172,8 @@ export default function SchemaPage() {
             <p className="note">
               The first column filter and the search run server-side and drive the match count; extra
               filters refine the current page (tagged <b>on page</b>) and sorting orders the page you
-              are viewing. Rows are served to this local UI only — the AI cohort/quality paths receive
-              schema + aggregates by default, not raw rows.
+              are viewing. Rows are served to this local UI only — the AI cohort path receives just a
+              schema description and your text, never patient rows.
             </p>
           </div>
         </section>

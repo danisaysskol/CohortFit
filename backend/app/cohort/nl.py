@@ -202,17 +202,17 @@ _SYSTEM_PROMPT = (
 )
 
 
-def _openai_ir(text: str) -> CohortIR:
+def _openai_ir(text: str, model: str) -> CohortIR:
     """Structured-output IR via OpenAI. Only called when a key is configured.
 
     gpt-5.6 reasoning models reject a custom temperature, so we don't send one —
-    reproducibility comes from the deterministic IR->SQL compiler + the stored IR.
+    reproducibility comes from the deterministic IR->SQL compiler.
     """
     from openai import OpenAI
 
     client = OpenAI(api_key=settings.openai_api_key)
     completion = client.beta.chat.completions.parse(
-        model=settings.openai_model_primary,
+        model=model,
         reasoning_effort=settings.openai_reasoning_effort,
         messages=[{"role": "system", "content": _SYSTEM_PROMPT}, {"role": "user", "content": text}],
         response_format=CohortIR,
@@ -221,10 +221,15 @@ def _openai_ir(text: str) -> CohortIR:
 
 
 def to_ir(text: str) -> tuple[CohortIR, str]:
-    """Return (ir, method). method is 'openai' or 'keyword-fallback' (disclosed to the UI)."""
+    """Return (ir, method), disclosed to the UI. Tries the primary model, then the
+    configured fallback model, then the transparent keyword parser — so a model outage
+    degrades gracefully instead of failing the request."""
     if settings.openai_api_key:
         try:
-            return _openai_ir(text), "openai"
+            return _openai_ir(text, settings.openai_model_primary), "openai"
         except Exception:
-            return _keyword_ir(text), "keyword-fallback (openai error)"
+            try:
+                return _openai_ir(text, settings.openai_model_fallback), "openai-fallback"
+            except Exception:
+                return _keyword_ir(text), "keyword-fallback (openai error)"
     return _keyword_ir(text), "keyword-fallback"

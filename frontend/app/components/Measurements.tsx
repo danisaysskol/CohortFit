@@ -75,6 +75,28 @@ export function Measurements({ data }: { data: MData }) {
             </div>
           </div>
         </section>
+
+        {data.subgroups && (
+          <section className="panel">
+            <div className="panel-h">
+              <span className="lbl lbl-i"><Icon name="users" size={13} /> Subgroup composition</span>
+              <span className="lbl">{data.n_patients} patients</span>
+            </div>
+            <div className="panel-b">
+              <div className="chips">
+                {data.subgroups.gender.map((g) => (
+                  <span key={g.key} className="chip">{g.key === "F" ? "Female" : g.key === "M" ? "Male" : g.key} <b>{g.n}</b></span>
+                ))}
+              </div>
+              <div className="chips" style={{ marginTop: 8 }}>
+                {data.subgroups.age_bands.map((b) => (
+                  <span key={b.key} className="chip" style={{ textTransform: "none" }}>Age {b.key} <b>{b.n}</b></span>
+                ))}
+              </div>
+              <p className="note">{data.subgroups.caveat}</p>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

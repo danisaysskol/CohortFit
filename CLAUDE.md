@@ -18,10 +18,10 @@ Do not build or modify this project on a different model unless the user explici
 
 **Product contract (must hold in all code + UI):**
 - **DOES:** visible cohort queries (inclusion + exclusion); red/amber/green data-fitness scorecard with drill-down to source rows; distinguishes a real clinical finding from a data error; reversible, rule-backed fixes only; provenance for every patient-level claim; **abstains** when unsupported.
-- **NEVER:** silently edits/deletes source data; gives medical/diagnostic/triage advice; claims clinical validity; hides AI-generated content; infers calendar dates (data are date-shifted); dumps patient-level data to external services — per the licence we **minimize** what's sent (schema + aggregates by default; only the minimal rows a task genuinely needs), disclose it, and never upload to a service whose terms disallow it.
+- **NEVER:** silently edits/deletes source data; gives medical/diagnostic/triage advice; claims clinical validity; hides AI-generated content; infers calendar dates (data are date-shifted); dumps patient-level data to external services — per the licence we **minimize** what's sent (the LLM path receives only a schema description + the user's text — never patient rows or aggregates), disclose it, and never upload to a service whose terms disallow it.
 - **On every screen:** *Research and educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.*
 
-**Locked decisions:** Stack = **FastAPI + Next.js** (deploy to Vercel) · LLM = **OpenAI only** (strict Structured Outputs into a validated IR — kinds/ops enum-constrained, fields validated by the deterministic compiler; GPT-5.6 Terra primary / Luna fallback / Sol escalate) · **NL → validated JSON IR → DuckDB SQL** (the LLM never writes executable SQL) · Ace card = **demo-verifiable only** (every flag traces to a real 100-patient row).
+**Locked decisions:** Stack = **FastAPI + Next.js** (deploy to Vercel) · LLM = **OpenAI only** (strict Structured Outputs into a validated IR — kinds/ops enum-constrained, fields validated by the deterministic compiler; GPT-5.6 Terra primary → Luna fallback → offline keyword parser as the final fallback) · **NL → validated JSON IR → DuckDB SQL** (the LLM never writes executable SQL) · Ace card = **demo-verifiable only** (every flag traces to a real 100-patient row).
 
 **Process:** we work **scrum-style** — build one small feature, test it, verify against requirements + rubric (`docs/TRACK2_REQUIREMENTS.md`), update, then move on. Frontend is built **from the start**, not bolted on at the end.
 
@@ -29,7 +29,7 @@ Do not build or modify this project on a different model unless the user explici
 
 **Design:** Apple clarity blended with Google **Material** tactility (focus on the user, material as metaphor, motion with purpose), **user-centric, warm light mode only (no dark mode)**. The design system is documented in **`TENTATIVE_FRONTEND_DESIGN_SYSTEM.md`** (the single source of truth for tokens, type, elevation, motion, components) — tentative and evolving. Build UI to match that file.
 
-**Demo-safety engineering (so we never get doomed live):** near-perfect **session management + local store** (a cohort/flag session persists and reloads exactly), and **deterministic, sandboxed execution** of every query/code path (compiled SQL over the fixed DuckDB store; store IR + SQL + data-hash; no surprise network calls in the hot path).
+**Demo-safety engineering (so we never get doomed live):** near-perfect **session management + local store** (a cohort/flag session persists and reloads exactly), and **deterministic, sandboxed execution** of every query/code path (compiled SQL over the fixed DuckDB store; IR + SQL + a returned `query_hash` make each request reproducible; no surprise network calls in the hot path).
 
 **Deploy target:** everything runs in **Docker** (a collaborator will also run it) — one `docker compose up` brings up backend + frontend. Keep it reproducible.
 
@@ -48,7 +48,6 @@ _Excludes the extracted dataset, `mimic-iv-docs/`, `mimic-code-main/`, `.zip` fi
 patient-care-track-2/
 ├── backend/                          # FastAPI + DuckDB
 │   ├── app/
-│   │   ├── api/__init__.py
 │   │   ├── cohort/                   # NL → IR → SQL
 │   │   │   ├── __init__.py
 │   │   │   ├── compiler.py           # IR → DuckDB SQL (+ joins/temporal/negation/LOS)
@@ -107,7 +106,7 @@ patient-care-track-2/
 
 - **Secrets:** real `.env` is gitignored; use `.env.example` as the template (`OPENAI_API_KEY`, model IDs). Never commit keys.
 - **Config over hardcoding:** model IDs, temperature, data paths, and plausibility-rule tables live in config, not inline.
-- **Data-quality correctness gate:** only ~782 of 4,014 ICU items are numeric — gate every plausibility/missingness rule on `d_items.param_type` (a null `valuenum` on a text/checkbox item is NOT a defect).
+- **Data-quality correctness gate:** only ~782 of 4,014 ICU items are numeric — the plausibility check joins `d_items` and filters on `d_items.param_type` (numeric only); missingness checks target specific numeric itemids. A null `valuenum` on a text/checkbox item is NOT a defect.
 
 ## Commit policy
 

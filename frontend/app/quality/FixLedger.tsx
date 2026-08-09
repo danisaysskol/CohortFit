@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { api, Fix } from "../lib/api";
 
-type Applied = { id: string; title: string; rule: string; reverse: string; appliedAt: string };
-const STORE = "cohortfit:fix-ledger";
+type Planned = { id: string; title: string; rule: string; reverse: string; addedAt: string };
+const STORE = "cohortfit:fix-plan";
 
 export function FixLedger() {
   const [fixes, setFixes] = useState<Fix[]>([]);
-  const [applied, setApplied] = useState<Applied[]>([]);
+  const [planned, setPlanned] = useState<Planned[]>([]);
   const [note, setNote] = useState("");
 
   useEffect(() => {
@@ -18,14 +18,14 @@ export function FixLedger() {
     }).catch(() => {});
     try {
       const saved = localStorage.getItem(STORE);
-      if (saved) setApplied(JSON.parse(saved));
+      if (saved) setPlanned(JSON.parse(saved));
     } catch {
       /* ignore */
     }
   }, []);
 
-  function persist(next: Applied[]) {
-    setApplied(next);
+  function persist(next: Planned[]) {
+    setPlanned(next);
     try {
       localStorage.setItem(STORE, JSON.stringify(next));
     } catch {
@@ -33,25 +33,27 @@ export function FixLedger() {
     }
   }
 
-  function apply(f: Fix) {
-    if (applied.some((a) => a.id === f.id)) return;
+  // Add a proposed fix to a local, browser-side review plan. This does NOT apply the fix
+  // or touch any data — it just records the transform you intend to run in your own pipeline.
+  function addToPlan(f: Fix) {
+    if (planned.some((a) => a.id === f.id)) return;
     persist([
-      ...applied,
-      { id: f.id, title: f.title, rule: f.rule, reverse: f.reverse, appliedAt: new Date().toISOString().slice(0, 19).replace("T", " ") },
+      ...planned,
+      { id: f.id, title: f.title, rule: f.rule, reverse: f.reverse, addedAt: new Date().toISOString().slice(0, 19).replace("T", " ") },
     ]);
   }
 
-  function undo(id: string) {
-    persist(applied.filter((a) => a.id !== id));
+  function remove(id: string) {
+    persist(planned.filter((a) => a.id !== id));
   }
 
-  const isApplied = (id: string) => applied.some((a) => a.id === id);
+  const isPlanned = (id: string) => planned.some((a) => a.id === id);
 
   return (
     <section className="panel" style={{ marginTop: 18 }}>
       <div className="panel-h">
-        <span className="lbl">Reversible fixes</span>
-        <span className="lbl">source never modified</span>
+        <span className="lbl">Proposed reversible fixes</span>
+        <span className="lbl">nothing applied · source never modified</span>
       </div>
       <div className="panel-b">
         {fixes.map((f) => (
@@ -62,10 +64,10 @@ export function FixLedger() {
               <div className="t2">{f.table} · {f.ref} · rule: {f.rule}</div>
             </span>
             {f.reversible ? (
-              isApplied(f.id) ? (
-                <button className="btn btn-ghost" onClick={() => undo(f.id)}>Undo</button>
+              isPlanned(f.id) ? (
+                <button className="btn btn-ghost" onClick={() => remove(f.id)}>Remove</button>
               ) : (
-                <button className="btn" onClick={() => apply(f)}>Apply &amp; log</button>
+                <button className="btn" onClick={() => addToPlan(f)}>Add to plan</button>
               )
             ) : (
               <span className="pill caveat">Review only</span>
@@ -73,16 +75,16 @@ export function FixLedger() {
           </div>
         ))}
 
-        {applied.length > 0 && (
+        {planned.length > 0 && (
           <>
-            <div className="lbl" style={{ marginTop: 14, marginBottom: 6 }}>Fix ledger · {applied.length}</div>
+            <div className="lbl" style={{ marginTop: 14, marginBottom: 6 }}>Local review plan · {planned.length} <span className="muted">(saved in this browser only — not applied)</span></div>
             <div className="tablewrap">
               <table className="gt">
-                <thead><tr><th>Applied at</th><th>Fix</th><th>Forward</th><th>Reverse</th></tr></thead>
+                <thead><tr><th>Added at</th><th>Fix</th><th>Forward</th><th>Reverse</th></tr></thead>
                 <tbody>
-                  {applied.map((a) => (
+                  {planned.map((a) => (
                     <tr key={a.id}>
-                      <td className="mono" style={{ whiteSpace: "nowrap" }}>{a.appliedAt}</td>
+                      <td className="mono" style={{ whiteSpace: "nowrap" }}>{a.addedAt}</td>
                       <td>{a.title}</td>
                       <td className="mono" style={{ fontSize: 11 }}>{a.rule}</td>
                       <td className="mono" style={{ fontSize: 11 }}>{a.reverse || "—"}</td>

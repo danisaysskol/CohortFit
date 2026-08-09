@@ -1,14 +1,16 @@
 """Compile a validated CohortIR into DuckDB SQL and run it.
 
 Produces: the SQL (shown to the user), the Provenance Ledger funnel (running `n`
-remaining + delta per criterion), the resulting subject_ids, and a data-hash so a
-stored IR reproduces the exact result. Values are cast/escaped here — the LLM never
-writes SQL, and criteria can only reference the fixed set of tables/columns below.
+remaining + delta per criterion), the resulting subject_ids, and a `query_hash`
+(a digest of the compiled SQL + IR) so the same request reproduces the exact result.
+Values are cast/escaped here — the LLM never writes SQL, and criteria can only
+reference the fixed set of tables/columns below.
 """
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Iterator
 from typing import Any
 
 from ..data.loader import Database
@@ -32,6 +34,18 @@ def _lit(value: str) -> str:
     return value.replace("'", "''")
 
 
+def _num(value: Any) -> float:
+    """Cast an IR value to a float, or raise CompileError.
+
+    The OpenAI path can return a non-numeric or missing `value` (the IR field is a free
+    Optional[str]); catching it here turns a would-be 500 into a graceful `clarify`.
+    """
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        raise CompileError(f"expected a numeric value, got {value!r}")
+
+
 def _predicate(c: Criterion) -> tuple[str, str]:
     """Return (SQL boolean over `patients p`, source label for the ledger)."""
     k = c.kind
@@ -43,7 +57,7 @@ def _predicate(c: Criterion) -> tuple[str, str]:
         if op not in ALLOWED_OPS:
             raise CompileError(f"unsupported op: {op}")
         if field in NUMERIC_DEMO_FIELDS:
-            return f"p.{field} {op} {float(c.value)}", f"patients.{field}"
+            return f"p.{field} {op} {_num(c.value)}", f"patients.{field}"
         return f"lower(p.{field}) = lower('{_lit(str(c.value))}')", f"patients.{field}"
     if k == "has_icu_stay":
         return "p.subject_id IN (SELECT subject_id FROM icustays)", "icustays.stay_id"
@@ -75,7 +89,7 @@ def _predicate(c: Criterion) -> tuple[str, str]:
         op = c.op or ">"
         if op not in ALLOWED_OPS:
             raise CompileError(f"unsupported op: {op}")
-        return (f"p.subject_id IN (SELECT subject_id FROM icustays WHERE los {op} {float(c.value)})",
+        return (f"p.subject_id IN (SELECT subject_id FROM icustays WHERE los {op} {_num(c.value)})",
                 "icustays.los")
     if k == "readmission":
         try:
@@ -114,13 +128,13 @@ def _predicate(c: Criterion) -> tuple[str, str]:
             raise CompileError(f"unsupported op: {op}")
         return (
             f"p.subject_id IN (SELECT subject_id FROM {source_table} "
-            f"WHERE itemid = {itemid} AND valuenum {op} {float(c.value)})",
+            f"WHERE itemid = {itemid} AND valuenum {op} {_num(c.value)})",
             f"{source_table}.itemid={itemid}",
         )
     raise CompileError(f"unknown criterion kind: {k}")
 
 
-def iter_compile(db: Database, ir: CohortIR) -> "Iterator[dict[str, Any]]":
+def iter_compile(db: Database, ir: CohortIR) -> Iterator[dict[str, Any]]:
     """Compile the IR, yielding one event per real step so the UI can show the work live:
     a `funnel` event per criterion as its count is computed, then `sql`, `patients`, and a
     final `result` event carrying the full payload. `compile_ir` just drains this.
@@ -167,13 +181,13 @@ def iter_compile(db: Database, ir: CohortIR) -> "Iterator[dict[str, Any]]":
         )
     yield {"type": "patients", "count": len(ids)}
 
-    data_hash = hashlib.sha256(
+    query_hash = hashlib.sha256(
         (sql + "|" + json.dumps(ir.model_dump(), sort_keys=True)).encode()
     ).hexdigest()[:12]
     yield {"type": "result", "result": {
         "sql": sql, "funnel": funnel, "subject_ids": ids, "patients": patients,
         "n": len(ids), "answerable": ir.answerable, "confidence": ir.confidence,
-        "data_hash": data_hash,
+        "query_hash": query_hash,
     }}
 
 

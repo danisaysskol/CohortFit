@@ -64,7 +64,7 @@ CohortFit **abstains**, states *why*, and points to the missing/again-not-suppor
 - Claims clinical validity, effectiveness, or cross-institution generalization.
 - Hides which content is AI-generated vs. from source data.
 - Infers calendar dates / seasonality / cross-patient chronology (data are date-shifted).
-- Dumps patient-level data to external services. Per the licence we **minimize** what's sent — schema + aggregates by default, only the minimal rows a task needs, always disclosed — and never upload to a service whose terms disallow it.
+- Dumps patient-level data to external services. Per the licence we **minimize** what's sent — the LLM path receives only a schema description + the user's text, never patient rows or aggregates, always disclosed — and never upload to a service whose terms disallow it.
 
 **On every screen:** the mandatory banner —
 > *Research and educational prototype only. Not for clinical use. Do not use for diagnosis, treatment, triage, or emergency decisions.*

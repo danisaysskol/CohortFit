@@ -1,10 +1,77 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, EvalResult } from "../lib/api";
+import { api, EvalResult, EvalCheck } from "../lib/api";
 import { StatTile, CompareBars, ConfusionMatrix } from "../components/charts";
 import { Explain } from "../components/Explain";
 import { Icon } from "../components/Icon";
+
+function CheckSection({ c }: { c: EvalCheck }) {
+  // Aggregate a representative confusion matrix across the seeded runs (identical here).
+  const tp = c.runs.reduce((s, r) => s + Number(r.tp), 0);
+  const fp = c.runs.reduce((s, r) => s + Number(r.fp), 0);
+  const fn = c.runs.reduce((s, r) => s + Number(r.fn), 0);
+  const tn = c.runs.reduce((s, r) => s + Number(r.tn), 0);
+
+  return (
+    <section className="panel" style={{ marginTop: 18 }}>
+      <div className="panel-h">
+        <span className="lbl lbl-i"><Icon name="check" size={13} /> {c.name} · <span className="mono">{c.dimension}</span></span>
+        <span className="lbl">{c.seeds.length} seeds</span>
+      </div>
+      <div className="panel-b">
+        <p className="t2" style={{ marginTop: 0 }}>{c.check} — injected into a read-only copy of <span className="mono">{c.table}</span>.</p>
+
+        <div className="metrics">
+          <StatTile value={c.aggregate.precision.mean.toFixed(2)} label="Precision" meaning="Of the rows flagged, the share that were genuine injected errors." />
+          <StatTile value={c.aggregate.recall.mean.toFixed(2)} label="Recall" meaning="Of the injected errors, the share the engine caught." />
+          <StatTile value={c.aggregate.f1.mean.toFixed(2)} label="F1" meaning="The harmonic mean of precision and recall." />
+          <StatTile value={c.aggregate.false_positive_rate.mean.toFixed(2)} label="False-positive rate" meaning="Of the clean rows, the share wrongly flagged." />
+        </div>
+
+        <div className="grid2" style={{ marginTop: 18 }}>
+          <div>
+            <div className="lbl" style={{ marginBottom: 8 }}>CohortFit vs. fixed-rule baseline</div>
+            <CompareBars rows={[
+              { metric: "Precision", ours: c.aggregate.precision.mean, baseline: c.baseline.precision },
+              { metric: "Recall", ours: c.aggregate.recall.mean, baseline: c.baseline.recall },
+              { metric: "False-positive rate", ours: c.aggregate.false_positive_rate.mean, baseline: c.baseline.false_positive_rate },
+            ]} />
+            <p className="note">Both approaches catch every injected error (recall {c.baseline.recall.toFixed(2)}), but the baseline &ldquo;{c.baseline.strategy}&rdquo; holds a precision of only {c.baseline.precision.toFixed(2)} — it flags almost everything. By gating on context, CohortFit maintains a precision of {c.aggregate.precision.mean.toFixed(2)}.</p>
+          </div>
+          <div>
+            <div className="lbl" style={{ marginBottom: 8 }}>Outcomes across all seeds</div>
+            <ConfusionMatrix tp={tp} fp={fp} fn={fn} tn={tn} />
+            <p className="note">{tp} injected errors correctly flagged, with {fp} false positives and {fn} misses across {tp + tn + fp + fn} evaluated rows. Std across seeds: ±{c.aggregate.precision.std.toFixed(2)} precision, ±{c.aggregate.recall.std.toFixed(2)} recall.</p>
+          </div>
+        </div>
+
+        <details className="fold" style={{ marginTop: 12 }}>
+          <summary><Icon name="chart" size={13} /> Per-seed detail <span className="lbl">{c.seeds.length} seeds</span></summary>
+          <div className="fold-b">
+            <div className="tablewrap">
+              <table className="gt">
+                <thead><tr><th>Seed</th><th className="num">Injected</th><th className="num">True positives</th><th className="num">False positives</th><th className="num">Precision</th><th className="num">Recall</th></tr></thead>
+                <tbody>
+                  {c.runs.map((r, i) => (
+                    <tr key={i}>
+                      <td className="mono">{String(r.seed)}</td>
+                      <td className="num mono">{String(r.injected)}</td>
+                      <td className="num mono">{String(r.tp)}</td>
+                      <td className="num mono">{String(r.fp)}</td>
+                      <td className="num mono">{Number(r.precision).toFixed(2)}</td>
+                      <td className="num mono">{Number(r.recall).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+  );
+}
 
 export default function EvaluationPage() {
   const [ev, setEv] = useState<EvalResult | null>(null);
@@ -13,12 +80,6 @@ export default function EvaluationPage() {
   useEffect(() => {
     api.runEval().then(setEv).catch((e) => setErr(String(e)));
   }, []);
-
-  // Aggregate a representative confusion matrix across the seeded runs (they are identical here).
-  const totalTp = ev ? ev.runs.reduce((s, r) => s + Number(r.tp), 0) : 0;
-  const totalFp = ev ? ev.runs.reduce((s, r) => s + Number(r.fp), 0) : 0;
-  const totalFn = ev ? ev.runs.reduce((s, r) => s + Number(r.fn), 0) : 0;
-  const totalTn = ev ? ev.runs.reduce((s, r) => s + Number(r.tn), 0) : 0;
 
   return (
     <>
@@ -30,77 +91,27 @@ export default function EvaluationPage() {
       </div>
 
       <div className="abstain" style={{ borderColor: "var(--line-strong)", background: "var(--surface-2)", marginBottom: 16 }}>
-        <span className="k" style={{ color: "var(--accent)" }}>Scope of these scores</span> — they cover <b>one check: temporal integrity</b> (admittime ≥ dischtime), the single dimension with a clean injectable ground truth (the real demo has 0 such violations, so a swapped timestamp is cleanly separable). This shows the harness is real, reproducible, and beats a naive baseline — <b>it is not a claim that all five dimensions score 1.00</b>. The other four are evidenced by real, clickable findings on the Data-fitness page, not by injection.
+        <span className="k" style={{ color: "var(--accent)" }}>Scope of these scores</span> — they cover the <b>two dimensions with a clean, injectable ground truth</b>: temporal integrity (admittime ≥ dischtime, 0 pre-existing violations) and unit consistency (a single-unit lab itemid, into which a wrong unit is injected). This shows the harness is real, reproducible, and beats a naive baseline — <b>it is not a claim that all five dimensions score 1.00</b>. The other three (plausibility, completeness, duplicates) are evidenced by real, clickable findings on the Data-fitness page, not by injection.
       </div>
 
       {err && !ev && <div className="abstain"><span className="k">Unavailable</span> — {err}. Confirm the backend is running on port 8000.</div>}
       {!ev && !err && <div className="loading">Running the injected-error evaluation across seeds…</div>}
+      {ev && !Array.isArray(ev.checks) && (
+        <div className="abstain"><span className="k">Unavailable</span> — the evaluation response was in an unexpected format. Please hard-refresh the page.</div>
+      )}
 
-      {ev && (
+      {ev && Array.isArray(ev.checks) && (
         <>
           <Explain items={[
             { k: "Context", icon: "chart", t: <>You cannot grade a bug-finder on the bugs it <b>happens to find</b> — there is no ground truth to score against.</> },
             { k: "Problem", icon: "alert", t: <>So we inject a <b>known number of errors</b> into a copy of the data and measure how many the engine recovers.</> },
-            { k: "Method", icon: "play", t: <>Seeded injection across <b>{ev.seeds.length} seeds</b>; precision / recall / FPR vs a naive fixed-rule baseline. The source is never touched.</> },
-            { k: "Result", icon: "check", t: <>Recall <b>{ev.aggregate.recall.mean.toFixed(2)}</b>, precision <b>{ev.aggregate.precision.mean.toFixed(2)}</b> on this check — reported honestly as a strong case, not a clinical claim.</> },
+            { k: "Method", icon: "play", t: <>Seeded injection across <b>{ev.seeds.length} seeds</b>, on <b>{ev.checks.length} dimensions</b>; precision / recall / FPR vs a naive baseline. The source is never touched.</> },
+            { k: "Result", icon: "check", t: <>Mean precision <b>{ev.overall.precision.mean.toFixed(2)}</b>, recall <b>{ev.overall.recall.mean.toFixed(2)}</b> across dimensions — reported honestly as strong cases, not a clinical claim.</> },
           ]} />
 
-          {/* Headline metrics with plain-English meaning */}
-          <div className="metrics">
-            <StatTile value={ev.aggregate.precision.mean.toFixed(2)} label="Precision" meaning="Of the rows flagged, the share that were genuine injected errors." />
-            <StatTile value={ev.aggregate.recall.mean.toFixed(2)} label="Recall" meaning="Of the injected errors, the share the engine caught." />
-            <StatTile value={ev.aggregate.f1.mean.toFixed(2)} label="F1" meaning="The harmonic mean of precision and recall." />
-            <StatTile value={ev.aggregate.false_positive_rate.mean.toFixed(2)} label="False-positive rate" meaning="Of the clean rows, the share wrongly flagged." />
-          </div>
-
-          <div className="grid2" style={{ marginTop: 18 }}>
-            {/* The money chart: CohortFit vs the dumb baseline */}
-            <section className="panel">
-              <div className="panel-h"><span className="lbl">CohortFit vs. fixed-rule baseline</span><span className="lbl">{ev.seeds.length} seeds</span></div>
-              <div className="panel-b">
-                <CompareBars rows={[
-                  { metric: "Precision", ours: ev.aggregate.precision.mean, baseline: ev.baseline.precision },
-                  { metric: "Recall", ours: ev.aggregate.recall.mean, baseline: ev.baseline.recall },
-                  { metric: "False-positive rate", ours: ev.aggregate.false_positive_rate.mean, baseline: ev.baseline.false_positive_rate },
-                ]} />
-                <p className="note">Both approaches catch every injected error (recall {ev.baseline.recall.toFixed(2)}), but the baseline "{ev.baseline.strategy}" holds a precision of only {ev.baseline.precision.toFixed(2)} — it flags almost everything. By gating on context, CohortFit maintains a precision of {ev.aggregate.precision.mean.toFixed(2)}.</p>
-              </div>
-            </section>
-
-            {/* Confusion matrix — immediately legible */}
-            <section className="panel">
-              <div className="panel-h"><span className="lbl">Outcomes</span><span className="lbl">across all seeds</span></div>
-              <div className="panel-b">
-                <ConfusionMatrix tp={totalTp} fp={totalFp} fn={totalFn} tn={totalTn} />
-                <p className="note">{totalTp} injected errors were correctly flagged, with {totalFp} false positives and {totalFn} misses across {totalTp + totalTn + totalFp + totalFn} evaluated rows. Standard deviation across seeds: ±{ev.aggregate.precision.std.toFixed(2)} precision, ±{ev.aggregate.recall.std.toFixed(2)} recall.</p>
-              </div>
-            </section>
-          </div>
+          {ev.checks.map((c) => <CheckSection key={c.dimension} c={c} />)}
 
           <p className="note" style={{ marginTop: 14 }}><b>{ev.note}</b></p>
-
-          <details className="fold">
-            <summary><Icon name="chart" size={13} /> Per-seed detail <span className="lbl">{ev.seeds.length} seeds · {String(ev.runs[0]?.check ?? "")}</span></summary>
-            <div className="fold-b">
-              <div className="tablewrap">
-                <table className="gt">
-                  <thead><tr><th>Seed</th><th className="num">Injected</th><th className="num">True positives</th><th className="num">False positives</th><th className="num">Precision</th><th className="num">Recall</th></tr></thead>
-                  <tbody>
-                    {ev.runs.map((r, i) => (
-                      <tr key={i}>
-                        <td className="mono">{String(r.seed)}</td>
-                        <td className="num mono">{String(r.injected)}</td>
-                        <td className="num mono">{String(r.tp)}</td>
-                        <td className="num mono">{String(r.fp)}</td>
-                        <td className="num mono">{Number(r.precision).toFixed(2)}</td>
-                        <td className="num mono">{Number(r.recall).toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </details>
         </>
       )}
     </>

@@ -125,6 +125,26 @@ def _coding(db: Database, subject_ids: list[int] | None) -> dict[str, Any]:
     }
 
 
+def _subgroups(db: Database, subject_ids: list[int] | None) -> dict[str, Any]:
+    """Subgroup composition (gender, age band) for the cohort. Reported for transparency
+    only — 100 date-shifted patients cannot support reliable fairness conclusions."""
+    scope = _scope(subject_ids)
+    gender = db.query(
+        f"SELECT gender AS k, count(*) AS n FROM patients WHERE 1=1{scope} GROUP BY gender ORDER BY gender"
+    )
+    bands = db.query(
+        "SELECT CASE WHEN anchor_age < 50 THEN '<50' WHEN anchor_age < 65 THEN '50–64' "
+        "WHEN anchor_age < 80 THEN '65–79' ELSE '80+' END AS k, count(*) AS n "
+        f"FROM patients WHERE 1=1{scope} GROUP BY 1 ORDER BY 1"
+    )
+    return {
+        "gender": [{"key": r["k"], "n": int(r["n"])} for r in gender],
+        "age_bands": [{"key": r["k"], "n": int(r["n"])} for r in bands],
+        "caveat": "Composition only — 100 date-shifted patients cannot support reliable "
+                  "fairness or subgroup-performance conclusions.",
+    }
+
+
 def cohort_measurements(db: Database, subject_ids: list[int] | None = None) -> dict[str, Any]:
     counts = _counts(db, subject_ids)
     return {
@@ -132,4 +152,5 @@ def cohort_measurements(db: Database, subject_ids: list[int] | None = None) -> d
         "vitals": _vitals(db, subject_ids, counts["n_stays"]),
         "labs": _labs(db, subject_ids),
         "coding": _coding(db, subject_ids),
+        "subgroups": _subgroups(db, subject_ids),
     }

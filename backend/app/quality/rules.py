@@ -19,6 +19,11 @@ from .ranges import VITAL_RANGES
 SEV_ORDER = {"green": 0, "amber": 1, "red": 2}
 DIMENSIONS = ["plausibility", "units", "temporal", "completeness", "duplicates"]
 
+# Only ~782 of 4,014 ICU items are numeric. We gate the plausibility check on
+# d_items.param_type so a null/absent number on a text or checkbox item is never
+# mistaken for an out-of-range value (the Track-2 strict rule).
+NUMERIC_PARAM_TYPES = ("Numeric", "Numeric with tag")
+
 
 def _scope(subject_ids: list[int] | None, col: str = "subject_id") -> str:
     """Return an AND-clause restricting to a cohort's patients, or '' for the whole dataset.
@@ -52,7 +57,10 @@ class Finding:
 def check_plausibility(db: Database, subject_ids: list[int] | None = None) -> list[Finding]:
     # Single pass over chartevents, joined to a small in-query bounds table.
     # (Per-itemid loops were 11x full scans of 669k rows — far too slow for a live demo.)
+    # The join to d_items with a param_type filter enforces the numeric-only gate:
+    # a text/checkbox item can never enter the plausibility count, even if it were in bounds.
     values = ", ".join(f"({iid}, {lo}, {hi})" for iid, (lo, hi, _, _) in VITAL_RANGES.items())
+    param_types = ", ".join(f"'{p}'" for p in NUMERIC_PARAM_TYPES)
     scope = _scope(subject_ids, "c.subject_id")
     where = f"WHERE 1=1{scope} " if scope else ""
     rows = db.query(
@@ -61,7 +69,8 @@ def check_plausibility(db: Database, subject_ids: list[int] | None = None) -> li
         "count(*) FILTER (WHERE c.valuenum IS NOT NULL) AS n, "
         "count(*) FILTER (WHERE c.valuenum < b.lo OR c.valuenum > b.hi) AS bad, "
         "min(c.valuenum) AS mn, max(c.valuenum) AS mx "
-        f"FROM chartevents c JOIN bounds b ON c.itemid = b.itemid {where}"
+        "FROM chartevents c JOIN bounds b ON c.itemid = b.itemid "
+        f"JOIN d_items di ON c.itemid = di.itemid AND di.param_type IN ({param_types}) {where}"
         "GROUP BY c.itemid"
     )
     out: list[Finding] = []
@@ -291,9 +300,10 @@ def find_offending_rows(db: Database, findings: list[Finding], finding_id: str,
 
 
 def propose_fixes(db: Database) -> dict[str, Any]:
-    """Suggest reversible, rule-backed fixes. NOTHING here mutates source data — a fix is
-    a documented transform the UI can apply to a working copy and undo. The brief requires
-    corrections to be reversible and rule-backed; ambiguous cases stay review-only.
+    """Suggest reversible, rule-backed fixes. NOTHING here is ever applied — each fix is
+    only a *proposed* transform carrying an explicit forward + reverse rule, so a downstream
+    pipeline could apply it to its own copy and roll it back. The brief requires corrections
+    to be reversible and rule-backed; ambiguous cases stay review-only.
     """
     fixes: list[dict[str, Any]] = []
 
@@ -336,8 +346,9 @@ def propose_fixes(db: Database) -> dict[str, Any]:
 
     return {
         "fixes": fixes,
-        "note": "Fixes apply to a working copy only; source data is never modified. Every "
-                "applied fix is reversible and logged.",
+        "note": "These are proposals only — CohortFit never applies them and never modifies the "
+                "source data. Each carries a documented forward and reverse rule so you can apply "
+                "it in your own pipeline and undo it.",
     }
 
 

@@ -26,6 +26,6 @@ More time: harder-dimension evaluation, leakage/index-time guards, validation on
 - [ ] **One final submission** — cannot be modified once submitted; submit before the deadline (portal auto-closes). *(human — confirm the exact deadline)*
 
 ## Supporting evidence to cite in the pitch
-- Evaluation: `docs/EVALUATION_REPORT.md` (cohort correctness, injected-error P/R/FPR with the honest one-check caveat, dumb-vs-tool contrast).
+- Evaluation: `docs/EVALUATION_REPORT.md` (cohort correctness, injected-error P/R/FPR on two dimensions — temporal + units — with the honest scope caveat, dumb-vs-tool contrast).
 - Safety & data lineage: `docs/SAFETY_STATEMENT.md`.
 - One honest failure/abstention case: e.g. "which patients were admitted in winter" → abstains (dates are shifted).

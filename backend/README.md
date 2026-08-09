@@ -14,7 +14,7 @@ app/
   quality/rules.py     # plausibility/units/temporal/completeness/duplicates + scorecard
   cohort/ir.py         # CohortIR (pydantic) — the intermediate representation
   cohort/nl.py         # plain-English -> IR (OpenAI if key, else keyword fallback)
-  cohort/compiler.py   # IR -> DuckDB SQL + provenance funnel + data-hash
+  cohort/compiler.py   # IR -> DuckDB SQL + provenance funnel + query_hash
   eval/inject.py       # inject labeled errors into a copy; measure precision/recall/FPR
   main.py              # FastAPI app
 tests/                 # data/quality/cohort/eval/api tests

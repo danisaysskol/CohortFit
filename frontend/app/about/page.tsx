@@ -52,7 +52,7 @@ export default function AboutPage() {
             Five checks — plausibility, units, timing, completeness, duplicates — each rated <b>critical</b>, <b>review</b>, or <b>clean</b>, with the most severe shown first.
           </Capability>
           <Capability icon="check" title="Suggests only reversible fixes">
-            A proposed fix (e.g. a mislabelled temperature) is applied to a working copy and logged so you can undo it. The source data is never changed.
+            Each fix (e.g. a mislabelled temperature) is only <b>proposed</b>, never applied — it carries a forward and reverse rule so you can run it in your own pipeline and undo it. The source data is never changed.
           </Capability>
           <Capability icon="link" title="Traces every claim to its source">
             Each finding points to its table and item id; each cohort row is drawn straight from the records — nothing is a black box.

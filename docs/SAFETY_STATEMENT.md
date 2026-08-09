@@ -14,10 +14,10 @@ A research/education tool for clinical-data researchers, educators, and data tea
 ## Data lineage
 - Source: MIMIC-IV Clinical Database Demo v2.2 (PhysioNet), 100 de-identified patients. Cite the dataset version and PhysioNet licence.
 - The frozen CSVs are read via DuckDB **views** — the app never writes to them. The data volume is mounted **read-only** in Docker.
-- Derived artifacts (cohort IR, compiled SQL, data-hash, quality findings, injected-error copies) are computed at request time and are clearly derived, never presented as source.
+- Derived artifacts (cohort IR, compiled SQL, `query_hash`, quality findings, injected-error copies) are computed at request time and are clearly derived, never presented as source.
 
 ## Privacy handling (licence-aware minimization)
-- The brief requires *minimizing data sent to external services*. In the cohort-build path the LLM receives only the **user's description + a schema-describing system prompt** — no patient rows and no data values (verified in `backend/app/cohort/nl.py`). Only the minimal patient-level detail a task genuinely needs would ever be sent, and it is disclosed. The dataset is never dumped to any service.
+- The brief requires *minimizing data sent to external services*. In the cohort-build path the LLM receives only the **user's text + a schema-describing system prompt** (a schema description + an itemid reference list) — no patient rows, no summary statistics, and no DDL (verified in `backend/app/cohort/nl.py`). The dataset is never dumped to any service.
 - Without an `OPENAI_API_KEY`, the tool runs fully offline via a disclosed keyword fallback — no data leaves the machine at all.
 - Sample rows shown in the Schema Explorer are served to the **local UI only**.
 
@@ -36,7 +36,7 @@ A research/education tool for clinical-data researchers, educators, and data tea
 | Backend unavailable | UI shows a clear error with recovery hint; no silent wrong answer. |
 
 ## Human-review boundary
-CohortFit assists; it does not act. A human must review cohort definitions before any downstream use, must decide on any data correction (fixes are reversible, logged, and never auto-committed to source), and must not use outputs for clinical decisions. No automated clinical action is possible.
+CohortFit assists; it does not act. A human must review cohort definitions before any downstream use, must decide on any data correction (fixes are **proposed only** — reversible by construction, never applied by CohortFit, and never committed to source; the store is read-only and there is no server-side fix log), and must not use outputs for clinical decisions. No automated clinical action is possible.
 
 ## Licence & attribution
 Use of MIMIC-IV Demo v2.2 follows the PhysioNet licence and attribution terms. External code/reference (e.g. MIT `mimic-code` plausibility ranges) is cited in `docs/RESEARCH_AND_EXPLORATION.md`.

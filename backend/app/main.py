@@ -3,10 +3,15 @@
 The DuckDB session is built once and reused. Endpoints return JSON the Next.js
 frontend renders. Patient-level rows returned here go only to the local UI; the LLM
 path (cohort/build) receives schema + the description, per licence-aware minimization.
+
+Logging: the store is read-only, so there are no data mutations to log. What we log is
+request decisions (cohort disposition, method, size), compile errors, and eval runs —
+enough to audit behaviour without recording patient rows.
 """
 from __future__ import annotations
 
 import json
+import logging
 from functools import lru_cache
 from typing import Any
 
@@ -25,6 +30,12 @@ from .data.loader import Database
 from .eval.inject import run_eval
 from .quality import measure
 from .quality import rules as quality
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+logger = logging.getLogger("cohortfit")
 
 app = FastAPI(title="CohortFit API", version=__version__)
 app.add_middleware(
@@ -60,6 +71,8 @@ def _warm() -> None:
     _findings_cache = quality.all_findings(db)
     _scorecard_cache = quality.scorecard(db, _findings_cache)
     _fixes_cache = quality.propose_fixes(db)
+    logger.info("startup: %d tables loaded, %d findings, %d fixes proposed (source is read-only)",
+                len(db.tables()), len(_findings_cache), len(_fixes_cache["fixes"]))
 
 
 class BuildRequest(BaseModel):
@@ -126,14 +139,19 @@ def build_cohort(req: BuildRequest) -> dict[str, Any]:
                 "method": "guard", "ir": {}, "safety": SAFETY}
     ir, method = nl.to_ir(req.text)
     if not ir.answerable:
+        logger.info("cohort/build: disposition=%s method=%s len=%d (not answerable)",
+                    ir.disposition, method, len(req.text))
         return {"answerable": False, "disposition": ir.disposition,
                 "abstain_reason": ir.abstain_reason, "method": method,
                 "ir": ir.model_dump(), "safety": SAFETY}
     try:
         result = compile_ir(get_db(), ir)
     except CompileError as e:
+        logger.warning("cohort/build: compile error (method=%s): %s", method, e)
         return {"answerable": False, "disposition": "clarify", "abstain_reason": str(e),
                 "method": method, "ir": ir.model_dump(), "safety": SAFETY}
+    logger.info("cohort/build: disposition=cohort method=%s n=%d query_hash=%s",
+                method, result["n"], result.get("query_hash"))
     return {"method": method, "disposition": "cohort", "ir": ir.model_dump(),
             **result, "safety": SAFETY}
 
@@ -282,4 +300,8 @@ def get_fixes() -> dict[str, Any]:
 
 @app.get("/eval/run")
 def get_eval(n_inject: int = 20) -> dict[str, Any]:
-    return {**run_eval(get_db(), n_inject=n_inject), "safety": SAFETY}
+    result = run_eval(get_db(), n_inject=n_inject)
+    logger.info("eval/run: n_inject=%d checks=%s overall_precision=%.3f",
+                n_inject, [c["dimension"] for c in result["checks"]],
+                result["overall"]["precision"]["mean"])
+    return {**result, "safety": SAFETY}

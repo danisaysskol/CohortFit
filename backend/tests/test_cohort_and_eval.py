@@ -1,11 +1,13 @@
 """Cohort compiler correctness + evaluation harness."""
 from __future__ import annotations
 
+import pytest
+
 from app.cohort import nl
-from app.cohort.compiler import compile_ir
+from app.cohort.compiler import CompileError, compile_ir
 from app.cohort.ir import CohortIR, Criterion
 from app.cohort.nl import _keyword_ir
-from app.eval.inject import run_eval, run_temporal_eval
+from app.eval.inject import run_eval, run_temporal_eval, run_units_eval
 
 GOLD_COHORT = {
     "10003400", "10005817", "10007818", "10010471", "10015931",
@@ -97,18 +99,37 @@ def test_compiler_readmission(db):
     assert isinstance(r["n"], int) and r["n"] >= 0  # admissions self-join compiles + runs
 
 
+def test_nonnumeric_value_raises_compile_error(db):
+    # Regression (S7): a malformed IR value from the LLM path must degrade to a
+    # CompileError (caught -> "clarify"), never an unhandled 500.
+    ir = CohortIR(include=[Criterion(kind="demographic", field="anchor_age", op=">",
+                                     value="elderly", label="bad value")])
+    with pytest.raises(CompileError):
+        compile_ir(db, ir)
+
+
 def test_temporal_eval_recovers_injected_errors(db):
     r = run_temporal_eval(db, n_inject=20, seed=42)
-    assert r["injected"] == 20
+    assert r["injected"] == 20 and r["dimension"] == "temporal"
+    assert r["recall"] == 1.0 and r["precision"] == 1.0
+    assert r["false_positive_rate"] == 0.0
+
+
+def test_units_eval_recovers_injected_errors(db):
+    r = run_units_eval(db, n_inject=20, seed=42)
+    assert r["injected"] == 20 and r["dimension"] == "units"
     assert r["recall"] == 1.0 and r["precision"] == 1.0
     assert r["false_positive_rate"] == 0.0
 
 
 def test_eval_multiseed_and_baseline(db):
     ev = run_eval(db, n_inject=20, seeds=(42, 7, 13))
-    assert len(ev["runs"]) == 3
-    # our gated rule: perfect precision across folds
-    assert ev["aggregate"]["precision"]["mean"] == 1.0
-    # dumb baseline flags everything -> precision far below ours
-    assert ev["baseline"]["precision"] < 0.2
-    assert ev["baseline"]["recall"] == 1.0
+    assert ev["seeds"] == [42, 7, 13]
+    dims = {c["dimension"] for c in ev["checks"]}
+    assert {"temporal", "units"} <= dims          # two injectable dimensions are scored
+    for c in ev["checks"]:
+        assert len(c["runs"]) == 3
+        assert c["aggregate"]["precision"]["mean"] == 1.0      # gated rule: perfect precision
+        assert c["baseline"]["precision"] < 0.2               # dumb baseline flags everything
+        assert c["baseline"]["recall"] == 1.0
+    assert ev["overall"]["precision"]["mean"] == 1.0

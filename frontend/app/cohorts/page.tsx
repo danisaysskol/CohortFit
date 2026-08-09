@@ -337,6 +337,7 @@ export default function CohortsPage() {
 }
 
 function Funnel({ funnel, done }: { funnel: FunnelStep[]; done: boolean }) {
+  const hasNoOp = funnel.some((s, i) => i > 0 && s.delta === 0);
   return (
     <div className="ledger">
       <div className="lh"><span>Criterion</span><span>Source</span><span>Remaining</span><span>Δ</span></div>
@@ -345,9 +346,15 @@ function Funnel({ funnel, done }: { funnel: FunnelStep[]; done: boolean }) {
           <span className="crit">{s.criterion}</span>
           <span className="src">{s.source}</span>
           <span className="n">{s.remaining}</span>
-          <span className={"d" + (s.delta ? "" : " zero")}>{s.delta == null ? "—" : s.delta === 0 ? "0" : s.delta}</span>
+          <span className={"d" + (s.delta ? "" : " zero")}
+                title={s.delta === 0 ? "Removed no one — every remaining patient already met this criterion" : undefined}>
+            {s.delta == null ? "—" : s.delta === 0 ? "0" : s.delta}
+          </span>
         </div>
       ))}
+      {hasNoOp && (
+        <p className="note" style={{ marginTop: 8 }}>A Δ of 0 is expected, not a bug: that criterion removed no one because every remaining patient already met it (e.g. all 100 demo patients have an ICU stay).</p>
+      )}
     </div>
   );
 }

@@ -1,7 +1,6 @@
 """Schema introspection over the DuckDB views.
 
-Powers the Schema Explorer page and gives the cohort layer the list of real
-columns (so an IR can be validated against columns that actually exist).
+Powers the Schema Explorer page (the ER map + the filtered/paginated data explorer).
 """
 from __future__ import annotations
 
@@ -86,11 +85,6 @@ def describe(db: Database) -> list[dict[str, Any]]:
             "fk": keys["fk"],
         })
     return out
-
-
-def column_index(db: Database) -> dict[str, list[str]]:
-    """table -> [columns]. Used to validate IR criteria against real columns."""
-    return {t: [c["column_name"] for c in db.query(f"DESCRIBE {t}")] for t in db.tables()}
 
 
 def sample(db: Database, table: str, limit: int = 25) -> dict[str, Any]:

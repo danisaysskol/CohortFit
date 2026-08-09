@@ -74,22 +74,26 @@ Create a **downloadable PowerPoint (.pptx)** pitch deck for a hackathon project 
 - **Evaluation (honest, reproducible):** cohort-definition correctness — the gold query “ICU
   patients over 65 who died in hospital” returns exactly **9 patients** (funnel 100→44→44→9),
   an exact set match. Data-quality detection via a **seeded error-injection harness** on a
-  read-only copy: on the **temporal check**, **precision 1.00, recall 1.00, FPR 0.00 across 5
-  seeds**. **Be explicit and honest:** those perfect scores cover **one dimension (temporal) —
-  the easy, cleanly-separable case — not all five**; the other four are evidenced by real
-  clickable findings, not injection. Against a naive “flag every row” baseline (precision ≈
-  0.07 at recall 1.0), CohortFit holds precision 1.00 at the same recall — ~**14× the
-  precision**. Reproducibility: the cohort’s IR + SQL + subject_ids export to a re-runnable file.
+  read-only copy scores **two injectable dimensions — temporal integrity and unit
+  consistency** — each at **precision 1.00, recall 1.00, FPR 0.00 across 5 seeds**. **Be
+  explicit and honest:** those perfect scores cover **two dimensions (temporal + units) — the
+  cleanly-separable cases — not all five**; the other three (plausibility, completeness,
+  duplicates) are evidenced by real clickable findings, not injection. Against a naive “flag
+  every row” baseline (precision ≈ 0.073 temporal, ≈ 0.007 units, at recall 1.0), CohortFit
+  holds precision 1.00 at the same recall — ~**14×** the precision on temporal, ~**140×** on
+  units. Reproducibility: a deterministic compiler, a returned `query_hash`, and the cohort’s
+  IR + SQL + subject_ids exported to a re-runnable recipe file.
 - **Safety & responsible AI:** research-only banner on every screen; source provenance + data
   gaps shown; AI-generated text kept visually distinct from source data; **abstention tested**
-  (out-of-scope → declines with a reason); reversible transforms only; licence-aware **data
-  minimization** (schema + aggregates to the LLM by default, never raw patient rows).
+  (out-of-scope → declines with a reason); reversible fix proposals only (never applied);
+  licence-aware **data minimization** — the LLM receives only a schema-describing system prompt
+  plus the user's text, never patient rows, summary statistics, or DDL.
 - **One honest failure/abstention case (show this):** “which patients were admitted in winter”
   → **abstains** (dates are shifted, so seasonality is unknowable). Also: contradictory “under
   12 AND over 65” → **asks to clarify**; “which patient is most likely to die next” →
   **refuses** (prediction is out of scope).
 - **Working product:** full stack runs with **one `docker compose up`** (FastAPI + DuckDB
-  backend, Next.js 14 frontend); 32 automated backend tests pass. Repo:
+  backend, Next.js 14 frontend); 34 automated backend tests pass. Repo:
   **https://github.com/danisaysskol/CohortFit**.
 - **Limitations:** 100 patients is a small, non-representative educational sample — results are
   **illustrative, not clinical evidence**; no fairness/outcome claims.
@@ -115,7 +119,8 @@ Create a **downloadable PowerPoint (.pptx)** pitch deck for a hackathon project 
    rule-backed fixes; source never edited. Call out the real bugs (BP 801 mmHg; MCHC in two
    units; 2,168 mistimed labs). Embed `quality-finding-drill-in.jpg`.
 6. **Evaluation & evidence** — cohort correctness (exact gold set = 9); injected-error P/R
-   **1.00**, FPR **0** on the temporal check **with the honest one-check caveat**; ~**14×**
+   **1.00**, FPR **0** on **two dimensions (temporal + units) with the honest scope caveat**
+   (two of five, the cleanly-separable cases); ~**14×** (temporal) / ~**140×** (units)
    precision vs a dumb baseline; reproducible recipe export. Embed `app-evaluation.jpg`. Use a
    small stat row for the numbers.
 7. **Safety, honesty & an honest failure** — research-only boundary; provenance + uncertainty;

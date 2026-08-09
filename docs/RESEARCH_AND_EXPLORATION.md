@@ -62,7 +62,7 @@ Researcher types plain English
         ▼
   Data-quality rules score fitness (red/amber/green), each flag links to the real row
 ```
-Key safety property: by default the AI sees the **schema (column names) and aggregate summaries**, and only the minimal patient-level detail a task genuinely needs — the brief's *"minimize data sent to external services"* met deliberately (not an over-constraint), which respects the data licence and keeps things reproducible.
+Key safety property: as shipped, the AI sees only a **schema-describing system prompt (a schema description + an itemid reference list) plus the user's text** — no patient rows, no summary statistics, no DDL — the brief's *"minimize data sent to external services"* met deliberately (not an over-constraint), which respects the data licence and keeps things reproducible.
 
 ---
 
@@ -240,7 +240,7 @@ GitHub issues on MIT-LCP/mimic-code: **#941** (lab results trapped in comments; 
 ## D. Model & method decisions (OpenAI-only) — with sources
 
 ### D1. Architecture: NL → validated JSON cohort-IR → compiler → DuckDB SQL
-The LLM **never** writes executable SQL. It emits a constrained **intermediate representation (IR)** JSON; our code validates it against the real schema and **compiles** it to parameterized DuckDB SQL. The IR *is* the inclusion/exclusion logic we render in the UI ("show the query"). We store **IR + compiled SQL + data-hash** so results reproduce exactly even if the model drifts.
+The LLM **never** writes executable SQL. It emits a constrained **intermediate representation (IR)** JSON; our code validates it against the real schema and **compiles** it to parameterized DuckDB SQL. The IR *is* the inclusion/exclusion logic we render in the UI ("show the query"). The compiler is deterministic and each build returns a **`query_hash`** (a digest of the compiled SQL + IR — not a hash of the data, and not persisted server-side); the cohort also exports as a re-runnable **recipe** (IR + SQL + subject_ids), so results reproduce exactly even if the model drifts.
 - Rationale (2025–26 text-to-SQL literature converging on IR + execution-aware validation): survey arXiv:2208.10099; ACL 2025 (aclanthology.org/2025.acl-long.748); DecoSearch arXiv:2606.17821; EzSQL arXiv:2411.18923.
 
 ### D2. OpenAI Structured Outputs (`strict:true`)
@@ -258,8 +258,8 @@ The LLM **never** writes executable SQL. It emits a constrained **intermediate r
 > Tier names came from 2026 pricing aggregators (aipricing.guru, cloudzero, morphllm) — **verify against OpenAI's official pricing/models page before locking in.** Model IDs live in `config` + `.env`.
 
 ### D4. Reproducibility, privacy, cost
-- `temperature:0` + fixed `seed` + pinned snapshot; log `system_fingerprint`. Seed is **best-effort** — the real guarantee is the stored IR + deterministic compiler.
-- **Minimize external data (licence requirement, not zero-rows dogma).** Default payload = NL + schema/DDL + few-shot IR examples + **aggregate DQ summaries** (counts/ranges); send minimal patient-level rows only when a task genuinely needs them, and disclose it. This satisfies the brief's "minimize data sent to external services" without over-constraining what the tool can do. Constant schema prefix → automatic prompt caching (~10% of input rate).
+- **No `temperature` and no `seed` are sent** — gpt-5.6 reasoning models reject a custom temperature; the real guarantee is the deterministic IR→SQL compiler + the returned `query_hash` + the re-runnable recipe (pinned snapshot; `system_fingerprint` can be logged).
+- **Minimize external data (licence requirement, not zero-rows dogma).** As shipped, the payload is only a **schema-describing system prompt** (a schema description + an itemid reference list) + the user's text — **no patient rows, no summary statistics, no DDL**. This satisfies the brief's "minimize data sent to external services" without over-constraining what the tool can do. The constant schema prefix → automatic prompt caching (~10% of input rate).
 - Optional PII guardrail (OpenAI Guardrails, MIT-licensed) as a leakage backstop.
 
 ### D5. Engine: DuckDB + pandas
@@ -269,7 +269,7 @@ DuckDB is embedded, columnar, SQL-native, and deterministic — the natural comp
 ### D6. Cost-effective config — caching, reasoning effort (confirmed pricing)
 User-confirmed GPT-5.6 pricing per 1M tokens: **sol** $5 in / $0.50 cached / $6.25 cache-write / $30 out · **terra** $2 / $0.20 / $2.50 / $12 · **luna** $0.20 / $0.02 / $0.25 / $1.20.
 
-**Prompt caching (automatic/implicit).** Cache-eligible at **≥1,024 tokens**; matched on a **hash of the leading prefix**; **30-min TTL** for GPT-5.6. New this generation: the **first** caching of a prefix bills those tokens as a **cache-write at 1.25× input** (the $6.25/$2.50/$0.25 line); every later call in the window reads at the cheap cached rate. → **Order every prompt [system + schema/DDL + few-shots]** (byte-identical, constant) **then [aggregate summaries + NL text]** (variable, last). Route with a stable `prompt_cache_key` (e.g. `cohortfit:nl2ir:v1`). Verify via `usage.prompt_tokens_details.cached_tokens` / `cache_write_tokens`.
+**Prompt caching (automatic/implicit).** Cache-eligible at **≥1,024 tokens**; matched on a **hash of the leading prefix**; **30-min TTL** for GPT-5.6. New this generation: the **first** caching of a prefix bills those tokens as a **cache-write at 1.25× input** (the $6.25/$2.50/$0.25 line); every later call in the window reads at the cheap cached rate. → **Order every prompt [system prompt: schema description + itemid reference]** (byte-identical, constant) **then [the user's NL text]** (variable, last). Route with a stable `prompt_cache_key` (e.g. `cohortfit:nl2ir:v1`). Verify via `usage.prompt_tokens_details.cached_tokens` / `cache_write_tokens`.
 
 **Reasoning effort.** GPT-5.6 exposes `reasoning.effort` (none/minimal/low/medium/high/xhigh/max) and a separate `text.verbosity`. Reasoning tokens bill at the **output** rate and count against `max_output_tokens`. **Gotcha:** effort too low on a rich schema yields *schema-valid-but-semantically-wrong* IR — so use **`low`** for NL→IR, not `none`.
 
@@ -277,7 +277,7 @@ User-confirmed GPT-5.6 pricing per 1M tokens: **sol** $5 in / $0.50 cached / $6.
 
 | Task | Model | reasoning effort | temp | max out tok | Est. $/call |
 |---|---|---|---|---|---|
-| NL → strict-JSON IR (online) | `gpt-5.6-terra` | `low` | 0 | ~700–1000 | ~$0.006–0.010 |
+| NL → strict-JSON IR (online) | `gpt-5.6-terra` | `low` | none | ~700–1000 | ~$0.006–0.010 |
 | Flag-explanation blurb (online) | `gpt-5.6-luna` | `minimal` + `verbosity:low` | 0.3 | ~150–200 | ~$0.0003 |
 
 **Structured outputs discipline:** strict `json_schema` (`strict:true`, `additionalProperties:false`, all props `required`); handle the `refusal` branch and `incomplete` (truncated-JSON) status; size `max_output_tokens` to cover reasoning + the largest real IR.

@@ -24,7 +24,7 @@
 
 ## Slide 6 — Evaluation & evidence
 
-[~30s] And we measure it honestly. Cohort correctness is an exact set match against a hand-verified gold query. On the temporal check, precision and recall are 1.00 across five seeds — but we're explicit that this is one dimension, the easy one; the other four are evidenced by real clickable findings, not injection. Against a naive flag-everything baseline we hold about 14x the precision at the same recall. And every cohort exports as a re-runnable recipe.
+[~30s] And we measure it honestly. Cohort correctness is an exact set match against a hand-verified gold query. On two injectable dimensions — temporal integrity and unit consistency — precision and recall are 1.00 across five seeds. But we're explicit that these are two of five dimensions, the cleanly-separable ones; the other three are evidenced by real clickable findings, not injection. Against a naive flag-everything baseline we hold about 14x the precision on temporal and 140x on units, at the same recall. And every cohort exports as a re-runnable recipe.
 
 ## Slide 7 — Safety, honesty & an honest failure
 
